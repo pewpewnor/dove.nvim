@@ -152,11 +152,15 @@ describe("source file execution", function()
         assert.same({ "touch hello" }, executed_commands)
     end)
 
-    it("evaluates configured functions, values, and executors", function()
+    it("exposes the configured environment under arbit", function()
         local path = common.path_join(temp_dir, "environment.lua")
         write_source_file(path, {
+            "assert(file_path == nil)",
+            "assert(executors == nil)",
+            'assert(type(arbit.dir_name) == "function")',
+            'assert(type(arbit.executors.bg_silent) == "function")',
             "return {",
-            "    { prefix .. file_path(), executor = executors.capture },",
+            "    { arbit.prefix .. arbit.file_path(), executor = arbit.executors.capture },",
             "}",
         })
         setup(path, {

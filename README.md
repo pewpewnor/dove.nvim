@@ -57,7 +57,7 @@ return {
     {
         "git status --short",
         name = "status",
-        executor = executors.print,
+        executor = arbit.executors.print,
     },
 }
 ```
@@ -77,9 +77,9 @@ return {
     {
         name = "stats for this file",
         cmd = {
-            "wc " .. file_path(),
-            "echo lines: $(wc -l < " .. file_path() .. ")",
-            "echo words: $(wc -w < " .. file_path() .. ")",
+            "wc " .. arbit.file_path(),
+            "echo lines: $(wc -l < " .. arbit.file_path() .. ")",
+            "echo words: $(wc -w < " .. arbit.file_path() .. ")",
         },
     },
 }
@@ -88,12 +88,12 @@ return {
 A source containing only one entry can omit the outer list:
 `return { name = "a", cmd = "touch hello" }`.
 
-Source files can use the configured environment directly:
+Source files can use the configured environment through the `arbit` table:
 
 ```lua
 return {
-    { "go test -run " .. cword() },
-    { "gcc " .. file_path() .. " -o app" },
+    { "go test -run " .. arbit.cword() },
+    { "gcc " .. arbit.file_path() .. " -o app" },
 }
 ```
 
@@ -155,18 +155,22 @@ Resolvers receive the environment and return a path or `nil`. When given a
 list, arbit.nvim uses the first readable path and falls back to the first
 resolved path when creating a file.
 
-The built-in environment contains:
+The built-in source environment contains:
 
-- `executors`
-- `file_path()`, `file_path_relative()`
-- `file_name()`, `file_name_no_extension()`
-- `file_type()`, `file_extension()`
-- `dir_path()`, `dir_name()`
-- `cwd_path()`, `cwd_name()`
-- `config_path()`, `data_path()`, `arbit_data_path()`
-- `cword()`, `cWORD()`, `hash_sha256(value)`
+- `arbit.executors`
+- `arbit.file_path()`, `arbit.file_path_relative()`
+- `arbit.file_name()`, `arbit.file_name_no_extension()`
+- `arbit.file_type()`, `arbit.file_extension()`
+- `arbit.dir_path()`, `arbit.dir_name()`
+- `arbit.cwd_path()`, `arbit.cwd_name()`
+- `arbit.config_path()`, `arbit.data_path()`, `arbit.arbit_data_path()`
+- `arbit.cword()`, `arbit.cWORD()`, `arbit.hash_sha256(value)`
 
 ## Built-in executors
+
+Source files use these through `arbit.executors`, for example
+`executor = arbit.executors.bg_silent`. Plugin configuration uses the public
+`arbit.preset.executors` names shown below.
 
 | Executor | Behavior |
 | -------- | -------- |

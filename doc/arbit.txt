@@ -73,7 +73,7 @@ A source file is a Lua file that returns an entry or a list of entries:
         {
             cmd = "git status --short",
             name = "status",
-            executor = executors.print,
+            executor = arbit.executors.print,
         },
     }
 <
@@ -110,9 +110,9 @@ is the command’s exit status.
         {
             name = "stats for this file",
             cmd = {
-                "wc " .. file_path(),
-                "echo lines: $(wc -l < " .. file_path() .. ")",
-                "echo words: $(wc -w < " .. file_path() .. ")",
+                "wc " .. arbit.file_path(),
+                "echo lines: $(wc -l < " .. arbit.file_path() .. ")",
+                "echo words: $(wc -w < " .. arbit.file_path() .. ")",
             },
         },
     }
@@ -131,21 +131,20 @@ and print a message.
 
 SOURCE ENVIRONMENT ~
 
-Source files run with the configured `environment`. Its keys are available as
-globals inside the file:
+Source files run with the configured `environment`. Its keys are available on
+the `arbit` table inside the file:
 
 >lua
     return {
-        { prefix .. "go test -run " .. cword() },
+        { arbit.prefix .. "go test -run " .. arbit.cword() },
         {
             "git status --short",
-            executor = executors.print,
+            executor = arbit.executors.print,
         },
     }
 <
 
-Normal Lua globals remain available when the configured environment does not
-contain a requested key.
+Normal Lua globals remain available alongside the `arbit` table.
 
 
 IMPORTS ~
@@ -268,8 +267,8 @@ ENVIRONMENT ~
 
 Type: `table`
 
-Values in this table are available directly to source files and to target
-resolvers. Custom values are merged with the built-ins:
+Values in this table are available on the source file’s `arbit` table and
+directly to target resolvers. Custom values are merged with the built-ins:
 
 >lua
     environment = {
@@ -298,46 +297,47 @@ The built-in environment contains:
   -----------------------------------------------------------------------
   Value                            Result
   -------------------------------- --------------------------------------
-  executors                        Built-in executor table
+  arbit.executors                  Built-in executor table
 
-  file_path()                      Escaped absolute buffer path
+  arbit.file_path()                Escaped absolute buffer path
 
-  file_path_relative()             Escaped buffer path relative to the
+  arbit.file_path_relative()       Escaped buffer path relative to the
                                    working directory
 
-  file_name()                      Escaped buffer filename
+  arbit.file_name()                Escaped buffer filename
 
-  file_name_no_extension()         Escaped buffer filename without its
+  arbit.file_name_no_extension()   Escaped buffer filename without its
                                    extension
 
-  file_type()                      Current buffer filetype
+  arbit.file_type()                Current buffer filetype
 
-  file_extension()                 Escaped buffer filename extension
+  arbit.file_extension()           Escaped buffer filename extension
 
-  dir_path()                       Escaped directory containing the
+  arbit.dir_path()                 Escaped directory containing the
                                    buffer
 
-  dir_name()                       Escaped name of the directory
+  arbit.dir_name()                 Escaped name of the directory
                                    containing the buffer
 
-  cwd_path()                       Escaped working-directory path
+  arbit.cwd_path()                 Escaped working-directory path
 
-  cwd_name()                       Escaped working-directory name
+  arbit.cwd_name()                 Escaped working-directory name
 
-  config_path()                    Escaped Neovim config path
+  arbit.config_path()              Escaped Neovim config path
 
-  data_path()                      Escaped Neovim data path
+  arbit.data_path()                Escaped Neovim data path
 
-  arbit_data_path()                Escaped arbit.nvim data path; creates
+  arbit.arbit_data_path()          Escaped arbit.nvim data path; creates
                                    it if needed
 
-  cword()                          Word under the cursor
+  arbit.cword()                    Word under the cursor
 
-  cWORD()                          WORD under the cursor
+  arbit.cWORD()                    WORD under the cursor
 
-  hash_sha256(value)               SHA-256 digest of a string
+  arbit.hash_sha256(value)         SHA-256 digest of a string
   -----------------------------------------------------------------------
-These values are also available through `require("arbit").preset`.
+Outside source files, the built-in values are available through
+`require("arbit").preset`.
 
 
 DISPLAY ~
@@ -368,6 +368,10 @@ Current source entries pass an empty argument list. The second parameter
 remains part of the executor interface.
 
 Built-in executors:
+
+Source files use these through `arbit.executors`, for example `executor =
+arbit.executors.bg_silent`. Plugin configuration uses the public
+`arbit.preset.executors` names shown below.
 
   ---------------------------------------------------------------------------
   Executor                                Behavior

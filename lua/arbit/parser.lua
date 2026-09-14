@@ -51,15 +51,9 @@ local function load_source_file(path, loading)
     end
     loading[path] = true
 
-    local environment = setmetatable({}, {
-        __index = function(_, key)
-            local configured = M.config.environment[key]
-            if configured ~= nil then
-                return configured
-            end
-            return _G[key]
-        end,
-    })
+    local environment = setmetatable({
+        arbit = M.config.environment,
+    }, { __index = _G })
 
     environment.require = function(module_name)
         common.validate("require path", module_name, "string")
@@ -211,9 +205,7 @@ end
 ---@return ProcessedEntry[]?
 function M.parse_source_file(path)
     if not common.is_file_and_readable(path) then
-        print(
-            "arbit.nvim: no source file found, all paths do not exist or unreadable"
-        )
+        print("arbit.nvim: no source file found")
         return nil
     end
     local source = load_source_file(path, {})
