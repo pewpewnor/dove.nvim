@@ -1,5 +1,3 @@
-# arbit.nvim
-
 arbit.nvim runs project and file commands from Lua source files.
 
 It requires Neovim v0.12.x or newer.
@@ -11,11 +9,14 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 ```lua
 {
     "pewpewnor/arbit.nvim",
+    lazy = false,
     opts = {},
 }
 ```
 
 Add `cmd = "Arbit"` to the plugin spec for command-based lazy loading.
+Command-only lazy loading keeps the vimdoc off `runtimepath` until `:Arbit` is
+run once, so use startup loading when browsing help through a picker first.
 
 ## Setup
 
