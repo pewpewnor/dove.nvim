@@ -17,7 +17,8 @@ Use a clear commit prefix when practical:
 
 - `fix:` for bug fixes.
 - `feat:` for features.
-- `docs:` for documentation.
-- `chore:` for maintenance.
+- `test:` for test only changes.
+- `docs:` for documentation only changes.
+- `chore:` for codebase maintenance.
 
 Open an issue or discussion first when a change needs design agreement.
