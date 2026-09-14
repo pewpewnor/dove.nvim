@@ -140,16 +140,27 @@ describe("source file execution", function()
         assert.equals("third", selected[2].command)
     end)
 
-    it("accepts one entry without an outer list", function()
+    it("rejects one entry without an outer list", function()
         local path = common.path_join(temp_dir, "single-entry.lua")
         write_source_file(path, {
             'return { name = "a", cmd = "touch hello" }',
         })
         setup(path)
 
-        arbit.run_target("project")
+        local success, message = pcall(arbit.run_target, "project")
 
-        assert.same({ "touch hello" }, executed_commands)
+        assert.is_false(success)
+        assert.matches("must return a list of entries", message)
+        assert.same({}, executed_commands)
+    end)
+
+    it("accepts an empty source list", function()
+        local path = common.path_join(temp_dir, "empty.lua")
+        write_source_file(path, { "return {}" })
+        setup(path)
+
+        assert.is_true(pcall(arbit.run_target, "project"))
+        assert.same({}, executed_commands)
     end)
 
     it("exposes the configured environment under arbit", function()
@@ -181,7 +192,7 @@ describe("source file execution", function()
     it("flattens source files required from expanded paths", function()
         local imported_path = common.path_join(temp_dir, "shared.lua")
         local path = common.path_join(temp_dir, "project.lua")
-        write_source_file(imported_path, { "return { \"echo imported\" }" })
+        write_source_file(imported_path, { 'return { { "echo imported" } }' })
         write_source_file(path, {
             "return {",
             "    { \"echo local\" },",
@@ -210,7 +221,7 @@ describe("source file execution", function()
     it("resolves relative required paths from the requiring file", function()
         local imported_path = common.path_join(temp_dir, "shared.lua")
         local path = common.path_join(temp_dir, "project.lua")
-        write_source_file(imported_path, { "return { \"echo relative\" }" })
+        write_source_file(imported_path, { 'return { { "echo relative" } }' })
         write_source_file(path, { 'return { require("./shared.lua") }' })
         setup(path)
 
@@ -221,10 +232,10 @@ describe("source file execution", function()
 
     it("reloads files on every run", function()
         local path = common.path_join(temp_dir, "reload.lua")
-        write_source_file(path, { "return { \"echo first\" }" })
+        write_source_file(path, { 'return { { "echo first" } }' })
         setup(path)
         arbit.run_target("project")
-        write_source_file(path, { "return { \"echo second\" }" })
+        write_source_file(path, { 'return { { "echo second" } }' })
 
         arbit.run_target("project")
 
@@ -233,7 +244,7 @@ describe("source file execution", function()
 
     it("loads source files with the bytecode loader enabled", function()
         local path = common.path_join(temp_dir, "loader.lua")
-        write_source_file(path, { "return { \"echo loaded\" }" })
+        write_source_file(path, { 'return { { "echo loaded" } }' })
         setup(path)
         common.enable_loader()
         loader_enabled = true
@@ -245,7 +256,7 @@ describe("source file execution", function()
 
     it("runs the previous task again", function()
         local path = common.path_join(temp_dir, "previous.lua")
-        write_source_file(path, { "return { \"echo previous\" }" })
+        write_source_file(path, { 'return { { "echo previous" } }' })
         setup(path)
         arbit.run_target("project")
 

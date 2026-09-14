@@ -42,7 +42,7 @@ Subcommands and target names support completion. The default targets are
 
 ## Source files
 
-A source file is a Lua file that returns an entry or a list of entries:
+A source file is a Lua file that returns a list of entries:
 
 ```lua
 return {
@@ -86,15 +86,17 @@ return {
 }
 ```
 
-When a source has only one entry, the outer list is optional:
+When a source has only one entry, it must still return a list:
 
 ```lua
-return { name = "a", cmd = "touch hello" }
+return {
+    { name = "a", cmd = "touch hello" },
+}
 ```
 
 When a source contains one entry and `auto_run_single_command` is true, arbit.nvim
-runs it without opening the picker. Empty source files do nothing and print a
-message.
+runs it without opening the picker. Empty source lists do nothing and print a
+message; write an empty source as `return {}`.
 
 ### Source environment
 

@@ -28,10 +28,7 @@ local function find_target(target_name)
     local target = M.config.targets[target_name]
     if not target then
         error(
-            string.format(
-                "arbit.nvim: target '%s' does not exist",
-                target_name
-            )
+            string.format("arbit.nvim: target '%s' does not exist", target_name)
         )
     end
     return target
@@ -61,7 +58,10 @@ function M.edit_source_file(target_name)
     then
         common.write_file(path, {
             "return {",
-            "    { \"echo 'Hello, World!'\", name = \"put name of command here\" },",
+            "   {",
+            '       name = "greetings"',
+            "       cmd = \"echo 'Hello, World!'\"",
+            "   }",
             "}",
         }, "a")
     end

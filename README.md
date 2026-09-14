@@ -48,7 +48,7 @@ support completion.
 ## Source files
 
 Run `:Arbit edit project` to create the source file for the current project. A
-source file returns a command entry or a list of command entries:
+source file returns a list of command entries:
 
 ```lua
 return {
@@ -85,8 +85,15 @@ return {
 }
 ```
 
-A source containing only one entry can omit the outer list:
-`return { name = "a", cmd = "touch hello" }`.
+A source containing only one entry must still return a list:
+
+```lua
+return {
+    { name = "a", cmd = "touch hello" },
+}
+```
+
+An empty source returns `return {}`.
 
 Source files can use the configured environment through the `arbit` table:
 

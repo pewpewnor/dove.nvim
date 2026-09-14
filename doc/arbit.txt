@@ -25,11 +25,14 @@ With lazy.nvim <https://github.com/folke/lazy.nvim>:
 >lua
     {
         "pewpewnor/arbit.nvim",
+        lazy = false,
         opts = {},
     }
 <
 
 Add `cmd = "Arbit"` to the plugin spec for command-based lazy loading.
+Command-only lazy loading keeps the vimdoc off `runtimepath` until `:Arbit` is
+run once, so use startup loading when browsing help through a picker first.
 
 
 SETUP                                                            *arbit-setup*
@@ -64,7 +67,7 @@ Subcommands and target names support completion. The default targets are
 
 SOURCE FILES                                              *arbit-source-files*
 
-A source file is a Lua file that returns an entry or a list of entries:
+A source file is a Lua file that returns a list of entries:
 
 >lua
     return {
@@ -118,15 +121,17 @@ is the command’s exit status.
     }
 <
 
-When a source has only one entry, the outer list is optional:
+When a source has only one entry, it must still return a list:
 
 >lua
-    return { name = "a", cmd = "touch hello" }
+    return {
+        { name = "a", cmd = "touch hello" },
+    }
 <
 
 When a source contains one entry and `auto_run_single_command` is true,
-arbit.nvim runs it without opening the picker. Empty source files do nothing
-and print a message.
+arbit.nvim runs it without opening the picker. Empty source lists do nothing
+and print a message; write an empty source as `return {}`.
 
 
 SOURCE ENVIRONMENT ~

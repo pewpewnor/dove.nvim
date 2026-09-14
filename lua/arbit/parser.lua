@@ -155,25 +155,22 @@ local function parse_entry(item, source_file_path)
     }
 end
 
----@param value table
----@return boolean
-local function is_entry(value)
-    return value.cmd ~= nil
-        or value.name ~= nil
-        or value.executor ~= nil
-        or (type(value[1]) == "string" and value[2] == nil)
-end
-
-local parse_source
-
 ---@param list table
 ---@param source_file_path string
 ---@return ProcessedEntry[]
 local function parse_list(list, source_file_path)
+    if not common.is_list(list) then
+        error(
+            string.format(
+                "arbit.nvim: source file '%s' must return a list of entries",
+                source_file_path
+            )
+        )
+    end
     local entries = {}
     for _, item in ipairs(list) do
         if imported_lists[item] then
-            local imported_entries = parse_source(item, source_file_path)
+            local imported_entries = parse_list(item, source_file_path)
             for _, entry in ipairs(imported_entries) do
                 entries[#entries + 1] = entry
             end
@@ -191,16 +188,6 @@ local function parse_list(list, source_file_path)
     return entries
 end
 
----@param source table
----@param source_file_path string
----@return ProcessedEntry[]
-function parse_source(source, source_file_path)
-    if is_entry(source) then
-        return { parse_entry(source, source_file_path) }
-    end
-    return parse_list(source, source_file_path)
-end
-
 ---@param path string
 ---@return ProcessedEntry[]?
 function M.parse_source_file(path)
@@ -209,7 +196,7 @@ function M.parse_source_file(path)
         return nil
     end
     local source = load_source_file(path, {})
-    return parse_source(source, path)
+    return parse_list(source, path)
 end
 
 return M
