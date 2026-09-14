@@ -1,5 +1,8 @@
 # ▶️ arbit.nvim
 
+![Neovim](https://img.shields.io/badge/Neovim-57A143?logo=neovim&logoColor=white&style=for-the-badge)
+![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
+
 Run project and file commands from Lua source files in Neovim.
 
 _Requirement: Neovim v0.12.x_
@@ -19,16 +22,6 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 ```lua
 {
     "pewpewnor/arbit.nvim",
-    opts = {},
-}
-```
-
-To lazy-load on the command:
-
-```lua
-{
-    "pewpewnor/arbit.nvim",
-    cmd = "Arbit",
     opts = {},
 }
 ```
@@ -89,17 +82,15 @@ A source containing only one entry must still return a list:
 
 ```lua
 return {
-    { name = "a", cmd = "touch hello" },
+    { "ls " .. arbit.dir_path() },
 }
 ```
 
-An empty source returns `return {}`.
-
-Source files can use the configured environment through the `arbit` table:
+Source files can use your configured environment:
 
 ```lua
 return {
-    { "go test -run " .. arbit.cword() },
+    { "go test -run " .. arbit.cword(), name = "run golang tests" },
     { "gcc " .. arbit.file_path() .. " -o app" },
 }
 ```
@@ -127,15 +118,16 @@ Example customization:
 
 ```lua
 local arbit = require("arbit")
+local preset = require("arbit.preset")
 
 arbit.setup({
     targets = {
         project = {
             source = function()
-                return arbit.preset.cwd_path() .. "/.arbit.lua"
+                return preset.cwd_path() .. "/.arbit.lua"
             end,
             auto_run_single_command = true,
-            default_executor = arbit.preset.executors.split,
+            default_executor = preset.executors.split,
         },
     },
     environment = {
@@ -158,37 +150,51 @@ arbit.setup({
 ```
 
 A target's `source` is a resolver function, or a list of resolver functions.
-Resolvers take no arguments and return a path or `nil`. When given a list,
-arbit.nvim uses the first readable path and falls back to the first resolved
-path when creating a file.
+Resolvers receive the effective environment and return a path or `nil`. They
+can also use the built-in values from `require("arbit.preset")`. When given a
+list, arbit.nvim uses the first readable path and falls back to the first
+resolved path when creating a file.
 
 The built-in source environment contains:
 
-- `arbit.executors`
-- `arbit.file_path()`, `arbit.file_path_relative()`
-- `arbit.file_name()`, `arbit.file_name_no_extension()`
-- `arbit.file_type()`, `arbit.file_extension()`
-- `arbit.dir_path()`, `arbit.dir_name()`
-- `arbit.cwd_path()`, `arbit.cwd_name()`
-- `arbit.config_path()`, `arbit.data_path()`, `arbit.arbit_data_path()`
-- `arbit.cword()`, `arbit.cWORD()`, `arbit.hash_sha256(value)`
+| Value | Result |
+| ----- | ------ |
+| `arbit.executors` | Built-in and configured executors |
+| `arbit.file_path()` | Escaped absolute buffer path |
+| `arbit.file_path_relative()` | Escaped buffer path relative to the working directory |
+| `arbit.file_name()` | Escaped buffer filename |
+| `arbit.file_name_no_extension()` | Escaped buffer filename without its extension |
+| `arbit.file_type()` | Current buffer filetype |
+| `arbit.file_extension()` | Escaped buffer filename extension |
+| `arbit.dir_path()` | Escaped directory containing the buffer |
+| `arbit.dir_name()` | Escaped name of the directory containing the buffer |
+| `arbit.cwd_path()` | Escaped working-directory path |
+| `arbit.cwd_name()` | Escaped working-directory name |
+| `arbit.config_path()` | Escaped Neovim config path |
+| `arbit.data_path()` | Escaped Neovim data path |
+| `arbit.arbit_data_path()` | Escaped arbit.nvim data path; creates it if needed |
+| `arbit.cword()` | Word under the cursor |
+| `arbit.cWORD()` | WORD under the cursor |
+| `arbit.hash_sha256(value)` | SHA-256 digest of a string |
+
+The same built-in values are returned by `require("arbit.preset")` for use in
+target configuration.
 
 ## Built-in executors
 
-Source files use these through `arbit.executors`, for example
-`executor = arbit.executors.bg_silent`. Plugin configuration uses the public
-`arbit.preset.executors` names shown below.
+Source files use `arbit.executors`. Plugin configuration gets the same functions
+from `require("arbit.preset").executors`.
 
 | Executor | Behavior |
 | -------- | -------- |
-| `arbit.preset.executors.new_tab` | Terminal in a new tab |
-| `arbit.preset.executors.current_buffer` | Terminal in the current buffer |
-| `arbit.preset.executors.split` | Terminal in a horizontal split |
-| `arbit.preset.executors.vsplit` | Terminal in a vertical split |
-| `arbit.preset.executors.print` | Run synchronously and print output |
-| `arbit.preset.executors.silent` | Run synchronously without output |
-| `arbit.preset.executors.bg_silent` | Run asynchronously without output |
-| `arbit.preset.executors.bg_exit_status` | Run asynchronously and print the exit status |
+| `preset.executors.new_tab` | Terminal in a new tab |
+| `preset.executors.current_buffer` | Terminal in the current buffer |
+| `preset.executors.split` | Terminal in a horizontal split |
+| `preset.executors.vsplit` | Terminal in a vertical split |
+| `preset.executors.print` | Run synchronously and print output |
+| `preset.executors.silent` | Run synchronously without output |
+| `preset.executors.bg_silent` | Run asynchronously without output |
+| `preset.executors.bg_exit_status` | Run asynchronously and print the exit status |
 
 ## Lua API
 

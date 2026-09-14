@@ -168,6 +168,7 @@ describe("source file execution", function()
         write_source_file(path, {
             "assert(file_path == nil)",
             "assert(executors == nil)",
+            "assert(prefix == nil)",
             'assert(type(arbit.dir_name) == "function")',
             'assert(type(arbit.executors.bg_silent) == "function")',
             "return {",
@@ -176,19 +177,18 @@ describe("source file execution", function()
         })
         setup(path, {
             environment = {
-                arbit = {
-                    prefix = "wc ",
-                    file_path = function()
-                        return "custom.lua"
-                    end,
-                    executors = { capture = test_executor },
-                },
+                prefix = "wc ",
+                file_path = function()
+                    return "custom.lua"
+                end,
+                executors = { capture = test_executor },
             },
         })
 
         arbit.run_target("project")
 
         assert.same({ "wc custom.lua" }, executed_commands)
+        assert.is_nil(require("arbit.module").config.environment.require)
     end)
 
     it("flattens source files required from expanded paths", function()

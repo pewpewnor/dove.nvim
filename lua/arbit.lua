@@ -3,15 +3,13 @@ local default = require("arbit.default")
 local module = require("arbit.module")
 local validate_opts = require("arbit.validate_opts")
 
-local M = {
-    preset = default.preset,
-}
+local M = {}
 
 ---@param options table?
 function M.setup(options)
-    local config = common.tbl_deep_extend("force", default.opts, options or {})
+    common.validate("options", options, { "table", "nil" })
+    local config = default.create(options)
     validate_opts(config)
-    default.init(config)
     module.init(config)
 end
 

@@ -9,7 +9,7 @@ end
 ---@param resolver PathResolver
 ---@return string|nil
 local function resolve_path(resolver)
-    local raw_path = resolver()
+    local raw_path = resolver(M.config.environment)
     if raw_path == nil then
         return nil
     end

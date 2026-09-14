@@ -136,38 +136,38 @@ place. Circular source imports are rejected.
 
 ### Defaults
 
-The effective defaults are equivalent to:
+The user-configurable defaults are equivalent to:
 
 ```lua
-local arbit = require("arbit")
+local preset = require("arbit.preset")
 
 {
     targets = {
         project = {
-            source = function()
+            source = function(environment)
                 return vim.fs.joinpath(
-                    arbit.preset.arbit_data_path(),
+                    environment.arbit_data_path(),
                     "projects",
-                    arbit.preset.hash_sha256(arbit.preset.cwd_path()) .. ".lua"
+                    environment.hash_sha256(environment.cwd_path()) .. ".lua"
                 )
             end,
             auto_run_single_command = true,
-            default_executor = arbit.preset.executors.new_tab,
+            default_executor = preset.executors.new_tab,
         },
         filetype = {
-            source = function()
+            source = function(environment)
                 return vim.fs.joinpath(
-                    arbit.preset.arbit_data_path(),
+                    environment.arbit_data_path(),
                     "filetypes",
-                    arbit.preset.file_type() .. ".lua"
+                    environment.file_type() .. ".lua"
                 )
             end,
             auto_run_single_command = true,
-            default_executor = arbit.preset.executors.new_tab,
+            default_executor = preset.executors.new_tab,
         },
     },
     write_template_to_new_source_file = true,
-    environment = arbit.preset,
+    environment = {},
     display = {
         numbered = true,
         last_entry_new_line = false,
@@ -175,8 +175,8 @@ local arbit = require("arbit")
 }
 ```
 
-This snippet describes the values; it is not copied verbatim from the
-implementation. User options are deeply merged into these defaults.
+The built-in environment is added automatically, then user options are deeply
+merged into these defaults.
 
 ### `targets`
 
@@ -190,11 +190,21 @@ Each target has:
 | `auto_run_single_command` | boolean | Skips the picker for one entry |
 | `default_executor` | function | Runs entries without their own executor |
 
-A source resolver takes no arguments and returns a path or `nil`:
+A source resolver receives the effective environment and returns a path or
+`nil`. Built-in environment values are also returned by
+`require("arbit.preset")`:
 
 ```lua
 source = function()
-    return arbit.preset.cwd_path() .. "/.arbit.lua"
+    return preset.cwd_path() .. "/.arbit.lua"
+end
+```
+
+Using the argument lets a resolver honor configured environment overrides:
+
+```lua
+source = function(environment)
+    return environment.cwd_path() .. "/.arbit.lua"
 end
 ```
 
@@ -204,10 +214,10 @@ readable, it uses the first non-`nil` path so `:Arbit edit` can create it.
 ```lua
 source = {
     function()
-        return arbit.preset.cwd_path() .. "/.arbit.lua"
+        return preset.cwd_path() .. "/.arbit.lua"
     end,
     function()
-        return arbit.preset.config_path() .. "/arbit/fallback.lua"
+        return preset.config_path() .. "/arbit/fallback.lua"
     end,
 }
 ```
@@ -270,8 +280,8 @@ The built-in environment contains:
 | `arbit.cWORD()` | WORD under the cursor |
 | `arbit.hash_sha256(value)` | SHA-256 digest of a string |
 
-Outside source files, the built-in values are available through
-`require("arbit").preset`.
+Outside source files, the built-in values are returned by
+`require("arbit.preset")`.
 
 ### `display`
 
@@ -295,20 +305,19 @@ part of the executor interface.
 
 Built-in executors:
 
-Source files use these through `arbit.executors`, for example
-`executor = arbit.executors.bg_silent`. Plugin configuration uses the public
-`arbit.preset.executors` names shown below.
+Source files use `arbit.executors`. Plugin configuration gets the same functions
+from `require("arbit.preset").executors`.
 
 | Executor | Behavior |
 | -------- | -------- |
-| `arbit.preset.executors.new_tab` | Opens a terminal in a new tab |
-| `arbit.preset.executors.current_buffer` | Opens a terminal in the current buffer |
-| `arbit.preset.executors.split` | Opens a terminal in a horizontal split |
-| `arbit.preset.executors.vsplit` | Opens a terminal in a vertical split |
-| `arbit.preset.executors.print` | Runs synchronously and prints stdout |
-| `arbit.preset.executors.silent` | Runs synchronously without output |
-| `arbit.preset.executors.bg_silent` | Runs asynchronously without output |
-| `arbit.preset.executors.bg_exit_status` | Runs asynchronously and prints success or failure |
+| `preset.executors.new_tab` | Opens a terminal in a new tab |
+| `preset.executors.current_buffer` | Opens a terminal in the current buffer |
+| `preset.executors.split` | Opens a terminal in a horizontal split |
+| `preset.executors.vsplit` | Opens a terminal in a vertical split |
+| `preset.executors.print` | Runs synchronously and prints stdout |
+| `preset.executors.silent` | Runs synchronously without output |
+| `preset.executors.bg_silent` | Runs asynchronously without output |
+| `preset.executors.bg_exit_status` | Runs asynchronously and prints success or failure |
 
 ## Lua API
 
@@ -322,7 +331,8 @@ All public functions are returned by `require("arbit")`:
 | `edit_source_file(target_name)` | Open a target source file |
 | `delete_source_file(target_name)` | Delete a target source file |
 
-The module also exposes the built-in environment as `arbit.preset`.
+The built-in source environment is returned by `require("arbit.preset")` for use
+in plugin configuration.
 
 ## Health check
 
