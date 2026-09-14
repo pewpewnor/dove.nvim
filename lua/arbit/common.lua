@@ -33,6 +33,11 @@ function M.create_namespace(name)
     return vim.api.nvim_create_namespace(name)
 end
 
+---@param buffer integer
+function M.disable_diagnostics(buffer)
+    vim.diagnostic.enable(false, { bufnr = buffer })
+end
+
 ---@param command string
 function M.cmd(command)
     vim.cmd(command)
@@ -97,6 +102,20 @@ end
 ---@return integer
 function M.get_buffer_changedtick(buffer)
     return vim.api.nvim_buf_get_changedtick(buffer)
+end
+
+---@param buffer integer
+---@param name string
+---@return any
+function M.get_buffer_option(buffer, name)
+    return vim.api.nvim_get_option_value(name, { buf = buffer })
+end
+
+---@param buffer integer
+---@param name string
+---@return any
+function M.get_buffer_variable(buffer, name)
+    return vim.api.nvim_buf_get_var(buffer, name)
 end
 
 ---@return integer
@@ -228,6 +247,22 @@ end
 ---@return boolean
 function M.is_window_valid(window)
     return vim.api.nvim_win_is_valid(window)
+end
+
+---@param buffer integer
+---@param client_id integer
+function M.lsp_detach_client(buffer, client_id)
+    vim.lsp.buf_detach_client(buffer, client_id)
+end
+
+---@param buffer integer
+---@return integer[]
+function M.lsp_get_client_ids(buffer)
+    local client_ids = {}
+    for _, client in ipairs(vim.lsp.get_clients({ bufnr = buffer })) do
+        client_ids[#client_ids + 1] = client["id"]
+    end
+    return client_ids
 end
 
 ---@param path string
@@ -362,6 +397,13 @@ end
 ---@param value any
 function M.set_buffer_option(buffer, name, value)
     vim.api.nvim_set_option_value(name, value, { buf = buffer })
+end
+
+---@param buffer integer
+---@param name string
+---@param value any
+function M.set_buffer_variable(buffer, name, value)
+    vim.api.nvim_buf_set_var(buffer, name, value)
 end
 
 ---@param lines string[]

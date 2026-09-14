@@ -21,7 +21,7 @@ describe("built-in picker", function()
     end)
 
     it("opens a centered minimum-height fuzzy picker", function()
-        local chosen = false
+        local chosen
         picker({ "1. alpha", "2. beta", "3. gamma" }, {
             prompt = "Choose",
         }, function(item, index)
@@ -29,6 +29,7 @@ describe("built-in picker", function()
         end)
 
         local window = common.get_current_window()
+        local buffer = common.get_current_buffer()
         local config = common.get_window_config(window)
         assert.equals("editor", config.relative)
         assert.equals(12, config.height)
@@ -38,6 +39,16 @@ describe("built-in picker", function()
             config.col
         )
         assert.same({ 1, 2 }, common.get_window_cursor(window))
+        assert.equals("nofile", common.get_buffer_option(buffer, "buftype"))
+        assert.is_false(common.get_buffer_option(buffer, "autocomplete"))
+        assert.equals("", common.get_buffer_option(buffer, "filetype"))
+        assert.equals("", common.get_buffer_option(buffer, "complete"))
+        assert.equals("", common.get_buffer_option(buffer, "completefunc"))
+        assert.equals("", common.get_buffer_option(buffer, "formatexpr"))
+        assert.equals("", common.get_buffer_option(buffer, "omnifunc"))
+        assert.equals("", common.get_buffer_option(buffer, "tagfunc"))
+        assert.is_false(common.get_buffer_variable(buffer, "cmp_enabled"))
+        assert.is_false(common.get_buffer_variable(buffer, "completion"))
 
         common.feedkeys("<Down>", "x")
         common.cmd("doautocmd <nomodeline> TextChangedI")

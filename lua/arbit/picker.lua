@@ -4,6 +4,18 @@ local minimum_height = 12
 local minimum_width = 70
 local namespace = common.create_namespace("arbit.picker")
 
+local function disable_completion_plugins()
+    local blink = package.loaded["blink.cmp"]
+    if blink and blink.hide then
+        blink.hide()
+    end
+    local cmp = package.loaded.cmp
+    if cmp then
+        cmp.setup.buffer({ enabled = false })
+        cmp.close()
+    end
+end
+
 ---@param label string
 ---@param query string
 ---@return integer?
@@ -105,8 +117,17 @@ local function picker(items, opts, on_choice)
         math.min(math.max(minimum_width, content_width + 4), available_width)
     local prompt = (opts.prompt or "Select one of"):gsub("[\r\n]+", " ")
     local buffer = common.create_buffer(false, true)
+    common.set_buffer_option(buffer, "autocomplete", false)
     common.set_buffer_option(buffer, "bufhidden", "wipe")
-    common.set_buffer_option(buffer, "filetype", "arbit-select")
+    common.set_buffer_option(buffer, "buftype", "nofile")
+    common.set_buffer_option(buffer, "complete", "")
+    common.set_buffer_option(buffer, "completefunc", "")
+    common.set_buffer_option(buffer, "formatexpr", "")
+    common.set_buffer_option(buffer, "omnifunc", "")
+    common.set_buffer_option(buffer, "tagfunc", "")
+    common.set_buffer_variable(buffer, "cmp_enabled", false)
+    common.set_buffer_variable(buffer, "completion", false)
+    common.disable_diagnostics(buffer)
 
     local window = common.open_window(buffer, true, {
         relative = "editor",
@@ -264,6 +285,19 @@ local function picker(items, opts, on_choice)
             end
         end,
     })
+    common.create_autocmd("LspAttach", {
+        buffer = buffer,
+        callback = function(event)
+            common.lsp_detach_client(buffer, event.data.client_id)
+        end,
+    })
+    for _, client_id in ipairs(common.lsp_get_client_ids(buffer)) do
+        common.lsp_detach_client(buffer, client_id)
+    end
+    common.create_autocmd("InsertEnter", {
+        buffer = buffer,
+        callback = disable_completion_plugins,
+    })
     common.create_autocmd({ "TextChanged", "TextChangedI" }, {
         buffer = buffer,
         callback = function()
@@ -305,6 +339,7 @@ local function picker(items, opts, on_choice)
 
     render()
     common.set_window_cursor(window, { 1, 1 })
+    disable_completion_plugins()
     common.cmd("startinsert!")
 end
 
