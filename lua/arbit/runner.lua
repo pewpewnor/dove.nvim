@@ -9,7 +9,6 @@
 ---@field executor Executor
 ---@field args string[]
 
-local common = require("arbit.common")
 local parser = require("arbit.parser")
 
 local M = {}
@@ -61,18 +60,14 @@ function M.select_and_run_entry(target)
         return run_entry(entries[1], target.default_executor)
     end
 
-    if M.config.display.numbered then
-        for i, entry in ipairs(entries) do
-            entries[i].name = i .. ". " .. entry.name
-        end
+    local entry_indices = {}
+    for index, entry in ipairs(entries) do
+        entry_indices[entry] = index
     end
-    if M.config.display.last_entry_new_line then
-        entries[#entries].name = entries[#entries].name .. "\n"
-    end
-    common.ui_select(entries, {
-        prompt = string.format("Run a '%s' command", target.name),
+    M.config.picker(entries, {
+        prompt = string.format("Arbit: run target = '%s'", target.name),
         format_item = function(entry)
-            return entry.name
+            return entry_indices[entry] .. ". " .. entry.name
         end,
     }, function(chosen_entry)
         if chosen_entry then

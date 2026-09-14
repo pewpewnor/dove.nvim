@@ -142,12 +142,16 @@ arbit.setup({
             end,
         },
     },
-    display = {
-        numbered = false,
-        last_entry_new_line = false,
-    },
+    picker = vim.ui.select,
 })
 ```
+
+By default, arbit.nvim uses a dependency-free picker in a centered floating
+window. Type in its first line to fuzzy-filter numbered entries; surrounding
+spaces are ignored. Move with `<C-n>` and `<C-p>` (or the arrow keys), confirm
+with `<CR>`, and cancel with `<Esc>`.
+Set `picker` to any function with the same signature as `vim.ui.select` to
+use another picker.
 
 A target's `source` is a resolver function, or a list of resolver functions.
 Resolvers receive the effective environment and return a path or `nil`. They

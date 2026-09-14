@@ -1,5 +1,5 @@
 *arbit.txt*     Run project and file commands from Lua source files in Neovim.
-                            For NVIM v0.12.0    Last change: 2026 September 14
+                            For NVIM v0.12.0    Last change: 2026 September 15
 
 ==============================================================================
 Table of Contents                                    *arbit-table-of-contents*
@@ -175,47 +175,44 @@ CONFIGURATION OPTIONS                            *arbit-configuration-options*
 
 DEFAULTS ~
 
-The effective defaults are equivalent to:
+The user-configurable defaults are equivalent to:
 
 >lua
-    local arbit = require("arbit")
+    local preset = require("arbit.preset")
     
     {
         targets = {
             project = {
-                source = function()
+                source = function(environment)
                     return vim.fs.joinpath(
-                        arbit.preset.arbit_data_path(),
+                        environment.arbit_data_path(),
                         "projects",
-                        arbit.preset.hash_sha256(arbit.preset.cwd_path()) .. ".lua"
+                        environment.hash_sha256(environment.cwd_path()) .. ".lua"
                     )
                 end,
                 auto_run_single_command = true,
-                default_executor = arbit.preset.executors.new_tab,
+                default_executor = preset.executors.new_tab,
             },
             filetype = {
-                source = function()
+                source = function(environment)
                     return vim.fs.joinpath(
-                        arbit.preset.arbit_data_path(),
+                        environment.arbit_data_path(),
                         "filetypes",
-                        arbit.preset.file_type() .. ".lua"
+                        environment.file_type() .. ".lua"
                     )
                 end,
                 auto_run_single_command = true,
-                default_executor = arbit.preset.executors.new_tab,
+                default_executor = preset.executors.new_tab,
             },
         },
         write_template_to_new_source_file = true,
-        environment = arbit.preset,
-        display = {
-            numbered = true,
-            last_entry_new_line = false,
-        },
+        environment = {},
+        picker = <built-in picker>,
     }
 <
 
-This snippet describes the values; it is not copied verbatim from the
-implementation. User options are deeply merged into these defaults.
+The built-in environment is added automatically, then user options are deeply
+merged into these defaults.
 
 
 TARGETS ~
@@ -236,11 +233,21 @@ Each target has:
   default_executor          function         Runs entries without their
                                              own executor
   ------------------------------------------------------------------------
-A source resolver takes no arguments and returns a path or `nil`:
+A source resolver receives the effective environment and returns a path or
+`nil`. Built-in environment values are also returned by
+`require("arbit.preset")`:
 
 >lua
     source = function()
-        return arbit.preset.cwd_path() .. "/.arbit.lua"
+        return preset.cwd_path() .. "/.arbit.lua"
+    end
+<
+
+Using the argument lets a resolver honor configured environment overrides:
+
+>lua
+    source = function(environment)
+        return environment.cwd_path() .. "/.arbit.lua"
     end
 <
 
@@ -250,10 +257,10 @@ readable, it uses the first non-`nil` path so `:Arbit edit` can create it.
 >lua
     source = {
         function()
-            return arbit.preset.cwd_path() .. "/.arbit.lua"
+            return preset.cwd_path() .. "/.arbit.lua"
         end,
         function()
-            return arbit.preset.config_path() .. "/arbit/fallback.lua"
+            return preset.config_path() .. "/arbit/fallback.lua"
         end,
     }
 <
@@ -340,23 +347,30 @@ The built-in environment contains:
 
   arbit.hash_sha256(value)         SHA-256 digest of a string
   -----------------------------------------------------------------------
-Outside source files, the built-in values are available through
-`require("arbit").preset`.
+Outside source files, the built-in values are returned by
+`require("arbit.preset")`.
 
 
-DISPLAY ~
+PICKER ~
 
-  ---------------------------------------------------------------------------
-  Option                Type        Default              Meaning
-  --------------------- ----------- -------------------- --------------------
-  numbered              boolean     true                 Prefix picker
-                                                         entries with their
-                                                         number
+Type: `function`
 
-  last_entry_new_line   boolean     false                Append a newline to
-                                                         the last picker
-                                                         label
-  ---------------------------------------------------------------------------
+The default is a dependency-free fuzzy picker in a centered floating window.
+Its first line is an editable search query, followed by a margin and numbered
+matching entries. Leading and trailing search spaces are ignored. Use `<C-n>`,
+`<C-j>`, `<Down>`, or `<Tab>` for the next entry; `<C-p>`, `<C-k>`, `<Up>`, or
+`<S-Tab>` for the previous entry; `<CR>` or `<C-y>` to choose; and `<Esc>` or
+`<C-c>` to cancel.
+
+The function receives `items`, `opts`, and `on_choice`, following the
+`vim.ui.select` signature. To use the configured Neovim selector instead:
+
+>lua
+    require("arbit").setup({
+        picker = vim.ui.select,
+    })
+<
+
 
 EXECUTORS                                                    *arbit-executors*
 
@@ -373,34 +387,33 @@ remains part of the executor interface.
 
 Built-in executors:
 
-Source files use these through `arbit.executors`, for example `executor =
-arbit.executors.bg_silent`. Plugin configuration uses the public
-`arbit.preset.executors` names shown below.
+Source files use `arbit.executors`. Plugin configuration gets the same
+functions from `require("arbit.preset").executors`.
 
-  ---------------------------------------------------------------------------
-  Executor                                Behavior
-  --------------------------------------- -----------------------------------
-  arbit.preset.executors.new_tab          Opens a terminal in a new tab
+  -----------------------------------------------------------------------
+  Executor                            Behavior
+  ----------------------------------- -----------------------------------
+  preset.executors.new_tab            Opens a terminal in a new tab
 
-  arbit.preset.executors.current_buffer   Opens a terminal in the current
-                                          buffer
+  preset.executors.current_buffer     Opens a terminal in the current
+                                      buffer
 
-  arbit.preset.executors.split            Opens a terminal in a horizontal
-                                          split
+  preset.executors.split              Opens a terminal in a horizontal
+                                      split
 
-  arbit.preset.executors.vsplit           Opens a terminal in a vertical
-                                          split
+  preset.executors.vsplit             Opens a terminal in a vertical
+                                      split
 
-  arbit.preset.executors.print            Runs synchronously and prints
-                                          stdout
+  preset.executors.print              Runs synchronously and prints
+                                      stdout
 
-  arbit.preset.executors.silent           Runs synchronously without output
+  preset.executors.silent             Runs synchronously without output
 
-  arbit.preset.executors.bg_silent        Runs asynchronously without output
+  preset.executors.bg_silent          Runs asynchronously without output
 
-  arbit.preset.executors.bg_exit_status   Runs asynchronously and prints
-                                          success or failure
-  ---------------------------------------------------------------------------
+  preset.executors.bg_exit_status     Runs asynchronously and prints
+                                      success or failure
+  -----------------------------------------------------------------------
 
 LUA API                                                        *arbit-lua-api*
 
@@ -413,7 +426,8 @@ All public functions are returned by `require("arbit")`:
   run_prev_task()                   Repeat the last executed task
   edit_source_file(target_name)     Open a target source file
   delete_source_file(target_name)   Delete a target source file
-The module also exposes the built-in environment as `arbit.preset`.
+The built-in source environment is returned by `require("arbit.preset")` for
+use in plugin configuration.
 
 
 HEALTH CHECK                                              *arbit-health-check*

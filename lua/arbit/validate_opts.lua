@@ -35,16 +35,7 @@ local function validate_opts(options)
         options.write_template_to_new_source_file,
         "boolean"
     )
-    common.validate(
-        "options.display.numbered",
-        options.display.numbered,
-        "boolean"
-    )
-    common.validate(
-        "options.display.last_entry_new_line",
-        options.display.last_entry_new_line,
-        "boolean"
-    )
+    common.validate("options.picker", options.picker, "function")
     common.validate("options.targets", options.targets, "table")
     fill_and_validate_targets(options.targets)
 end

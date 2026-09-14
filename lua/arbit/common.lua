@@ -1,5 +1,38 @@
 local M = {}
 
+---@param buffer integer
+---@param namespace integer
+---@param line_start integer
+---@param line_end integer
+function M.clear_buffer_namespace(buffer, namespace, line_start, line_end)
+    vim.api.nvim_buf_clear_namespace(buffer, namespace, line_start, line_end)
+end
+
+---@param window integer
+---@param force boolean
+function M.close_window(window, force)
+    vim.api.nvim_win_close(window, force)
+end
+
+---@param events string|string[]
+---@param opts table
+function M.create_autocmd(events, opts)
+    vim.api.nvim_create_autocmd(events, opts)
+end
+
+---@param listed boolean
+---@param scratch boolean
+---@return integer
+function M.create_buffer(listed, scratch)
+    return vim.api.nvim_create_buf(listed, scratch)
+end
+
+---@param name string
+---@return integer
+function M.create_namespace(name)
+    return vim.api.nvim_create_namespace(name)
+end
+
 ---@param command string
 function M.cmd(command)
     vim.cmd(command)
@@ -37,14 +70,70 @@ function M.fnamemodify(path, modifier)
     return vim.fn.fnamemodify(path, modifier)
 end
 
+---@param keys string
+---@param mode string
+function M.feedkeys(keys, mode)
+    vim.api.nvim_feedkeys(
+        vim.api.nvim_replace_termcodes(keys, true, false, true),
+        mode,
+        false
+    )
+end
+
 ---@return string
 function M.get_cwd()
     return vim.fn.getcwd()
 end
 
+---@param buffer integer
+---@param line_start integer
+---@param line_end integer
+---@return string[]
+function M.get_buffer_lines(buffer, line_start, line_end)
+    return vim.api.nvim_buf_get_lines(buffer, line_start, line_end, false)
+end
+
+---@param buffer integer
+---@return integer
+function M.get_buffer_changedtick(buffer)
+    return vim.api.nvim_buf_get_changedtick(buffer)
+end
+
+---@return integer
+function M.get_columns()
+    return vim.o.columns
+end
+
+---@return integer
+function M.get_current_buffer()
+    return vim.api.nvim_get_current_buf()
+end
+
+---@return integer
+function M.get_current_window()
+    return vim.api.nvim_get_current_win()
+end
+
+---@param window integer
+---@return [integer, integer]
+function M.get_window_cursor(window)
+    return vim.api.nvim_win_get_cursor(window)
+end
+
+---@param window integer
+---@return table
+function M.get_window_config(window)
+    return vim.api.nvim_win_get_config(window)
+end
+
 ---@return string
 function M.get_filetype()
     return vim.bo.filetype
+end
+
+---@return integer
+function M.get_lines()
+    return vim.o.lines
 end
 
 ---@return string
@@ -129,6 +218,18 @@ function M.is_list(value)
     return vim.islist(value)
 end
 
+---@param buffer integer
+---@return boolean
+function M.is_buffer_valid(buffer)
+    return vim.api.nvim_buf_is_valid(buffer)
+end
+
+---@param window integer
+---@return boolean
+function M.is_window_valid(window)
+    return vim.api.nvim_win_is_valid(window)
+end
+
 ---@param path string
 ---@param environment table
 ---@return function?, string?
@@ -176,6 +277,14 @@ function M.path_remove_recursive(path)
     vim.fs.rm(path, { force = true, recursive = true })
 end
 
+---@param buffer integer
+---@param enter boolean
+---@param config table
+---@return integer
+function M.open_window(buffer, enter, config)
+    return vim.api.nvim_open_win(buffer, enter, config)
+end
+
 ---@param path string
 ---@return string?
 function M.read_file(path)
@@ -220,6 +329,41 @@ function M.search(pattern)
     return vim.fn.search(pattern)
 end
 
+---@param buffer integer
+---@param line_start integer
+---@param line_end integer
+---@param lines string[]
+function M.set_buffer_lines(buffer, line_start, line_end, lines)
+    vim.api.nvim_buf_set_lines(buffer, line_start, line_end, false, lines)
+end
+
+---@param buffer integer
+---@param namespace integer
+---@param line integer
+---@param column integer
+---@param opts table
+function M.set_buffer_extmark(buffer, namespace, line, column, opts)
+    vim.api.nvim_buf_set_extmark(buffer, namespace, line, column, opts)
+end
+
+---@param buffer integer
+---@param mode string|string[]
+---@param lhs string
+---@param rhs string|function
+---@param opts table?
+function M.set_buffer_keymap(buffer, mode, lhs, rhs, opts)
+    opts = opts or {}
+    opts.buffer = buffer
+    vim.keymap.set(mode, lhs, rhs, opts)
+end
+
+---@param buffer integer
+---@param name string
+---@param value any
+function M.set_buffer_option(buffer, name, value)
+    vim.api.nvim_set_option_value(name, value, { buf = buffer })
+end
+
 ---@param lines string[]
 function M.set_current_buffer_lines(lines)
     vim.api.nvim_buf_set_lines(0, 0, -1, false, lines)
@@ -235,6 +379,25 @@ function M.set_filetype(filetype)
     vim.bo.filetype = filetype
 end
 
+---@param window integer
+---@param position [integer, integer]
+function M.set_window_cursor(window, position)
+    vim.api.nvim_win_set_cursor(window, position)
+end
+
+---@param window integer
+---@param name string
+---@param value any
+function M.set_window_option(window, name, value)
+    vim.api.nvim_set_option_value(name, value, { win = window })
+end
+
+---@param text string
+---@return integer
+function M.str_display_width(text)
+    return vim.fn.strdisplaywidth(text)
+end
+
 ---@param ... any
 ---@return table
 function M.tbl_deep_extend(...)
@@ -245,13 +408,6 @@ end
 ---@return string
 function M.trim(str)
     return vim.trim(str)
-end
-
----@param items any[]
----@param opts table
----@param on_choice fun(item: any?)
-function M.ui_select(items, opts, on_choice)
-    vim.ui.select(items, opts, on_choice)
 end
 
 ---@param name string

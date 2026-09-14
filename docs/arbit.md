@@ -168,10 +168,7 @@ local preset = require("arbit.preset")
     },
     write_template_to_new_source_file = true,
     environment = {},
-    display = {
-        numbered = true,
-        last_entry_new_line = false,
-    },
+    picker = <built-in picker>,
 }
 ```
 
@@ -283,12 +280,25 @@ The built-in environment contains:
 Outside source files, the built-in values are returned by
 `require("arbit.preset")`.
 
-### `display`
+### `picker`
 
-| Option | Type | Default | Meaning |
-| ------ | ---- | ------- | ------- |
-| `numbered` | boolean | `true` | Prefix picker entries with their number |
-| `last_entry_new_line` | boolean | `false` | Append a newline to the last picker label |
+Type: `function`
+
+The default is a dependency-free fuzzy picker in a centered floating window.
+Its first line is an editable search query, followed by a margin and numbered
+matching entries. Leading and trailing search spaces are ignored. Use `<C-n>`,
+`<C-j>`, `<Down>`, or `<Tab>` for the next entry; `<C-p>`, `<C-k>`, `<Up>`, or
+`<S-Tab>` for the previous entry; `<CR>` or `<C-y>` to choose; and `<Esc>` or
+`<C-c>` to cancel.
+
+The function receives `items`, `opts`, and `on_choice`, following the
+`vim.ui.select` signature. To use the configured Neovim selector instead:
+
+```lua
+require("arbit").setup({
+    picker = vim.ui.select,
+})
+```
 
 ## Executors
 

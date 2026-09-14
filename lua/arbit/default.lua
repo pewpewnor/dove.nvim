@@ -17,15 +17,13 @@
 ---@field executors Executors
 ---@field [string] any
 
----@class Display
----@field numbered boolean
----@field last_entry_new_line boolean
+---@alias Picker fun(items: any[], opts: table, on_choice: fun(item: any?, index: integer?))
 
 ---@class Config
 ---@field targets Targets
 ---@field write_template_to_new_source_file boolean
 ---@field environment Environment
----@field display Display
+---@field picker Picker
 
 ---@class MinimumTarget
 ---@field source PathResolver|PathResolver[]
@@ -71,10 +69,7 @@ function M.create(options)
         },
         write_template_to_new_source_file = true,
         environment = common.tbl_deep_extend("force", {}, preset),
-        display = {
-            numbered = true,
-            last_entry_new_line = false,
-        },
+        picker = require("arbit.picker"),
     }, options or {})
 end
 

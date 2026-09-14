@@ -6,10 +6,10 @@ local common = require("arbit.common")
 describe("source file execution", function()
     local executed_commands
     local temp_dir
-    local original_ui_select
     local original_cmd
     local original_expand
     local loader_enabled
+    local picker
 
     local function test_executor(command)
         executed_commands[#executed_commands + 1] = command
@@ -28,6 +28,10 @@ describe("source file execution", function()
         options = options or {}
         local auto_run_single_command = options.auto_run_single_command ~= false
         options.auto_run_single_command = nil
+        options.picker = options.picker
+            or function(...)
+                return picker(...)
+            end
         options.targets = {
             project = {
                 source = function()
@@ -43,14 +47,13 @@ describe("source file execution", function()
     before_each(function()
         executed_commands = {}
         loader_enabled = false
+        picker = function(items, _, on_choice)
+            on_choice(items[1], 1)
+        end
         temp_dir = common.get_tempname()
         common.mkdir_with_parents(temp_dir)
-        original_ui_select = common.ui_select
         original_cmd = common.cmd
         original_expand = common.expand
-        set_common("ui_select", function(items, _, on_choice)
-            on_choice(items[1])
-        end)
         set_common("cmd", function() end)
     end)
 
@@ -58,7 +61,6 @@ describe("source file execution", function()
         if loader_enabled then
             common.enable_loader(false)
         end
-        set_common("ui_select", original_ui_select)
         set_common("cmd", original_cmd)
         set_common("expand", original_expand)
         common.path_remove_recursive(temp_dir)
@@ -80,9 +82,9 @@ describe("source file execution", function()
         assert.equals("touch hello", executed_commands[1])
 
         local selected
-        set_common("ui_select", function(items)
+        picker = function(items)
             selected = items
-        end)
+        end
         arbit.run_target("project")
         assert.equals("echo first", selected[2].command)
         assert.equals("a", selected[2].name:match("a$"))
@@ -131,13 +133,41 @@ describe("source file execution", function()
         assert.equals("first; second", executed_commands[1])
 
         local selected
-        set_common("ui_select", function(items)
+        picker = function(items)
             selected = items
-        end)
+        end
         arbit.run_target("project")
 
         assert.equals(2, #selected)
         assert.equals("third", selected[2].command)
+    end)
+
+    it("uses the configured picker", function()
+        local path = common.path_join(temp_dir, "selection-ui.lua")
+        write_source_file(path, {
+            "return {",
+            '    { "echo first" },',
+            '    { "echo second" },',
+            "}",
+        })
+        local received_prompt
+        local received_labels
+        setup(path, {
+            auto_run_single_command = false,
+            picker = function(items, opts, on_choice)
+                received_prompt = opts.prompt
+                received_labels = {
+                    opts.format_item(items[1]),
+                    opts.format_item(items[2]),
+                }
+                on_choice(items[2], 2)
+            end,
+        })
+
+        arbit.run_target("project")
+
+        assert.same({ "1. echo first", "2. echo second" }, received_labels)
+        assert.same({ "echo second" }, executed_commands)
     end)
 
     it("rejects one entry without an outer list", function()
@@ -210,14 +240,14 @@ describe("source file execution", function()
         setup(path, { auto_run_single_command = false })
 
         local selected
-        set_common("ui_select", function(items)
+        picker = function(items)
             selected = items
-        end)
+        end
         arbit.run_target("project")
 
         assert.equals(2, #selected)
-        assert.equals("1. echo local", selected[1].name)
-        assert.equals("2. echo imported", selected[2].name)
+        assert.equals("echo local", selected[1].name)
+        assert.equals("echo imported", selected[2].name)
     end)
 
     it("resolves relative required paths from the requiring file", function()
