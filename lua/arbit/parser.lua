@@ -1,0 +1,223 @@
+---@class RawEntry
+---@field [1] string?
+---@field cmd string|string[]?
+---@field name string?
+---@field executor Executor?
+
+---@class ProcessedEntry
+---@field name string
+---@field command string
+---@field executor Executor?
+
+local common = require("arbit.common")
+
+local M = {}
+
+---@param config Config
+function M.init(config)
+    M.config = config
+end
+
+local imported_lists = setmetatable({}, { __mode = "k" })
+
+---@param module_name string
+---@return boolean
+local function is_file_module(module_name)
+    return module_name:sub(1, 1) == "/"
+        or module_name:sub(1, 1) == "~"
+        or module_name:sub(1, 2) == "./"
+        or module_name:sub(1, 3) == "../"
+        or module_name:sub(-4) == ".lua"
+end
+
+---@param path string
+---@param parent_path string?
+---@return string
+local function resolve_import_path(path, parent_path)
+    local expanded = common.expand(path)
+    if expanded:sub(1, 1) ~= "/" and parent_path then
+        expanded = common.path_join(common.dirname(parent_path), expanded)
+    end
+    return common.path_normalize(expanded)
+end
+
+---@param path string
+---@param loading table<string, boolean>
+---@return table
+local function load_source_file(path, loading)
+    path = common.path_normalize(common.expand(path))
+    if loading[path] then
+        error(string.format("arbit.nvim: circular require of '%s'", path))
+    end
+    loading[path] = true
+
+    local environment = setmetatable({}, {
+        __index = function(_, key)
+            local configured = M.config.environment[key]
+            if configured ~= nil then
+                return configured
+            end
+            return _G[key]
+        end,
+    })
+
+    environment.require = function(module_name)
+        common.validate("require path", module_name, "string")
+        if not is_file_module(module_name) then
+            return require(module_name)
+        end
+        local imported_path = resolve_import_path(module_name, path)
+        local imported = load_source_file(imported_path, loading)
+        imported_lists[imported] = true
+        return imported
+    end
+
+    local chunk, load_error = common.load_source_file(path, environment)
+    if not chunk then
+        loading[path] = nil
+        error(
+            string.format(
+                "arbit.nvim: cannot load source file '%s': %s",
+                path,
+                load_error
+            )
+        )
+    end
+
+    local success, result = pcall(chunk)
+    loading[path] = nil
+    if not success then
+        error(
+            string.format(
+                "arbit.nvim: error evaluating source file '%s': %s",
+                path,
+                result
+            )
+        )
+    end
+    if type(result) ~= "table" then
+        error(
+            string.format(
+                "arbit.nvim: source file '%s' must return a table",
+                path
+            )
+        )
+    end
+    return result
+end
+
+---@param command string|string[]?
+---@param source_file_path string
+---@return string
+local function normalize_command(command, source_file_path)
+    common.validate("entry command", command, { "string", "table" })
+    ---@cast command string|string[]
+    if type(command) == "string" then
+        return command
+    end
+    if not common.is_list(command) then
+        error(
+            string.format(
+                "arbit.nvim: entry command must be a list in '%s'",
+                source_file_path
+            )
+        )
+    end
+    if #command == 0 then
+        error(
+            string.format(
+                "arbit.nvim: entry command list cannot be empty in '%s'",
+                source_file_path
+            )
+        )
+    end
+    local commands = {}
+    for index, item in ipairs(command) do
+        common.validate("entry command " .. index, item, "string")
+        commands[index] = item
+    end
+    return table.concat(commands, "; ")
+end
+
+---@param item RawEntry
+---@param source_file_path string
+---@return ProcessedEntry
+local function parse_entry(item, source_file_path)
+    if item[1] ~= nil and item.cmd ~= nil then
+        error(
+            string.format(
+                "arbit.nvim: entry cannot have both a positional command and 'cmd' in '%s'",
+                source_file_path
+            )
+        )
+    end
+    local command = normalize_command(item[1] or item.cmd, source_file_path)
+    common.validate("entry name", item.name, { "string", "nil" })
+    common.validate("entry executor", item.executor, { "function", "nil" })
+    return {
+        name = item.name or command,
+        command = command,
+        executor = item.executor,
+    }
+end
+
+---@param value table
+---@return boolean
+local function is_entry(value)
+    return value.cmd ~= nil
+        or value.name ~= nil
+        or value.executor ~= nil
+        or (type(value[1]) == "string" and value[2] == nil)
+end
+
+local parse_source
+
+---@param list table
+---@param source_file_path string
+---@return ProcessedEntry[]
+local function parse_list(list, source_file_path)
+    local entries = {}
+    for _, item in ipairs(list) do
+        if imported_lists[item] then
+            local imported_entries = parse_source(item, source_file_path)
+            for _, entry in ipairs(imported_entries) do
+                entries[#entries + 1] = entry
+            end
+        elseif type(item) == "table" then
+            entries[#entries + 1] = parse_entry(item, source_file_path)
+        else
+            error(
+                string.format(
+                    "arbit.nvim: each entry must be a table in '%s'",
+                    source_file_path
+                )
+            )
+        end
+    end
+    return entries
+end
+
+---@param source table
+---@param source_file_path string
+---@return ProcessedEntry[]
+function parse_source(source, source_file_path)
+    if is_entry(source) then
+        return { parse_entry(source, source_file_path) }
+    end
+    return parse_list(source, source_file_path)
+end
+
+---@param path string
+---@return ProcessedEntry[]?
+function M.parse_source_file(path)
+    if not common.is_file_and_readable(path) then
+        print(
+            "arbit.nvim: no source file found, all paths do not exist or unreadable"
+        )
+        return nil
+    end
+    local source = load_source_file(path, {})
+    return parse_source(source, path)
+end
+
+return M

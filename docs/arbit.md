@@ -1,0 +1,335 @@
+# arbit.nvim
+
+arbit.nvim runs project and file commands from Lua source files.
+
+It requires Neovim v0.12.x or newer.
+
+## Installation
+
+With [lazy.nvim](https://github.com/folke/lazy.nvim):
+
+```lua
+{
+    "pewpewnor/arbit.nvim",
+    opts = {},
+}
+```
+
+Add `cmd = "Arbit"` to the plugin spec for command-based lazy loading.
+
+## Setup
+
+```lua
+require("arbit").setup()
+```
+
+`setup()` accepts an options table and deeply merges it into the defaults.
+
+## Commands
+
+arbit.nvim defines one user command with four subcommands:
+
+| Command | Action |
+| ------- | ------ |
+| `:Arbit run {target}` | Read the target's source file and run an entry |
+| `:Arbit prev` | Repeat the last command |
+| `:Arbit edit {target}` | Open the target's source file in a new tab |
+| `:Arbit delete {target}` | Delete the target's source file |
+
+Subcommands and target names support completion. The default targets are
+`project` and `filetype`.
+
+## Source files
+
+A source file is a Lua file that returns an entry or a list of entries:
+
+```lua
+return {
+    { "make test" },
+    { name = "build & run", cmd = "make build && make run" },
+    {
+        cmd = "git status --short",
+        name = "status",
+        executor = executors.print,
+    },
+}
+```
+
+Every entry must be a table with a command in `[1]` or `cmd`.
+
+| Field | Type | Required | Meaning |
+| ----- | ---- | -------- | ------- |
+| `[1]` | string | One command field | Positional command |
+| `cmd` | string or list of strings | One command field | Named command |
+| `name` | string | No | Picker label; defaults to the command |
+| `executor` | function | No | Overrides the target's default executor |
+
+Do not set both `[1]` and `cmd`.
+
+When `cmd` is a list, arbit.nvim joins its items with semicolons and sends the
+result to the executor once. The commands therefore run sequentially in the
+same shell session, so state such as variables and the working directory
+carries between items. Every item is attempted, and the final item's status is
+the command's exit status.
+
+```lua
+return {
+    {
+        name = "stats for this file",
+        cmd = {
+            "wc " .. file_path(),
+            "echo lines: $(wc -l < " .. file_path() .. ")",
+            "echo words: $(wc -w < " .. file_path() .. ")",
+        },
+    },
+}
+```
+
+When a source has only one entry, the outer list is optional:
+
+```lua
+return { name = "a", cmd = "touch hello" }
+```
+
+When a source contains one entry and `auto_run_single_command` is true, arbit.nvim
+runs it without opening the picker. Empty source files do nothing and print a
+message.
+
+### Source environment
+
+Source files run with the configured `environment`. Its keys are available as
+globals inside the file:
+
+```lua
+return {
+    { prefix .. "go test -run " .. cword() },
+    {
+        "git status --short",
+        executor = executors.print,
+    },
+}
+```
+
+Normal Lua globals remain available when the configured environment does not
+contain a requested key.
+
+### Imports
+
+Use `require()` to include another source list:
+
+```lua
+return {
+    require("./shared.lua"),
+    require("~/commands/common.lua"),
+    { "make test" },
+}
+```
+
+Paths beginning with `/`, `~/`, `./`, or `../`, and names ending in `.lua`, are
+loaded as source files. Relative paths are resolved from the importing file.
+Other names use Lua's normal `require()`. Imported source lists are flattened in
+place. Circular source imports are rejected.
+
+## Configuration options
+
+### Defaults
+
+The effective defaults are equivalent to:
+
+```lua
+local arbit = require("arbit")
+
+{
+    targets = {
+        project = {
+            source = function(environment)
+                return vim.fs.joinpath(
+                    environment.arbit_data_path(),
+                    "projects",
+                    environment.hash_sha256(environment.cwd_path()) .. ".lua"
+                )
+            end,
+            auto_run_single_command = true,
+            default_executor = arbit.preset.executors.new_tab,
+        },
+        filetype = {
+            source = function(environment)
+                return vim.fs.joinpath(
+                    environment.arbit_data_path(),
+                    "filetypes",
+                    environment.file_type() .. ".lua"
+                )
+            end,
+            auto_run_single_command = true,
+            default_executor = arbit.preset.executors.new_tab,
+        },
+    },
+    write_template_to_new_source_file = true,
+    environment = arbit.preset,
+    display = {
+        numbered = true,
+        last_entry_new_line = false,
+    },
+}
+```
+
+This snippet describes the values; it is not copied verbatim from the
+implementation. User options are deeply merged into these defaults.
+
+### `targets`
+
+Type: `table<string, Target>`
+
+Each target has:
+
+| Option | Type | Meaning |
+| ------ | ---- | ------- |
+| `source` | function or list of functions | Resolves the source-file path |
+| `auto_run_single_command` | boolean | Skips the picker for one entry |
+| `default_executor` | function | Runs entries without their own executor |
+
+A source resolver receives the effective environment and returns a path or
+`nil`:
+
+```lua
+source = function(environment)
+    return environment.cwd_path() .. "/.arbit.lua"
+end
+```
+
+For a list of resolvers, arbit.nvim uses the first readable path. If none are
+readable, it uses the first non-`nil` path so `:Arbit edit` can create it.
+
+```lua
+source = {
+    function(environment)
+        return environment.cwd_path() .. "/.arbit.lua"
+    end,
+    function(environment)
+        return environment.config_path() .. "/arbit/fallback.lua"
+    end,
+}
+```
+
+### `write_template_to_new_source_file`
+
+Type: `boolean`
+
+When true, `:Arbit edit` writes a small template before opening a missing source
+file. The default is true.
+
+### `environment`
+
+Type: `table`
+
+Values in this table are available directly to source files and to target
+resolvers. Custom values are merged with the built-ins:
+
+```lua
+environment = {
+    prefix = "env DEBUG=1 ",
+    branch = function()
+        local result = vim.system(
+            { "git", "branch", "--show-current" },
+            { text = true }
+        ):wait()
+        return result.stdout:gsub("%s+$", "")
+    end,
+    executors = {
+        capture = function(command)
+            vim.system(
+                { vim.o.shell, vim.o.shellcmdflag, command },
+                { text = true },
+                function(result) vim.notify(result.stdout) end
+            )
+        end,
+    },
+}
+```
+
+The built-in environment contains:
+
+| Value | Result |
+| ----- | ------ |
+| `executors` | Built-in executor table |
+| `file_path()` | Escaped absolute buffer path |
+| `file_path_relative()` | Escaped buffer path relative to the working directory |
+| `file_name()` | Escaped buffer filename |
+| `file_name_no_extension()` | Escaped buffer filename without its extension |
+| `file_type()` | Current buffer filetype |
+| `file_extension()` | Escaped buffer filename extension |
+| `dir_path()` | Escaped directory containing the buffer |
+| `dir_name()` | Escaped name of the directory containing the buffer |
+| `cwd_path()` | Escaped working-directory path |
+| `cwd_name()` | Escaped working-directory name |
+| `config_path()` | Escaped Neovim config path |
+| `data_path()` | Escaped Neovim data path |
+| `arbit_data_path()` | Escaped arbit.nvim data path; creates it if needed |
+| `cword()` | Word under the cursor |
+| `cWORD()` | WORD under the cursor |
+| `hash_sha256(value)` | SHA-256 digest of a string |
+
+These values are also available through `require("arbit").preset`.
+
+### `display`
+
+| Option | Type | Default | Meaning |
+| ------ | ---- | ------- | ------- |
+| `numbered` | boolean | `true` | Prefix picker entries with their number |
+| `last_entry_new_line` | boolean | `false` | Append a newline to the last picker label |
+
+## Executors
+
+An executor receives the command and an optional argument list:
+
+```lua
+local function executor(command, args)
+    vim.system({ vim.o.shell, vim.o.shellcmdflag, command })
+end
+```
+
+Current source entries pass an empty argument list. The second parameter remains
+part of the executor interface.
+
+Built-in executors:
+
+| Executor | Behavior |
+| -------- | -------- |
+| `arbit.preset.executors.new_tab` | Opens a terminal in a new tab |
+| `arbit.preset.executors.current_buffer` | Opens a terminal in the current buffer |
+| `arbit.preset.executors.split` | Opens a terminal in a horizontal split |
+| `arbit.preset.executors.vsplit` | Opens a terminal in a vertical split |
+| `arbit.preset.executors.print` | Runs synchronously and prints stdout |
+| `arbit.preset.executors.silent` | Runs synchronously without output |
+| `arbit.preset.executors.bg_silent` | Runs asynchronously without output |
+| `arbit.preset.executors.bg_exit_status` | Runs asynchronously and prints success or failure |
+
+## Lua API
+
+All public functions are returned by `require("arbit")`:
+
+| Function | Meaning |
+| -------- | ------- |
+| `setup(options?)` | Configure and initialize the plugin |
+| `run_target(target_name)` | Run an entry from a target |
+| `run_prev_task()` | Repeat the last executed task |
+| `edit_source_file(target_name)` | Open a target source file |
+| `delete_source_file(target_name)` | Delete a target source file |
+
+The module also exposes the built-in environment as `arbit.preset`.
+
+## Health check
+
+Run:
+
+```vim
+:checkhealth arbit
+```
+
+The check reports the Neovim version, shell, setup state, source paths, and
+configured executors.
+
+## Links
+
+- [Repository](https://github.com/pewpewnor/arbit.nvim)
+- [Contributing](../CONTRIBUTING.md)

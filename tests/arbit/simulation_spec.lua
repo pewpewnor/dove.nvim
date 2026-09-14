@@ -1,0 +1,283 @@
+---@diagnostic disable: undefined-field
+
+local arbit = require("arbit")
+local common = require("arbit.common")
+
+describe("source file execution", function()
+    local executed_commands
+    local temp_dir
+    local original_ui_select
+    local original_cmd
+    local original_expand
+    local loader_enabled
+
+    local function test_executor(command)
+        executed_commands[#executed_commands + 1] = command
+    end
+
+    local function write_source_file(path, lines)
+        common.mkdir_with_parents(common.dirname(path))
+        assert.is_true(common.write_file(path, lines))
+    end
+
+    local function set_common(name, value)
+        rawset(common, name, value)
+    end
+
+    local function setup(path, options)
+        options = options or {}
+        local auto_run_single_command = options.auto_run_single_command ~= false
+        options.auto_run_single_command = nil
+        options.targets = {
+            project = {
+                source = function()
+                    return path
+                end,
+                auto_run_single_command = auto_run_single_command,
+                default_executor = test_executor,
+            },
+        }
+        arbit.setup(options)
+    end
+
+    before_each(function()
+        executed_commands = {}
+        loader_enabled = false
+        temp_dir = common.get_tempname()
+        common.mkdir_with_parents(temp_dir)
+        original_ui_select = common.ui_select
+        original_cmd = common.cmd
+        original_expand = common.expand
+        set_common("ui_select", function(items, _, on_choice)
+            on_choice(items[1])
+        end)
+        set_common("cmd", function() end)
+    end)
+
+    after_each(function()
+        if loader_enabled then
+            common.enable_loader(false)
+        end
+        set_common("ui_select", original_ui_select)
+        set_common("cmd", original_cmd)
+        set_common("expand", original_expand)
+        common.path_remove_recursive(temp_dir)
+    end)
+
+    it("runs named and positional command tables", function()
+        local path = common.path_join(temp_dir, "project.lua")
+        write_source_file(path, {
+            "return {",
+            "    { \"touch hello\" },",
+            "    { name = \"a\", cmd = \"echo first\" },",
+            "    { \"echo second\", name = \"b\" },",
+            "}",
+        })
+        setup(path, { auto_run_single_command = false })
+
+        arbit.run_target("project")
+
+        assert.equals("touch hello", executed_commands[1])
+
+        local selected
+        set_common("ui_select", function(items)
+            selected = items
+        end)
+        arbit.run_target("project")
+        assert.equals("echo first", selected[2].command)
+        assert.equals("a", selected[2].name:match("a$"))
+        assert.equals("echo second", selected[3].command)
+    end)
+
+    it("rejects string entries", function()
+        local path = common.path_join(temp_dir, "string-entry.lua")
+        write_source_file(path, {
+            "return {",
+            '    { cmd = "echo valid" },',
+            '    "echo invalid",',
+            "}",
+        })
+        setup(path, { auto_run_single_command = false })
+
+        local success, message = pcall(arbit.run_target, "project")
+
+        assert.is_false(success)
+        assert.matches("each entry must be a table", message)
+        assert.same({}, executed_commands)
+    end)
+
+    it("runs a command list in one shell", function()
+        local path = common.path_join(temp_dir, "command-list.lua")
+        write_source_file(path, {
+            "return {",
+            "    {",
+            '        name = "steps",',
+            "        cmd = {",
+            '            "first",',
+            '            "second",',
+            "        },",
+            "    },",
+            "    {",
+            '        name = "single",',
+            '        cmd = "third",',
+            "    },",
+            "}",
+        })
+        setup(path, { auto_run_single_command = false })
+
+        arbit.run_target("project")
+
+        assert.equals(1, #executed_commands)
+        assert.equals("first; second", executed_commands[1])
+
+        local selected
+        set_common("ui_select", function(items)
+            selected = items
+        end)
+        arbit.run_target("project")
+
+        assert.equals(2, #selected)
+        assert.equals("third", selected[2].command)
+    end)
+
+    it("accepts one entry without an outer list", function()
+        local path = common.path_join(temp_dir, "single-entry.lua")
+        write_source_file(path, {
+            'return { name = "a", cmd = "touch hello" }',
+        })
+        setup(path)
+
+        arbit.run_target("project")
+
+        assert.same({ "touch hello" }, executed_commands)
+    end)
+
+    it("evaluates configured functions, values, and executors", function()
+        local path = common.path_join(temp_dir, "environment.lua")
+        write_source_file(path, {
+            "return {",
+            "    { prefix .. file_path(), executor = executors.capture },",
+            "}",
+        })
+        setup(path, {
+            environment = {
+                prefix = "wc ",
+                file_path = function()
+                    return "custom.lua"
+                end,
+                executors = { capture = test_executor },
+            },
+        })
+
+        arbit.run_target("project")
+
+        assert.same({ "wc custom.lua" }, executed_commands)
+    end)
+
+    it("flattens source files required from expanded paths", function()
+        local imported_path = common.path_join(temp_dir, "shared.lua")
+        local path = common.path_join(temp_dir, "project.lua")
+        write_source_file(imported_path, { "return { \"echo imported\" }" })
+        write_source_file(path, {
+            "return {",
+            "    { \"echo local\" },",
+            '    require("~/template.lua"),',
+            "}",
+        })
+        set_common("expand", function(value)
+            if value == "~/template.lua" then
+                return imported_path
+            end
+            return original_expand(value)
+        end)
+        setup(path, { auto_run_single_command = false })
+
+        local selected
+        set_common("ui_select", function(items)
+            selected = items
+        end)
+        arbit.run_target("project")
+
+        assert.equals(2, #selected)
+        assert.equals("1. echo local", selected[1].name)
+        assert.equals("2. echo imported", selected[2].name)
+    end)
+
+    it("resolves relative required paths from the requiring file", function()
+        local imported_path = common.path_join(temp_dir, "shared.lua")
+        local path = common.path_join(temp_dir, "project.lua")
+        write_source_file(imported_path, { "return { \"echo relative\" }" })
+        write_source_file(path, { 'return { require("./shared.lua") }' })
+        setup(path)
+
+        arbit.run_target("project")
+
+        assert.same({ "echo relative" }, executed_commands)
+    end)
+
+    it("reloads files on every run", function()
+        local path = common.path_join(temp_dir, "reload.lua")
+        write_source_file(path, { "return { \"echo first\" }" })
+        setup(path)
+        arbit.run_target("project")
+        write_source_file(path, { "return { \"echo second\" }" })
+
+        arbit.run_target("project")
+
+        assert.same({ "echo first", "echo second" }, executed_commands)
+    end)
+
+    it("loads source files with the bytecode loader enabled", function()
+        local path = common.path_join(temp_dir, "loader.lua")
+        write_source_file(path, { "return { \"echo loaded\" }" })
+        setup(path)
+        common.enable_loader()
+        loader_enabled = true
+
+        arbit.run_target("project")
+
+        assert.same({ "echo loaded" }, executed_commands)
+    end)
+
+    it("runs the previous task again", function()
+        local path = common.path_join(temp_dir, "previous.lua")
+        write_source_file(path, { "return { \"echo previous\" }" })
+        setup(path)
+        arbit.run_target("project")
+
+        arbit.run_prev_task()
+
+        assert.same({ "echo previous", "echo previous" }, executed_commands)
+    end)
+
+    it("creates a template when editing a missing source file", function()
+        local path = common.path_join(temp_dir, "nested", "new.lua")
+        setup(path)
+
+        arbit.edit_source_file("project")
+
+        assert.is_true(common.is_file_and_readable(path))
+        assert.matches("^return {", common.read_file(path))
+    end)
+
+    it("deletes a target's source file", function()
+        local path = common.path_join(temp_dir, "delete.lua")
+        write_source_file(path, { "return {}" })
+        setup(path)
+
+        arbit.delete_source_file("project")
+
+        assert.is_false(common.is_file_and_readable(path))
+    end)
+
+    it("rejects files that do not return a table", function()
+        local path = common.path_join(temp_dir, "invalid.lua")
+        write_source_file(path, { 'return "invalid"' })
+        setup(path)
+
+        local success, message = pcall(arbit.run_target, "project")
+
+        assert.is_false(success)
+        assert.matches("must return a table", message)
+    end)
+end)

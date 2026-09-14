@@ -1,0 +1,31 @@
+---@diagnostic disable: undefined-field
+
+local arbit = require("arbit")
+local default = require("arbit.default")
+local module = require("arbit.module")
+local pilot = require("pilot")
+
+describe("setup", function()
+    it("works without options", function()
+        assert.is_true(pcall(arbit.setup))
+    end)
+
+    it("provides the built-in targets and executors", function()
+        arbit.setup()
+
+        assert.same({ "filetype", "project" }, module.get_target_names())
+        assert.is_function(arbit.preset.executors.new_tab)
+        assert.is_function(arbit.preset.executors.vsplit)
+        assert.is_function(arbit.preset.file_path)
+        assert.is_nil(arbit.preset_executors)
+        assert.is_function(arbit.run_prev_task)
+        assert.is_function(arbit.edit_source_file)
+        assert.is_function(arbit.delete_source_file)
+        assert.is_nil(arbit.run_previous_task)
+        assert.is_nil(arbit.edit_lua_file)
+        assert.is_nil(arbit.delete_lua_file)
+        assert.is_table(default.opts)
+        assert.equals(arbit, pilot)
+        assert.is_function(pilot.preset.executors.bg_silent)
+    end)
+end)
