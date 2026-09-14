@@ -68,9 +68,9 @@ describe("source file execution", function()
         local path = common.path_join(temp_dir, "project.lua")
         write_source_file(path, {
             "return {",
-            "    { \"touch hello\" },",
-            "    { name = \"a\", cmd = \"echo first\" },",
-            "    { \"echo second\", name = \"b\" },",
+            '    { "touch hello" },',
+            '    { name = "a", cmd = "echo first" },',
+            '    { "echo second", name = "b" },',
             "}",
         })
         setup(path, { auto_run_single_command = false })
@@ -195,7 +195,7 @@ describe("source file execution", function()
         write_source_file(imported_path, { 'return { { "echo imported" } }' })
         write_source_file(path, {
             "return {",
-            "    { \"echo local\" },",
+            '    { "echo local" },',
             '    require("~/template.lua"),',
             "}",
         })

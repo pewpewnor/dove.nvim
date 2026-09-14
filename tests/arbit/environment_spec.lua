@@ -58,27 +58,29 @@ describe("environment", function()
         assert.is_function(environment.executors.vsplit)
     end)
 
-    it("uses overridden environment values in default target sources", function()
-        arbit.setup({
-            environment = {
-                arbit_data_path = function()
-                    return "/tmp/arbit-test"
-                end,
-                cwd_path = function()
-                    return "cwd"
-                end,
-                hash_sha256 = function(value)
-                    return "hash-" .. value
-                end,
-            },
-        })
+    it(
+        "uses overridden environment values in default target sources",
+        function()
+            arbit.setup({
+                environment = {
+                    arbit_data_path = function()
+                        return "/tmp/arbit-test"
+                    end,
+                    cwd_path = function()
+                        return "cwd"
+                    end,
+                    hash_sha256 = function(value)
+                        return "hash-" .. value
+                    end,
+                },
+            })
 
-        local path = pathfinder.get_true_path(
-            module.config.targets.project.source
-        )
-        assert.equals(
-            common.path_normalize("/tmp/arbit-test/projects/hash-cwd.lua"),
-            path
-        )
-    end)
+            local path =
+                pathfinder.get_true_path(module.config.targets.project.source)
+            assert.equals(
+                common.path_normalize("/tmp/arbit-test/projects/hash-cwd.lua"),
+                path
+            )
+        end
+    )
 end)

@@ -9,11 +9,7 @@ local M = {
 
 ---@param options table?
 function M.setup(options)
-    local config = common.tbl_deep_extend(
-        "force",
-        default.opts,
-        options or {}
-    )
+    local config = common.tbl_deep_extend("force", default.opts, options or {})
     validate_opts(config)
     module.init(config)
 end

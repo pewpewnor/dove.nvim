@@ -13,11 +13,7 @@ local function resolve_path(resolver)
     if raw_path == nil then
         return nil
     end
-    common.validate(
-        "source resolver return value",
-        raw_path,
-        "string"
-    )
+    common.validate("source resolver return value", raw_path, "string")
     return common.path_normalize(common.expand(raw_path))
 end
 
