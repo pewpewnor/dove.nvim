@@ -51,9 +51,7 @@ local function load_source_file(path, loading)
     end
     loading[path] = true
 
-    local environment = setmetatable({
-        arbit = M.config.environment,
-    }, { __index = _G })
+    local environment = setmetatable(M.config.environment, { __index = _G })
 
     environment.require = function(module_name)
         common.validate("require path", module_name, "string")

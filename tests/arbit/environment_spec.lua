@@ -8,7 +8,7 @@ local pathfinder = require("arbit.pathfinder")
 describe("environment", function()
     it("contains all default values", function()
         arbit.setup()
-        local environment = module.config.environment
+        local environment_arbit = module.config.environment.arbit
 
         local expected_functions = {
             "file_path",
@@ -29,13 +29,13 @@ describe("environment", function()
             "hash_sha256",
         }
         for _, name in ipairs(expected_functions) do
-            assert.is_function(environment[name])
-            assert.equals(arbit.preset[name], environment[name])
+            assert.is_function(environment_arbit[name])
+            assert.equals(arbit.preset[name], environment_arbit[name])
         end
-        assert.is_function(environment.executors.vsplit)
+        assert.is_function(environment_arbit.executors.vsplit)
         assert.equals(
             arbit.preset.executors.vsplit,
-            environment.executors.vsplit
+            environment_arbit.executors.vsplit
         )
     end)
 
@@ -43,19 +43,21 @@ describe("environment", function()
         local custom_executor = function() end
         arbit.setup({
             environment = {
-                file_path = function()
-                    return "overridden"
-                end,
-                my_var = "lol",
-                executors = { custom = custom_executor },
+                arbit = {
+                    file_path = function()
+                        return "overridden"
+                    end,
+                    my_var = "lol",
+                    executors = { custom = custom_executor },
+                },
             },
         })
 
-        local environment = module.config.environment
-        assert.equals("overridden", environment.file_path())
-        assert.equals("lol", environment.my_var)
-        assert.equals(custom_executor, environment.executors.custom)
-        assert.is_function(environment.executors.vsplit)
+        local environment_arbit = module.config.environment.arbit
+        assert.equals("overridden", environment_arbit.file_path())
+        assert.equals("lol", environment_arbit.my_var)
+        assert.equals(custom_executor, environment_arbit.executors.custom)
+        assert.is_function(environment_arbit.executors.vsplit)
     end)
 
     it(
@@ -63,15 +65,17 @@ describe("environment", function()
         function()
             arbit.setup({
                 environment = {
-                    arbit_data_path = function()
-                        return "/tmp/arbit-test"
-                    end,
-                    cwd_path = function()
-                        return "cwd"
-                    end,
-                    hash_sha256 = function(value)
-                        return "hash-" .. value
-                    end,
+                    arbit = {
+                        arbit_data_path = function()
+                            return "/tmp/arbit-test"
+                        end,
+                        cwd_path = function()
+                            return "cwd"
+                        end,
+                        hash_sha256 = function(value)
+                            return "hash-" .. value
+                        end,
+                    },
                 },
             })
 
@@ -83,4 +87,22 @@ describe("environment", function()
             )
         end
     )
+
+    it("calls target source resolvers without arguments", function()
+        local argument_count
+        arbit.setup({
+            targets = {
+                project = {
+                    source = function(...)
+                        argument_count = select("#", ...)
+                        return "/tmp/arbit-test/project.lua"
+                    end,
+                },
+            },
+        })
+
+        pathfinder.get_true_path(module.config.targets.project.source)
+
+        assert.equals(0, argument_count)
+    end)
 end)

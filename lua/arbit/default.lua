@@ -1,4 +1,4 @@
----@alias PathResolver fun(environment: Environment): string?
+---@alias PathResolver fun(): string?
 
 ---@alias Executor fun(command: string, args: string[]?)
 
@@ -13,9 +13,12 @@
 ---@class Targets
 ---@field [string] Target
 
----@class Environment
+---@class EnvironmentArbit
 ---@field executors Executors
 ---@field [string] any
+
+---@class Environment
+---@field arbit EnvironmentArbit
 
 ---@class Display
 ---@field numbered boolean
@@ -34,7 +37,12 @@ local common = require("arbit.common")
 
 local M = {}
 
----@type Environment
+---@param config Config
+function M.init(config)
+    M.config = config
+end
+
+---@type EnvironmentArbit
 M.preset = {
     executors = require("arbit.preset_executors"),
     file_path = function()
@@ -104,7 +112,8 @@ end
 M.opts = {
     targets = {
         project = M.fill_target({
-            source = function(environment)
+            source = function()
+                local environment = M.config.environment.arbit
                 return common.path_join(
                     environment.arbit_data_path(),
                     "projects",
@@ -113,7 +122,8 @@ M.opts = {
             end,
         }),
         filetype = M.fill_target({
-            source = function(environment)
+            source = function()
+                local environment = M.config.environment.arbit
                 return common.path_join(
                     environment.arbit_data_path(),
                     "filetypes",
@@ -123,7 +133,7 @@ M.opts = {
         }),
     },
     write_template_to_new_source_file = true,
-    environment = M.preset,
+    environment = { arbit = M.preset },
     display = {
         numbered = true,
         last_entry_new_line = false,

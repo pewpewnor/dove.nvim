@@ -11,6 +11,7 @@ local M = {
 function M.setup(options)
     local config = common.tbl_deep_extend("force", default.opts, options or {})
     validate_opts(config)
+    default.init(config)
     module.init(config)
 end
 

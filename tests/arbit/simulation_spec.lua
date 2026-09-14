@@ -176,11 +176,13 @@ describe("source file execution", function()
         })
         setup(path, {
             environment = {
-                prefix = "wc ",
-                file_path = function()
-                    return "custom.lua"
-                end,
-                executors = { capture = test_executor },
+                arbit = {
+                    prefix = "wc ",
+                    file_path = function()
+                        return "custom.lua"
+                    end,
+                    executors = { capture = test_executor },
+                },
             },
         })
 
