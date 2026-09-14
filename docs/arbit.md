@@ -144,22 +144,22 @@ local arbit = require("arbit")
 {
     targets = {
         project = {
-            source = function(environment)
+            source = function()
                 return vim.fs.joinpath(
-                    environment.arbit_data_path(),
+                    arbit.preset.arbit_data_path(),
                     "projects",
-                    environment.hash_sha256(environment.cwd_path()) .. ".lua"
+                    arbit.preset.hash_sha256(arbit.preset.cwd_path()) .. ".lua"
                 )
             end,
             auto_run_single_command = true,
             default_executor = arbit.preset.executors.new_tab,
         },
         filetype = {
-            source = function(environment)
+            source = function()
                 return vim.fs.joinpath(
-                    environment.arbit_data_path(),
+                    arbit.preset.arbit_data_path(),
                     "filetypes",
-                    environment.file_type() .. ".lua"
+                    arbit.preset.file_type() .. ".lua"
                 )
             end,
             auto_run_single_command = true,
@@ -190,12 +190,11 @@ Each target has:
 | `auto_run_single_command` | boolean | Skips the picker for one entry |
 | `default_executor` | function | Runs entries without their own executor |
 
-A source resolver receives the effective environment and returns a path or
-`nil`:
+A source resolver takes no arguments and returns a path or `nil`:
 
 ```lua
-source = function(environment)
-    return environment.cwd_path() .. "/.arbit.lua"
+source = function()
+    return arbit.preset.cwd_path() .. "/.arbit.lua"
 end
 ```
 
@@ -204,11 +203,11 @@ readable, it uses the first non-`nil` path so `:Arbit edit` can create it.
 
 ```lua
 source = {
-    function(environment)
-        return environment.cwd_path() .. "/.arbit.lua"
+    function()
+        return arbit.preset.cwd_path() .. "/.arbit.lua"
     end,
-    function(environment)
-        return environment.config_path() .. "/arbit/fallback.lua"
+    function()
+        return arbit.preset.config_path() .. "/arbit/fallback.lua"
     end,
 }
 ```
@@ -224,8 +223,8 @@ file. The default is true.
 
 Type: `table`
 
-Values in this table are available on the source file's `arbit` table and
-directly to target resolvers. Custom values are merged with the built-ins:
+Values in this table are available on the source file's `arbit` table. Custom
+values are merged with the built-ins:
 
 ```lua
 environment = {

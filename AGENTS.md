@@ -1,4 +1,4 @@
-# Agent guidelines
+# Agent Guidelines
 
 ## Project
 
@@ -7,19 +7,7 @@ source files. It supports custom targets, environment values, executors, and
 source imports.
 
 Read `README.md` before making changes. It states the required Neovim version.
-Use current APIs only; do not restore legacy compatibility unless requested.
-
-## Required Neovim version
-
-When changing the minimum version, update all of these:
-
-- `README.md`: the `_Requirement: Neovim vX.Y.x_` line.
-- `docs/arbit.md`: the minimum-version line.
-- `scripts/generate-vimdoc.sh`: the `--vim-version 'NVIM vX.Y.0'` flag.
-- `lua/arbit/health.lua`: the `common.has("nvim-X.Y")` check and its messages.
-
-The Makefile workflow installs Neovim without pinning a version. Change it only
-when CI needs a pinned version.
+Use current APIs only, do not restore legacy compatibility unless requested.
 
 ## Before editing
 
@@ -36,6 +24,22 @@ when CI needs a pinned version.
 - Format errors as `arbit.nvim: <lowercase message without a trailing period>`.
 - Use the same format for `print()` messages.
 
+## When Changing Required Neovim version
+
+When changing the minimum version, update all of these:
+
+- `README.md`: the `_Requirement: Neovim vX.Y.x_` line.
+- `docs/arbit.md`: the minimum-version line.
+- `scripts/generate-vimdoc.sh`: the `--vim-version 'NVIM vX.Y.0'` flag.
+- `lua/arbit/health.lua`: the `common.has("nvim-X.Y")` check and its messages.
+
+The Makefile workflow installs Neovim without pinning a version. Change it only
+when CI needs a pinned version.
+
+## Vim Doc
+
+Everything in the `doc/` directory is meant to be generated using panvimdoc.
+
 ## Tests
 
 At the end of every change, run:
@@ -45,5 +49,5 @@ make test
 stylua --check .
 ```
 
-Update the matching test file when behavior, exports, or signatures change. Add
-useful behavioral coverage; do not add module-load tests.
+Update the matching test file when behavior, exports, or signatures change.
+Only add useful behavioral coverage, do not add module-load tests.

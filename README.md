@@ -1,4 +1,4 @@
-# arbit.nvim
+# ▶️ arbit.nvim
 
 Run project and file commands from Lua source files in Neovim.
 
@@ -131,8 +131,8 @@ local arbit = require("arbit")
 arbit.setup({
     targets = {
         project = {
-            source = function(environment)
-                return environment.cwd_path() .. "/.arbit.lua"
+            source = function()
+                return arbit.preset.cwd_path() .. "/.arbit.lua"
             end,
             auto_run_single_command = true,
             default_executor = arbit.preset.executors.split,
@@ -158,9 +158,9 @@ arbit.setup({
 ```
 
 A target's `source` is a resolver function, or a list of resolver functions.
-Resolvers receive the environment and return a path or `nil`. When given a
-list, arbit.nvim uses the first readable path and falls back to the first
-resolved path when creating a file.
+Resolvers take no arguments and return a path or `nil`. When given a list,
+arbit.nvim uses the first readable path and falls back to the first resolved
+path when creating a file.
 
 The built-in source environment contains:
 
