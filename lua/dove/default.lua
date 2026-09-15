@@ -19,12 +19,16 @@
 
 ---@alias Picker fun(items: any[], opts: table, on_choice: fun(item: any?, index: integer?))
 
+---@class Selection
+---@field picker Picker
+---@field enumerate_entries boolean
+
 ---@class Config
 ---@field targets Targets
 ---@field environment Environment
 ---@field cmd_list_delimiter string
 ---@field write_template_to_new_source_file boolean
----@field picker Picker
+---@field selection Selection
 
 ---@class MinimumTarget
 ---@field source PathResolver|PathResolver[]
@@ -71,7 +75,10 @@ function M.create(options)
         environment = common.tbl_deep_extend("force", {}, preset),
         cmd_list_delimiter = common.get_default_cmd_list_delimiter(),
         write_template_to_new_source_file = true,
-        picker = require("dove.picker"),
+        selection = {
+            picker = require("dove.picker"),
+            enumerate_entries = true,
+        },
     }, options or {})
 end
 

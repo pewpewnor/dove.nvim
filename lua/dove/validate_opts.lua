@@ -59,7 +59,17 @@ local function validate_opts(options)
         options.write_template_to_new_source_file,
         "boolean"
     )
-    common.validate("options.picker", options.picker, "function")
+    common.validate("options.selection", options.selection, "table")
+    common.validate(
+        "options.selection.picker",
+        options.selection.picker,
+        "function"
+    )
+    common.validate(
+        "options.selection.enumerate_entries",
+        options.selection.enumerate_entries,
+        "boolean"
+    )
     common.validate("options.targets", options.targets, "table")
     fill_and_validate_targets(options.targets)
 end

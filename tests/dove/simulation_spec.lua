@@ -29,7 +29,8 @@ describe("source file execution", function()
         options = options or {}
         local auto_run_single_command = options.auto_run_single_command ~= false
         options.auto_run_single_command = nil
-        options.picker = options.picker
+        options.selection = options.selection or {}
+        options.selection.picker = options.selection.picker
             or function(...)
                 return picker(...)
             end
@@ -207,20 +208,51 @@ describe("source file execution", function()
         local received_labels
         setup(path, {
             auto_run_single_command = false,
-            picker = function(items, opts, on_choice)
-                received_prompt = opts.prompt
-                received_labels = {
-                    opts.format_item(items[1]),
-                    opts.format_item(items[2]),
-                }
-                on_choice(items[2], 2)
-            end,
+            selection = {
+                picker = function(items, opts, on_choice)
+                    received_prompt = opts.prompt
+                    received_labels = {
+                        opts.format_item(items[1]),
+                        opts.format_item(items[2]),
+                    }
+                    on_choice(items[2], 2)
+                end,
+            },
         })
 
         dove.run_target("project")
 
         assert.same({ "1. echo first", "2. echo second" }, received_labels)
         assert.same({ "echo second" }, executed_commands)
+    end)
+
+    it("does not enumerate entries when disabled", function()
+        local path = common.path_join(temp_dir, "selection-labels.lua")
+        write_source_file(path, {
+            "return {",
+            '    { "echo first" },',
+            '    { "echo second" },',
+            "}",
+        })
+        local received_labels
+        setup(path, {
+            auto_run_single_command = false,
+            selection = {
+                enumerate_entries = false,
+                picker = function(items, opts, on_choice)
+                    received_labels = {
+                        opts.format_item(items[1]),
+                        opts.format_item(items[2]),
+                    }
+                    on_choice(items[1], 1)
+                end,
+            },
+        })
+
+        dove.run_target("project")
+
+        assert.same({ "echo first", "echo second" }, received_labels)
+        assert.same({ "echo first" }, executed_commands)
     end)
 
     it("rejects one entry without an outer list", function()
