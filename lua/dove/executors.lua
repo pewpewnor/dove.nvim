@@ -1,4 +1,4 @@
-local common = require("arbit.common")
+local common = require("dove.common")
 
 local M = {}
 
@@ -56,8 +56,8 @@ end
 function M.bg_exit_status(command)
     common.run_shell_async(command, function(result)
         print(
-            result.code == 0 and "arbit.nvim: command job success (exit code 0)"
-                or "arbit.nvim: command job error (exit code 1)"
+            result.code == 0 and "dove.nvim: command job success (exit code 0)"
+                or "dove.nvim: command job error (exit code 1)"
         )
     end)
 end

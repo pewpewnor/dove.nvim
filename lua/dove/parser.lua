@@ -9,7 +9,7 @@
 ---@field command string
 ---@field executor Executor?
 
-local common = require("arbit.common")
+local common = require("dove.common")
 
 local M = {}
 
@@ -47,12 +47,12 @@ end
 local function load_source_file(path, loading)
     path = common.path_normalize(common.expand(path))
     if loading[path] then
-        error(string.format("arbit.nvim: circular require of '%s'", path))
+        error(string.format("dove.nvim: circular require of '%s'", path))
     end
     loading[path] = true
 
     local environment = setmetatable({
-        arbit = M.config.environment,
+        dove = M.config.environment,
     }, { __index = _G })
 
     environment.require = function(module_name)
@@ -71,7 +71,7 @@ local function load_source_file(path, loading)
         loading[path] = nil
         error(
             string.format(
-                "arbit.nvim: cannot load source file '%s': %s",
+                "dove.nvim: cannot load source file '%s': %s",
                 path,
                 load_error
             )
@@ -83,7 +83,7 @@ local function load_source_file(path, loading)
     if not success then
         error(
             string.format(
-                "arbit.nvim: error evaluating source file '%s': %s",
+                "dove.nvim: error evaluating source file '%s': %s",
                 path,
                 result
             )
@@ -92,7 +92,7 @@ local function load_source_file(path, loading)
     if type(result) ~= "table" then
         error(
             string.format(
-                "arbit.nvim: source file '%s' must return a table",
+                "dove.nvim: source file '%s' must return a table",
                 path
             )
         )
@@ -112,7 +112,7 @@ local function normalize_command(command, source_file_path)
     if not common.is_list(command) then
         error(
             string.format(
-                "arbit.nvim: entry command must be a list in '%s'",
+                "dove.nvim: entry command must be a list in '%s'",
                 source_file_path
             )
         )
@@ -120,7 +120,7 @@ local function normalize_command(command, source_file_path)
     if #command == 0 then
         error(
             string.format(
-                "arbit.nvim: entry command list cannot be empty in '%s'",
+                "dove.nvim: entry command list cannot be empty in '%s'",
                 source_file_path
             )
         )
@@ -140,7 +140,7 @@ local function parse_entry(item, source_file_path)
     if item[1] ~= nil and item.cmd ~= nil then
         error(
             string.format(
-                "arbit.nvim: entry cannot have both a positional command and 'cmd' in '%s'",
+                "dove.nvim: entry cannot have both a positional command and 'cmd' in '%s'",
                 source_file_path
             )
         )
@@ -162,7 +162,7 @@ local function parse_list(list, source_file_path)
     if not common.is_list(list) then
         error(
             string.format(
-                "arbit.nvim: source file '%s' must return a list of entries",
+                "dove.nvim: source file '%s' must return a list of entries",
                 source_file_path
             )
         )
@@ -179,7 +179,7 @@ local function parse_list(list, source_file_path)
         else
             error(
                 string.format(
-                    "arbit.nvim: each entry must be a table in '%s'",
+                    "dove.nvim: each entry must be a table in '%s'",
                     source_file_path
                 )
             )
@@ -192,7 +192,7 @@ end
 ---@return ProcessedEntry[]?
 function M.parse_source_file(path)
     if not common.is_file_and_readable(path) then
-        print("arbit.nvim: no source file found")
+        print("dove.nvim: no source file found")
         return nil
     end
     local source = load_source_file(path, {})

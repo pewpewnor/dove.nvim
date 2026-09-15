@@ -1,8 +1,8 @@
-local common = require("arbit.common")
+local common = require("dove.common")
 
 local minimum_height = 12
 local minimum_width = 70
-local namespace = common.create_namespace("arbit.picker")
+local namespace = common.create_namespace("dove.picker")
 
 local function disable_completion_plugins()
     local blink = package.loaded["blink.cmp"]

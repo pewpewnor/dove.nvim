@@ -1,14 +1,14 @@
 ---@diagnostic disable: undefined-field
 
-local arbit = require("arbit")
-local common = require("arbit.common")
-local module = require("arbit.module")
-local pathfinder = require("arbit.pathfinder")
-local preset = require("arbit.preset")
+local dove = require("dove")
+local common = require("dove.common")
+local module = require("dove.module")
+local pathfinder = require("dove.pathfinder")
+local preset = require("dove.preset")
 
 describe("environment", function()
     it("contains all default values", function()
-        arbit.setup()
+        dove.setup()
         local environment = module.config.environment
 
         local expected_functions = {
@@ -24,7 +24,7 @@ describe("environment", function()
             "cwd_name",
             "config_path",
             "data_path",
-            "arbit_data_path",
+            "dove_data_path",
             "cword",
             "cWORD",
             "hash_sha256",
@@ -39,7 +39,7 @@ describe("environment", function()
 
     it("deeply merges user values and overrides", function()
         local custom_executor = function() end
-        arbit.setup({
+        dove.setup({
             environment = {
                 file_path = function()
                     return "overridden"
@@ -59,10 +59,10 @@ describe("environment", function()
     it(
         "uses overridden environment values in default target sources",
         function()
-            arbit.setup({
+            dove.setup({
                 environment = {
-                    arbit_data_path = function()
-                        return "/tmp/arbit-test"
+                    dove_data_path = function()
+                        return "/tmp/dove-test"
                     end,
                     cwd_path = function()
                         return "cwd"
@@ -76,7 +76,7 @@ describe("environment", function()
             local path =
                 pathfinder.get_true_path(module.config.targets.project.source)
             assert.equals(
-                common.path_normalize("/tmp/arbit-test/projects/hash-cwd.lua"),
+                common.path_normalize("/tmp/dove-test/projects/hash-cwd.lua"),
                 path
             )
         end
@@ -84,13 +84,13 @@ describe("environment", function()
 
     it("passes the effective environment to target source resolvers", function()
         local received_environment
-        arbit.setup({
+        dove.setup({
             environment = { marker = "configured" },
             targets = {
                 project = {
                     source = function(environment)
                         received_environment = environment
-                        return "/tmp/arbit-test/project.lua"
+                        return "/tmp/dove-test/project.lua"
                     end,
                 },
             },
@@ -104,10 +104,10 @@ describe("environment", function()
     end)
 
     it("creates a fresh environment for every setup", function()
-        arbit.setup({ environment = { marker = "first" } })
+        dove.setup({ environment = { marker = "first" } })
         assert.equals("first", module.config.environment.marker)
 
-        arbit.setup()
+        dove.setup()
 
         assert.is_nil(module.config.environment.marker)
     end)

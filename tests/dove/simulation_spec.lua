@@ -1,7 +1,7 @@
 ---@diagnostic disable: undefined-field
 
-local arbit = require("arbit")
-local common = require("arbit.common")
+local dove = require("dove")
+local common = require("dove.common")
 
 describe("source file execution", function()
     local executed_commands
@@ -41,7 +41,7 @@ describe("source file execution", function()
                 default_executor = test_executor,
             },
         }
-        arbit.setup(options)
+        dove.setup(options)
     end
 
     before_each(function()
@@ -77,7 +77,7 @@ describe("source file execution", function()
         })
         setup(path, { auto_run_single_command = false })
 
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.equals("touch hello", executed_commands[1])
 
@@ -85,7 +85,7 @@ describe("source file execution", function()
         picker = function(items)
             selected = items
         end
-        arbit.run_target("project")
+        dove.run_target("project")
         assert.equals("echo first", selected[2].command)
         assert.equals("a", selected[2].name:match("a$"))
         assert.equals("echo second", selected[3].command)
@@ -101,7 +101,7 @@ describe("source file execution", function()
         })
         setup(path, { auto_run_single_command = false })
 
-        local success, message = pcall(arbit.run_target, "project")
+        local success, message = pcall(dove.run_target, "project")
 
         assert.is_false(success)
         assert.matches("each entry must be a table", message)
@@ -127,7 +127,7 @@ describe("source file execution", function()
         })
         setup(path, { auto_run_single_command = false })
 
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.equals(1, #executed_commands)
         assert.equals("first; second", executed_commands[1])
@@ -136,7 +136,7 @@ describe("source file execution", function()
         picker = function(items)
             selected = items
         end
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.equals(2, #selected)
         assert.equals("third", selected[2].command)
@@ -164,7 +164,7 @@ describe("source file execution", function()
             end,
         })
 
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.same({ "1. echo first", "2. echo second" }, received_labels)
         assert.same({ "echo second" }, executed_commands)
@@ -177,7 +177,7 @@ describe("source file execution", function()
         })
         setup(path)
 
-        local success, message = pcall(arbit.run_target, "project")
+        local success, message = pcall(dove.run_target, "project")
 
         assert.is_false(success)
         assert.matches("must return a list of entries", message)
@@ -189,20 +189,20 @@ describe("source file execution", function()
         write_source_file(path, { "return {}" })
         setup(path)
 
-        assert.is_true(pcall(arbit.run_target, "project"))
+        assert.is_true(pcall(dove.run_target, "project"))
         assert.same({}, executed_commands)
     end)
 
-    it("exposes the configured environment under arbit", function()
+    it("exposes the configured environment under dove", function()
         local path = common.path_join(temp_dir, "environment.lua")
         write_source_file(path, {
             "assert(file_path == nil)",
             "assert(executors == nil)",
             "assert(prefix == nil)",
-            'assert(type(arbit.dir_name) == "function")',
-            'assert(type(arbit.executors.bg_silent) == "function")',
+            'assert(type(dove.dir_name) == "function")',
+            'assert(type(dove.executors.bg_silent) == "function")',
             "return {",
-            "    { arbit.prefix .. arbit.file_path(), executor = arbit.executors.capture },",
+            "    { dove.prefix .. dove.file_path(), executor = dove.executors.capture },",
             "}",
         })
         setup(path, {
@@ -215,10 +215,10 @@ describe("source file execution", function()
             },
         })
 
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.same({ "wc custom.lua" }, executed_commands)
-        assert.is_nil(require("arbit.module").config.environment.require)
+        assert.is_nil(require("dove.module").config.environment.require)
     end)
 
     it("flattens source files required from expanded paths", function()
@@ -243,7 +243,7 @@ describe("source file execution", function()
         picker = function(items)
             selected = items
         end
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.equals(2, #selected)
         assert.equals("echo local", selected[1].name)
@@ -257,7 +257,7 @@ describe("source file execution", function()
         write_source_file(path, { 'return { require("./shared.lua") }' })
         setup(path)
 
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.same({ "echo relative" }, executed_commands)
     end)
@@ -266,10 +266,10 @@ describe("source file execution", function()
         local path = common.path_join(temp_dir, "reload.lua")
         write_source_file(path, { 'return { { "echo first" } }' })
         setup(path)
-        arbit.run_target("project")
+        dove.run_target("project")
         write_source_file(path, { 'return { { "echo second" } }' })
 
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.same({ "echo first", "echo second" }, executed_commands)
     end)
@@ -281,7 +281,7 @@ describe("source file execution", function()
         common.enable_loader()
         loader_enabled = true
 
-        arbit.run_target("project")
+        dove.run_target("project")
 
         assert.same({ "echo loaded" }, executed_commands)
     end)
@@ -290,9 +290,9 @@ describe("source file execution", function()
         local path = common.path_join(temp_dir, "previous.lua")
         write_source_file(path, { 'return { { "echo previous" } }' })
         setup(path)
-        arbit.run_target("project")
+        dove.run_target("project")
 
-        arbit.run_prev_task()
+        dove.run_prev_task()
 
         assert.same({ "echo previous", "echo previous" }, executed_commands)
     end)
@@ -301,7 +301,7 @@ describe("source file execution", function()
         local path = common.path_join(temp_dir, "nested", "new.lua")
         setup(path)
 
-        arbit.edit_source_file("project")
+        dove.edit_source_file("project")
 
         assert.is_true(common.is_file_and_readable(path))
         assert.matches("^return {", common.read_file(path))
@@ -312,7 +312,7 @@ describe("source file execution", function()
         write_source_file(path, { "return {}" })
         setup(path)
 
-        arbit.delete_source_file("project")
+        dove.delete_source_file("project")
 
         assert.is_false(common.is_file_and_readable(path))
     end)
@@ -322,7 +322,7 @@ describe("source file execution", function()
         write_source_file(path, { 'return "invalid"' })
         setup(path)
 
-        local success, message = pcall(arbit.run_target, "project")
+        local success, message = pcall(dove.run_target, "project")
 
         assert.is_false(success)
         assert.matches("must return a table", message)

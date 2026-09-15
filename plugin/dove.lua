@@ -1,17 +1,17 @@
----@class ArbitSubcommand
+---@class DoveSubcommand
 ---@field func fun(target_name: string?)
 ---@field takes_target boolean
 
-local common = require("arbit.common")
-local module = require("arbit.module")
-local arbit = require("arbit")
+local common = require("dove.common")
+local module = require("dove.module")
+local dove = require("dove")
 
----@type table<string, ArbitSubcommand>
+---@type table<string, DoveSubcommand>
 local subcommands = {
-    run = { func = arbit.run_target, takes_target = true },
-    prev = { func = arbit.run_prev_task, takes_target = false },
-    edit = { func = arbit.edit_source_file, takes_target = true },
-    delete = { func = arbit.delete_source_file, takes_target = true },
+    run = { func = dove.run_target, takes_target = true },
+    prev = { func = dove.run_prev_task, takes_target = false },
+    edit = { func = dove.edit_source_file, takes_target = true },
+    delete = { func = dove.delete_source_file, takes_target = true },
 }
 
 ---@type string[]
@@ -58,7 +58,7 @@ local function complete(arg_lead, cmd_line)
     return filter_by_prefix(module.get_target_names(), arg_lead)
 end
 
-common.create_user_command("Arbit", function(opts)
+common.create_user_command("Dove", function(opts)
     ---@type string[]
     local args = opts.fargs
     local subcommand_name = args[1]
@@ -67,7 +67,7 @@ common.create_user_command("Arbit", function(opts)
     if not subcommand then
         error(
             string.format(
-                "arbit.nvim: unknown subcommand '%s', expected one of: %s",
+                "dove.nvim: unknown subcommand '%s', expected one of: %s",
                 subcommand_name,
                 table.concat(subcommand_names, ", ")
             )
@@ -78,7 +78,7 @@ common.create_user_command("Arbit", function(opts)
         if #args ~= 1 then
             error(
                 string.format(
-                    "arbit.nvim: subcommand '%s' does not take any argument",
+                    "dove.nvim: subcommand '%s' does not take any argument",
                     subcommand_name
                 )
             )
@@ -90,7 +90,7 @@ common.create_user_command("Arbit", function(opts)
     if #args ~= 2 then
         error(
             string.format(
-                "arbit.nvim: subcommand '%s' requires exactly one target name",
+                "dove.nvim: subcommand '%s' requires exactly one target name",
                 subcommand_name
             )
         )
@@ -99,5 +99,5 @@ common.create_user_command("Arbit", function(opts)
 end, {
     nargs = "+",
     complete = complete,
-    desc = "Arbit: run, prev, edit, or delete",
+    desc = "Dove: run, prev, edit, or delete",
 })

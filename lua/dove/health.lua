@@ -1,6 +1,6 @@
-local common = require("arbit.common")
-local module = require("arbit.module")
-local pathfinder = require("arbit.pathfinder")
+local common = require("dove.common")
+local module = require("dove.module")
+local pathfinder = require("dove.pathfinder")
 
 local M = {}
 
@@ -19,7 +19,7 @@ local function check_setup_called()
     if not module.config then
         common.health_error(
             "setup() has not been called",
-            "call require('arbit').setup({}) in your configuration"
+            "call require('dove').setup({}) in your configuration"
         )
         return
     end
@@ -74,7 +74,7 @@ local function check_target_sources()
 end
 
 function M.check()
-    common.health_start("arbit.nvim")
+    common.health_start("dove.nvim")
 
     check_neovim_version()
     check_setup_called()

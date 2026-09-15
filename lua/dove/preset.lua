@@ -1,7 +1,7 @@
-local common = require("arbit.common")
+local common = require("dove.common")
 
 local M = {
-    executors = require("arbit.executors"),
+    executors = require("dove.executors"),
     file_path = function()
         return common.fnameescape(common.expand("%:p"))
     end,
@@ -38,11 +38,11 @@ local M = {
     data_path = function()
         return common.fnameescape(common.get_stdpath("data"))
     end,
-    arbit_data_path = function()
-        local arbit_data_path =
-            common.path_join(common.get_stdpath("data"), "arbit")
-        common.mkdir_with_parents(arbit_data_path)
-        return common.fnameescape(arbit_data_path)
+    dove_data_path = function()
+        local dove_data_path =
+            common.path_join(common.get_stdpath("data"), "dove")
+        common.mkdir_with_parents(dove_data_path)
+        return common.fnameescape(dove_data_path)
     end,
     cword = function()
         return common.expand("<cword>")

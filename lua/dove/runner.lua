@@ -9,7 +9,7 @@
 ---@field executor Executor
 ---@field args string[]
 
-local parser = require("arbit.parser")
+local parser = require("dove.parser")
 
 local M = {}
 
@@ -49,7 +49,7 @@ function M.select_and_run_entry(target)
     if #entries == 0 then
         print(
             string.format(
-                "arbit.nvim: no entries in the source file for '%s'",
+                "dove.nvim: no entries in the source file for '%s'",
                 target.name
             )
         )
@@ -65,7 +65,7 @@ function M.select_and_run_entry(target)
         entry_indices[entry] = index
     end
     M.config.picker(entries, {
-        prompt = string.format("Arbit: run target = '%s'", target.name),
+        prompt = string.format("Dove: run target = '%s'", target.name),
         format_item = function(entry)
             return entry_indices[entry] .. ". " .. entry.name
         end,
@@ -78,7 +78,7 @@ end
 
 function M.run_prev_task()
     if not M.last_executed_task then
-        print("arbit.nvim: no previously executed task")
+        print("dove.nvim: no previously executed task")
         return
     end
     execute_task(M.last_executed_task)

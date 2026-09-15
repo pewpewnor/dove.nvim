@@ -1,7 +1,7 @@
 ---@diagnostic disable: undefined-field
 
-local common = require("arbit.common")
-local picker = require("arbit.picker")
+local common = require("dove.common")
+local picker = require("dove.picker")
 
 describe("built-in picker", function()
     local original_window

@@ -1,6 +1,6 @@
-local pathfinder = require("arbit.pathfinder")
-local runner = require("arbit.runner")
-local common = require("arbit.common")
+local pathfinder = require("dove.pathfinder")
+local runner = require("dove.runner")
+local common = require("dove.common")
 
 local M = {}
 
@@ -8,7 +8,7 @@ local M = {}
 function M.init(config)
     M.config = config
     pathfinder.init(config)
-    require("arbit.parser").init(config)
+    require("dove.parser").init(config)
     runner.init(config)
 end
 
@@ -28,7 +28,7 @@ local function find_target(target_name)
     local target = M.config.targets[target_name]
     if not target then
         error(
-            string.format("arbit.nvim: target '%s' does not exist", target_name)
+            string.format("dove.nvim: target '%s' does not exist", target_name)
         )
     end
     return target

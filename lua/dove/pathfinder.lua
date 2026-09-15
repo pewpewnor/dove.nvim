@@ -1,4 +1,4 @@
-local common = require("arbit.common")
+local common = require("dove.common")
 local M = {}
 
 ---@param config Config
@@ -27,7 +27,7 @@ function M.get_true_path(path_resolvers)
         resolvers = path_resolvers
     else
         error(
-            "arbit.nvim: target source must be a function or a list of functions"
+            "dove.nvim: target source must be a function or a list of functions"
         )
     end
 
@@ -41,7 +41,7 @@ function M.get_true_path(path_resolvers)
     end
 
     if not first_path then
-        error("arbit.nvim: unexpected: no first source resolved")
+        error("dove.nvim: unexpected: no first source resolved")
     end
     return first_path
 end

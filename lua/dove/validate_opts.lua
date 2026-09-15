@@ -1,5 +1,5 @@
-local common = require("arbit.common")
-local default = require("arbit.default")
+local common = require("dove.common")
+local default = require("dove.default")
 
 ---@param targets Targets
 local function fill_and_validate_targets(targets)

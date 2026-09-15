@@ -28,8 +28,8 @@
 ---@class MinimumTarget
 ---@field source PathResolver|PathResolver[]
 
-local common = require("arbit.common")
-local preset = require("arbit.preset")
+local common = require("dove.common")
+local preset = require("dove.preset")
 
 local M = {}
 
@@ -51,7 +51,7 @@ function M.create(options)
             project = M.fill_target({
                 source = function(env)
                     return common.path_join(
-                        env.arbit_data_path(),
+                        env.dove_data_path(),
                         "projects",
                         env.hash_sha256(env.cwd_path()) .. ".lua"
                     )
@@ -60,7 +60,7 @@ function M.create(options)
             filetype = M.fill_target({
                 source = function(env)
                     return common.path_join(
-                        env.arbit_data_path(),
+                        env.dove_data_path(),
                         "filetypes",
                         env.file_type() .. ".lua"
                     )
@@ -69,7 +69,7 @@ function M.create(options)
         },
         write_template_to_new_source_file = true,
         environment = common.tbl_deep_extend("force", {}, preset),
-        picker = require("arbit.picker"),
+        picker = require("dove.picker"),
     }, options or {})
 end
 

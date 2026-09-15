@@ -4,8 +4,8 @@ Bug fixes, features, and documentation improvements are welcome.
 
 ## Before opening a pull request
 
-- Keep the change focused.
-- Follow the conventions in `AGENTS.md`.
+- Explain step by step how to reproduce the bug if it is one.
+- Try to follow the conventions in `AGENTS.md`.
 - Update tests and documentation when behavior changes.
 - Run `make test` from the repository root.
 

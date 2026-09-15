@@ -1,0 +1,43 @@
+---@diagnostic disable: undefined-field
+
+local dove = require("dove")
+local default = require("dove.default")
+local module = require("dove.module")
+local preset = require("dove.preset")
+
+describe("setup", function()
+    it("works without options", function()
+        assert.is_true(pcall(dove.setup))
+    end)
+
+    it("provides the built-in targets and executors", function()
+        dove.setup()
+
+        assert.same({ "filetype", "project" }, module.get_target_names())
+        assert.is_function(preset.executors.new_tab)
+        assert.is_function(preset.executors.vsplit)
+        assert.is_function(preset.file_path)
+        assert.is_function(preset.dove_data_path)
+        assert.is_function(preset.cwd_path)
+        assert.is_nil(dove.preset)
+        assert.is_nil(dove.preset_executors)
+        assert.is_nil(dove.executors)
+        assert.is_nil(dove.cwd_path)
+        assert.is_function(dove.run_prev_task)
+        assert.is_function(dove.edit_source_file)
+        assert.is_function(dove.delete_source_file)
+        assert.is_nil(dove.run_previous_task)
+        assert.is_nil(dove.edit_lua_file)
+        assert.is_nil(dove.delete_lua_file)
+        assert.is_function(default.create)
+        assert.is_function(module.config.picker)
+        assert.is_nil(module.config.display)
+    end)
+
+    it("rejects an invalid picker", function()
+        local success, message = pcall(dove.setup, { picker = true })
+
+        assert.is_false(success)
+        assert.matches("options.picker", message)
+    end)
+end)

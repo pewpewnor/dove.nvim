@@ -1,4 +1,4 @@
-arbit.nvim runs project and file commands from Lua source files.
+dove.nvim runs project and file commands from Lua source files.
 
 It requires Neovim v0.12.x or newer.
 
@@ -8,34 +8,34 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-    "pewpewnor/arbit.nvim",
+    "pewpewnor/dove.nvim",
     lazy = false,
     opts = {},
 }
 ```
 
-Add `cmd = "Arbit"` to the plugin spec for command-based lazy loading.
-Command-only lazy loading keeps the vimdoc off `runtimepath` until `:Arbit` is
+Add `cmd = "Dove"` to the plugin spec for command-based lazy loading.
+Command-only lazy loading keeps the vimdoc off `runtimepath` until `:Dove` is
 run once, so use startup loading when browsing help through a picker first.
 
 ## Setup
 
 ```lua
-require("arbit").setup()
+require("dove").setup()
 ```
 
 `setup()` accepts an options table and deeply merges it into the defaults.
 
 ## Commands
 
-arbit.nvim defines one user command with four subcommands:
+dove.nvim defines one user command with four subcommands:
 
 | Command | Action |
 | ------- | ------ |
-| `:Arbit run {target}` | Read the target's source file and run an entry |
-| `:Arbit prev` | Repeat the last command |
-| `:Arbit edit {target}` | Open the target's source file in a new tab |
-| `:Arbit delete {target}` | Delete the target's source file |
+| `:Dove run {target}` | Read the target's source file and run an entry |
+| `:Dove prev` | Repeat the last command |
+| `:Dove edit {target}` | Open the target's source file in a new tab |
+| `:Dove delete {target}` | Delete the target's source file |
 
 Subcommands and target names support completion. The default targets are
 `project` and `filetype`.
@@ -51,7 +51,7 @@ return {
     {
         cmd = "git status --short",
         name = "status",
-        executor = arbit.executors.print,
+        executor = dove.executors.print,
     },
 }
 ```
@@ -67,7 +67,7 @@ Every entry must be a table with a command in `[1]` or `cmd`.
 
 Do not set both `[1]` and `cmd`.
 
-When `cmd` is a list, arbit.nvim joins its items with semicolons and sends the
+When `cmd` is a list, dove.nvim joins its items with semicolons and sends the
 result to the executor once. The commands therefore run sequentially in the
 same shell session, so state such as variables and the working directory
 carries between items. Every item is attempted, and the final item's status is
@@ -78,9 +78,9 @@ return {
     {
         name = "stats for this file",
         cmd = {
-            "wc " .. arbit.file_path(),
-            "echo lines: $(wc -l < " .. arbit.file_path() .. ")",
-            "echo words: $(wc -w < " .. arbit.file_path() .. ")",
+            "wc " .. dove.file_path(),
+            "echo lines: $(wc -l < " .. dove.file_path() .. ")",
+            "echo words: $(wc -w < " .. dove.file_path() .. ")",
         },
     },
 }
@@ -94,26 +94,26 @@ return {
 }
 ```
 
-When a source contains one entry and `auto_run_single_command` is true, arbit.nvim
+When a source contains one entry and `auto_run_single_command` is true, dove.nvim
 runs it without opening the picker. Empty source lists do nothing and print a
 message; write an empty source as `return {}`.
 
 ### Source environment
 
 Source files run with the configured `environment`. Its keys are available on
-the `arbit` table inside the file:
+the `dove` table inside the file:
 
 ```lua
 return {
-    { arbit.prefix .. "go test -run " .. arbit.cword() },
+    { dove.prefix .. "go test -run " .. dove.cword() },
     {
         "git status --short",
-        executor = arbit.executors.print,
+        executor = dove.executors.print,
     },
 }
 ```
 
-Normal Lua globals remain available alongside the `arbit` table.
+Normal Lua globals remain available alongside the `dove` table.
 
 ### Imports
 
@@ -139,14 +139,14 @@ place. Circular source imports are rejected.
 The user-configurable defaults are equivalent to:
 
 ```lua
-local preset = require("arbit.preset")
+local preset = require("dove.preset")
 
 {
     targets = {
         project = {
             source = function(environment)
                 return vim.fs.joinpath(
-                    environment.arbit_data_path(),
+                    environment.dove_data_path(),
                     "projects",
                     environment.hash_sha256(environment.cwd_path()) .. ".lua"
                 )
@@ -157,7 +157,7 @@ local preset = require("arbit.preset")
         filetype = {
             source = function(environment)
                 return vim.fs.joinpath(
-                    environment.arbit_data_path(),
+                    environment.dove_data_path(),
                     "filetypes",
                     environment.file_type() .. ".lua"
                 )
@@ -189,11 +189,11 @@ Each target has:
 
 A source resolver receives the effective environment and returns a path or
 `nil`. Built-in environment values are also returned by
-`require("arbit.preset")`:
+`require("dove.preset")`:
 
 ```lua
 source = function()
-    return preset.cwd_path() .. "/.arbit.lua"
+    return preset.cwd_path() .. "/.dove.lua"
 end
 ```
 
@@ -201,20 +201,20 @@ Using the argument lets a resolver honor configured environment overrides:
 
 ```lua
 source = function(environment)
-    return environment.cwd_path() .. "/.arbit.lua"
+    return environment.cwd_path() .. "/.dove.lua"
 end
 ```
 
-For a list of resolvers, arbit.nvim uses the first readable path. If none are
-readable, it uses the first non-`nil` path so `:Arbit edit` can create it.
+For a list of resolvers, dove.nvim uses the first readable path. If none are
+readable, it uses the first non-`nil` path so `:Dove edit` can create it.
 
 ```lua
 source = {
     function()
-        return preset.cwd_path() .. "/.arbit.lua"
+        return preset.cwd_path() .. "/.dove.lua"
     end,
     function()
-        return preset.config_path() .. "/arbit/fallback.lua"
+        return preset.config_path() .. "/dove/fallback.lua"
     end,
 }
 ```
@@ -223,14 +223,14 @@ source = {
 
 Type: `boolean`
 
-When true, `:Arbit edit` writes a small template before opening a missing source
+When true, `:Dove edit` writes a small template before opening a missing source
 file. The default is true.
 
 ### `environment`
 
 Type: `table`
 
-Values in this table are available on the source file's `arbit` table. Custom
+Values in this table are available on the source file's `dove` table. Custom
 values are merged with the built-ins:
 
 ```lua
@@ -259,26 +259,26 @@ The built-in environment contains:
 
 | Value | Result |
 | ----- | ------ |
-| `arbit.executors` | Built-in executor table |
-| `arbit.file_path()` | Escaped absolute buffer path |
-| `arbit.file_path_relative()` | Escaped buffer path relative to the working directory |
-| `arbit.file_name()` | Escaped buffer filename |
-| `arbit.file_name_no_extension()` | Escaped buffer filename without its extension |
-| `arbit.file_type()` | Current buffer filetype |
-| `arbit.file_extension()` | Escaped buffer filename extension |
-| `arbit.dir_path()` | Escaped directory containing the buffer |
-| `arbit.dir_name()` | Escaped name of the directory containing the buffer |
-| `arbit.cwd_path()` | Escaped working-directory path |
-| `arbit.cwd_name()` | Escaped working-directory name |
-| `arbit.config_path()` | Escaped Neovim config path |
-| `arbit.data_path()` | Escaped Neovim data path |
-| `arbit.arbit_data_path()` | Escaped arbit.nvim data path; creates it if needed |
-| `arbit.cword()` | Word under the cursor |
-| `arbit.cWORD()` | WORD under the cursor |
-| `arbit.hash_sha256(value)` | SHA-256 digest of a string |
+| `dove.executors` | Built-in executor table |
+| `dove.file_path()` | Escaped absolute buffer path |
+| `dove.file_path_relative()` | Escaped buffer path relative to the working directory |
+| `dove.file_name()` | Escaped buffer filename |
+| `dove.file_name_no_extension()` | Escaped buffer filename without its extension |
+| `dove.file_type()` | Current buffer filetype |
+| `dove.file_extension()` | Escaped buffer filename extension |
+| `dove.dir_path()` | Escaped directory containing the buffer |
+| `dove.dir_name()` | Escaped name of the directory containing the buffer |
+| `dove.cwd_path()` | Escaped working-directory path |
+| `dove.cwd_name()` | Escaped working-directory name |
+| `dove.config_path()` | Escaped Neovim config path |
+| `dove.data_path()` | Escaped Neovim data path |
+| `dove.dove_data_path()` | Escaped dove.nvim data path; creates it if needed |
+| `dove.cword()` | Word under the cursor |
+| `dove.cWORD()` | WORD under the cursor |
+| `dove.hash_sha256(value)` | SHA-256 digest of a string |
 
 Outside source files, the built-in values are returned by
-`require("arbit.preset")`.
+`require("dove.preset")`.
 
 ### `picker`
 
@@ -295,7 +295,7 @@ The function receives `items`, `opts`, and `on_choice`, following the
 `vim.ui.select` signature. To use the configured Neovim selector instead:
 
 ```lua
-require("arbit").setup({
+require("dove").setup({
     picker = vim.ui.select,
 })
 ```
@@ -315,8 +315,8 @@ part of the executor interface.
 
 Built-in executors:
 
-Source files use `arbit.executors`. Plugin configuration gets the same functions
-from `require("arbit.preset").executors`.
+Source files use `dove.executors`. Plugin configuration gets the same functions
+from `require("dove.preset").executors`.
 
 | Executor | Behavior |
 | -------- | -------- |
@@ -331,7 +331,7 @@ from `require("arbit.preset").executors`.
 
 ## Lua API
 
-All public functions are returned by `require("arbit")`:
+All public functions are returned by `require("dove")`:
 
 | Function | Meaning |
 | -------- | ------- |
@@ -341,7 +341,7 @@ All public functions are returned by `require("arbit")`:
 | `edit_source_file(target_name)` | Open a target source file |
 | `delete_source_file(target_name)` | Delete a target source file |
 
-The built-in source environment is returned by `require("arbit.preset")` for use
+The built-in source environment is returned by `require("dove.preset")` for use
 in plugin configuration.
 
 ## Health check
@@ -349,7 +349,7 @@ in plugin configuration.
 Run:
 
 ```vim
-:checkhealth arbit
+:checkhealth dove
 ```
 
 The check reports the Neovim version, shell, setup state, source paths, and
@@ -357,5 +357,5 @@ configured executors.
 
 ## Links
 
-- [Repository](https://github.com/pewpewnor/arbit.nvim)
+- [Repository](https://github.com/pewpewnor/dove.nvim)
 - [Contributing](../CONTRIBUTING.md)

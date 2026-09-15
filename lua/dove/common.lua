@@ -460,7 +460,7 @@ function M.validate(name, val, expected_type)
         [name] = { val, expected_type },
     })
     if not success then
-        error("arbit.nvim: " .. message)
+        error("dove.nvim: " .. message)
     end
 end
 

@@ -1,7 +1,7 @@
-local common = require("arbit.common")
-local default = require("arbit.default")
-local module = require("arbit.module")
-local validate_opts = require("arbit.validate_opts")
+local common = require("dove.common")
+local default = require("dove.default")
+local module = require("dove.module")
+local validate_opts = require("dove.validate_opts")
 
 local M = {}
 
