@@ -3,7 +3,8 @@
 ![Neovim](https://img.shields.io/badge/Neovim-57A143?logo=neovim&logoColor=white&style=for-the-badge)
 ![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
 
-Run project and file commands from Lua source files in Neovim.
+Define and execute arbitrary shell commands to run files and projects without
+reloading Neovim.
 
 _Requirement: Neovim v0.12.x_
 
@@ -241,10 +242,10 @@ In the example, source files would be able to access the custom values as
 
 ### Targets
 
-| Option                    | Details                                                                               |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| `source_path`             | A resolver function or a non-empty list of resolver functions.                        |
-| `auto_run_single_command` | Run one entry without opening the picker. Defaults to `true`.                         |
+| Option                    | Details                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------ |
+| `source_path`             | A resolver function or a non-empty list of resolver functions.                             |
+| `auto_run_single_command` | Run one entry without opening the picker. Defaults to `true`.                              |
 | `default_executor`        | Executor used when an entry does not set one. Defaults to `preset.executors.bottom_split`. |
 
 A resolver takes no arguments and returns a path. Use `require("dove.preset")`
