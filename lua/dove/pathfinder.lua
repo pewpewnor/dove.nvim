@@ -1,15 +1,10 @@
 local common = require("dove.common")
 local M = {}
 
----@param config Config
-function M.init(config)
-    M.config = config
-end
-
 ---@param resolver PathResolver
 ---@return string|nil
 local function resolve_path(resolver)
-    local raw_path = resolver(M.config.environment)
+    local raw_path = resolver()
     if raw_path == nil then
         return nil
     end

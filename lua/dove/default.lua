@@ -1,4 +1,4 @@
----@alias PathResolver fun(environment: Environment): string?
+---@alias PathResolver fun(): string?
 
 ---@alias Executor fun(command: string, args: string[]?)
 
@@ -54,20 +54,20 @@ function M.create(options)
     return common.tbl_deep_extend("force", {
         targets = {
             project = M.fill_target({
-                source = function(env)
+                source = function()
                     return common.path_join(
-                        env.dove_data_path(),
+                        preset.dove_data_path(),
                         "projects",
-                        env.hash_sha256(env.cwd_path()) .. ".lua"
+                        preset.hash_sha256(preset.cwd_path()) .. ".lua"
                     )
                 end,
             }),
             filetype = M.fill_target({
-                source = function(env)
+                source = function()
                     return common.path_join(
-                        env.dove_data_path(),
+                        preset.dove_data_path(),
                         "filetypes",
-                        env.file_type() .. ".lua"
+                        preset.file_type() .. ".lua"
                     )
                 end,
             }),

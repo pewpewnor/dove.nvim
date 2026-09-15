@@ -56,43 +56,15 @@ describe("environment", function()
         assert.is_function(environment.executors.vsplit)
     end)
 
-    it(
-        "uses overridden environment values in default target sources",
-        function()
-            local data_path = common.get_tempname()
-            dove.setup({
-                environment = {
-                    dove_data_path = function()
-                        return data_path
-                    end,
-                    cwd_path = function()
-                        return "cwd"
-                    end,
-                    hash_sha256 = function(value)
-                        return "hash-" .. value
-                    end,
-                },
-            })
-
-            local path =
-                pathfinder.get_true_path(module.config.targets.project.source)
-            assert.equals(
-                common.path_join(data_path, "projects", "hash-cwd.lua"),
-                path
-            )
-        end
-    )
-
-    it("passes the effective environment to target source resolvers", function()
-        local received_environment
+    it("calls target source resolvers without arguments", function()
+        local argument_count
         local source_path =
             common.path_join(common.get_tempname(), "project.lua")
         dove.setup({
-            environment = { marker = "configured" },
             targets = {
                 project = {
-                    source = function(environment)
-                        received_environment = environment
+                    source = function(...)
+                        argument_count = select("#", ...)
                         return source_path
                     end,
                 },
@@ -101,9 +73,7 @@ describe("environment", function()
 
         pathfinder.get_true_path(module.config.targets.project.source)
 
-        assert.equals(module.config.environment, received_environment)
-        assert.equals("configured", received_environment.marker)
-        assert.equals(preset.cwd_path, received_environment.cwd_path)
+        assert.equals(0, argument_count)
     end)
 
     it("creates a fresh environment for every setup", function()

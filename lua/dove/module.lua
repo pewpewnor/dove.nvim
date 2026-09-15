@@ -7,7 +7,6 @@ local M = {}
 ---@param config Config
 function M.init(config)
     M.config = config
-    pathfinder.init(config)
     require("dove.parser").init(config)
     runner.init(config)
 end
