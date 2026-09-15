@@ -354,7 +354,7 @@ function M.rtp_append(path)
 end
 
 ---@param args string[]
----@return vim.SystemCompleted
+---@return { code: integer, signal: integer, stdout?: string, stderr?: string }
 function M.run_process_silent(args)
     return vim.system(args):wait()
 end

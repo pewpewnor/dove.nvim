@@ -11,15 +11,15 @@ describe("health check", function()
         local original_health_ok = common.health_ok
         local original_health_start = common.health_start
         module.config = nil
-        common.health_error = function() end
-        common.health_ok = function() end
-        common.health_start = function() end
+        rawset(common, "health_error", function() end)
+        rawset(common, "health_ok", function() end)
+        rawset(common, "health_start", function() end)
 
         local success, message = pcall(health.check)
         module.config = config
-        common.health_error = original_health_error
-        common.health_ok = original_health_ok
-        common.health_start = original_health_start
+        rawset(common, "health_error", original_health_error)
+        rawset(common, "health_ok", original_health_ok)
+        rawset(common, "health_start", original_health_start)
 
         assert.is_true(success, message)
     end)
