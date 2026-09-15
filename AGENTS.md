@@ -1,4 +1,4 @@
-# Agent Guidelines
+# Agent guidelines
 
 ## Project
 
@@ -6,14 +6,14 @@ dove.nvim is a Neovim plugin that runs project and file commands from Lua
 source files. It supports custom targets, environment values, executors, and
 source imports.
 
-Read `README.md` before making changes. It states the required Neovim version.
-Use current APIs only, do not restore legacy compatibility unless requested.
-
 ## Before editing
 
+- Read `README.md` before making changes. It states the required Neovim version.
 - Inspect similar code and tests first.
 - Follow existing names and patterns.
 - Preserve unrelated worktree changes.
+
+Use current Neovim APIs. Do not restore legacy compatibility unless requested.
 
 ## Code rules
 
@@ -21,10 +21,33 @@ Use current APIs only, do not restore legacy compatibility unless requested.
 - Keep every `vim.*` call in `lua/dove/common.lua`, including calls needed by
   tests. Add a wrapper when one is missing.
 - Use `common.validate` for configuration and argument type checks.
-- Format errors as `dove.nvim: <lowercase message without a trailing period>`.
-- Use the same format for `print()` messages.
+- Format errors and `print()` messages as
+  `dove.nvim: <lowercase message without a trailing period>`.
 
-## When Changing Required Neovim version
+## Documentation rules
+
+Everything in `doc/` is generated with panvimdoc. Update the source
+documentation and regenerate the generated files instead of editing `doc/`
+directly.
+
+## Tests
+
+Aftter editing any source code file (non-documentation), update the matching test
+file when behavior, exports, or signatures change.
+Add only useful behavioral coverage; do not add module-load tests.
+
+At the end of every final change to source code, run:
+
+```bash
+make test
+stylua --check .
+lua-language-server --check=. --checklevel=Warning --check_out_path=/tmp/dove-luals-check.json
+```
+
+If you are unable to find these tools in path, search them on mason.nvim install
+directory.
+
+## When changing the required Neovim version
 
 When changing the minimum version, update all of these:
 
@@ -33,24 +56,5 @@ When changing the minimum version, update all of these:
 - `scripts/generate-vimdoc.sh`: the `--vim-version 'NVIM vX.Y.0'` flag.
 - `lua/dove/health.lua`: the `common.has("nvim-X.Y")` check and its messages.
 
-The Makefile workflow installs Neovim without pinning a version. Change it only
-when CI needs a pinned version.
-
-## Vim Doc
-
-Everything in the `doc/` directory is meant to be generated using panvimdoc.
-
-## Tests
-
-At the end of every change, run:
-
-```bash
-make test
-stylua --check .
-lua-language-server --check=. --checklevel=Warning --check_out_path=/tmp/dove-luals-check.json
-```
-
-The LuaLS diagnosis must report no problems.
-
-Update the matching test file when behavior, exports, or signatures change.
-Only add useful behavioral coverage, do not add module-load tests.
+The CI workflow has its own Neovim version. Change that pin only when CI needs a
+different version.

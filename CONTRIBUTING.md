@@ -2,25 +2,38 @@
 
 Bug fixes, features, and documentation improvements are welcome.
 
-## Bug report
+## Before opening a pull request
 
-- Describe your environment: operating system, Neovim version, lua config, etc.
-- Explain step by step how to reproduce the problem.
+- Keep the change focused.
+- Follow the conventions in `AGENTS.md`.
+- Update tests and documentation when behavior changes.
+- Run the checks below from the repository root.
+
+## Bug reports
+
+Report bugs by creating a new issue.
+
+- Describe your environment, including the operating system, Neovim version,
+  and Lua configuration.
+- Give step-by-step instructions to reproduce the problem.
 
 ## Pull requests
 
-Explain what changed and why. Link any related issue.
+Explain what changed and why, and link any related issue. Open an issue or
+discussion first when a change needs design agreement.
+
+### Commit messages
 
 Use a clear commit prefix when practical:
 
 - `fix:` for bug fixes.
 - `feat:` for features.
-- `test:` for test only changes.
+- `test:` for test-only changes.
 - `docs:` for documentation only changes.
 - `chore:` for codebase maintenance.
 
-## Code guideline
+### Checks
 
-- Try to follow the conventions in `AGENTS.md`.
-- Update tests and documentation when behavior changes.
-- Pass all checks & CI e.g. `make test`, `lua-language-server`, and `stylua`.
+All CI checks must pass before the pull request can be merged.
+You may also run these checks locally first, e.g. `make test`,
+`lua-language-server`, and `stylua`.
