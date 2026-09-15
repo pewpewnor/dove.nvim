@@ -1,23 +1,13 @@
----@class RawEntry
----@field [1] string?
----@field cmd string|string[]?
----@field name string?
----@field executor Executor?
-
----@class ProcessedEntry
----@field name string
----@field command string
----@field executor Executor?
-
 local common = require("dove.common")
 
 local M = {}
 
----@param config Config
+---@param config dove.Config
 function M.init(config)
     M.config = config
 end
 
+---@type table<table, string>
 local imported_lists = setmetatable({}, { __mode = "k" })
 
 ---@param module_name string
@@ -51,6 +41,7 @@ local function load_source_file(path, loading)
     end
     loading[path] = true
 
+    ---@type table<string, any>
     local environment = setmetatable({
         dove = M.config.environment,
     }, { __index = _G })
@@ -125,6 +116,7 @@ local function normalize_command(command, source_file_path)
             )
         )
     end
+    ---@type string[]
     local commands = {}
     for index, item in ipairs(command) do
         common.validate("entry command " .. index, item, "string")
@@ -133,9 +125,9 @@ local function normalize_command(command, source_file_path)
     return table.concat(commands, M.config.cmd_list_delimiter)
 end
 
----@param item RawEntry
+---@param item dove.RawEntry
 ---@param source_file_path string
----@return ProcessedEntry
+---@return dove.ProcessedEntry
 local function parse_entry(item, source_file_path)
     if item[1] ~= nil and item.cmd ~= nil then
         error(
@@ -157,7 +149,7 @@ end
 
 ---@param list table
 ---@param source_file_path string
----@return ProcessedEntry[]
+---@return dove.ProcessedEntry[]
 local function parse_list(list, source_file_path)
     if not common.is_list(list) then
         error(
@@ -167,6 +159,7 @@ local function parse_list(list, source_file_path)
             )
         )
     end
+    ---@type dove.ProcessedEntry[]
     local entries = {}
     for _, item in ipairs(list) do
         local imported_path = imported_lists[item]
@@ -190,13 +183,15 @@ local function parse_list(list, source_file_path)
 end
 
 ---@param path string
----@return ProcessedEntry[]?
+---@return dove.ProcessedEntry[]?
 function M.parse_source_file(path)
     if not common.is_file_and_readable(path) then
         print("dove.nvim: no source file found")
         return nil
     end
-    local source = load_source_file(path, {})
+    ---@type table<string, boolean>
+    local loading = {}
+    local source = load_source_file(path, loading)
     return parse_list(source, path)
 end
 

@@ -1,36 +1,27 @@
----@class ProcessedTarget
----@field name string
----@field source_path string
----@field auto_run_single_command boolean
----@field default_executor Executor
-
----@class Task
----@field command string
----@field executor Executor
----@field args string[]
-
 local parser = require("dove.parser")
 
 local M = {}
 
----@param config Config
+---@param config dove.Config
 function M.init(config)
+    ---@type dove.Config
     M.config = config
 end
 
----@type Task|nil
+---@type dove.Task|nil
 M.last_executed_task = nil
 
----@param task Task
+---@param task dove.Task
 local function execute_task(task)
     task.executor(task.command, task.args)
 end
 
----@param entry ProcessedEntry
----@param default_executor Executor
+---@param entry dove.ProcessedEntry
+---@param default_executor dove.Executor
 local function run_entry(entry, default_executor)
     local executor = entry.executor or default_executor
 
+    ---@type dove.Task
     M.last_executed_task = {
         command = entry.command,
         executor = executor,
@@ -39,7 +30,7 @@ local function run_entry(entry, default_executor)
     execute_task(M.last_executed_task)
 end
 
----@param target ProcessedTarget
+---@param target dove.ProcessedTarget
 function M.select_and_run_entry(target)
     local entries = parser.parse_source_file(target.source_path)
     if not entries then
@@ -60,6 +51,7 @@ function M.select_and_run_entry(target)
         return run_entry(entries[1], target.default_executor)
     end
 
+    ---@type table<dove.ProcessedEntry, integer>
     local entry_indices = {}
     for index, entry in ipairs(entries) do
         entry_indices[entry] = index

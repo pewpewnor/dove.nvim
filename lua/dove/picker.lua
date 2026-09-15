@@ -59,10 +59,11 @@ local function match_score(label, query)
     return score
 end
 
----@param entries table[]
+---@param entries dove.PickerEntry[]
 ---@param query string
----@return table[]
+---@return dove.PickerEntry[]
 local function filter_entries(entries, query)
+    ---@type dove.PickerEntry[]
     local filtered = {}
     for _, entry in ipairs(entries) do
         local score = match_score(entry.label, query)
@@ -85,11 +86,12 @@ local function filter_entries(entries, query)
 end
 
 ---@param items any[]
----@param opts table
+---@param opts dove.PickerOptions
 ---@param on_choice fun(item: any?, index: integer?)
 local function picker(items, opts, on_choice)
     opts = opts or {}
     local format_item = opts.format_item or tostring
+    ---@type dove.PickerEntry[]
     local entries = {}
     local content_width = 0
     for index, item in ipairs(items) do
@@ -147,6 +149,7 @@ local function picker(items, opts, on_choice)
         "Normal:NormalFloat,FloatBorder:FloatBorder"
     )
 
+    ---@type dove.PickerState
     local state = {
         filtered = entries,
         finished = false,
@@ -161,6 +164,7 @@ local function picker(items, opts, on_choice)
             return
         end
         state.updating = true
+        ---@type string[]
         local lines = { "> " .. state.query, "" }
         local result_capacity = height - 2
         local first_result = 1

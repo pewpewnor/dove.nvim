@@ -1,7 +1,7 @@
 local common = require("dove.common")
 local default = require("dove.default")
 
----@param targets Targets
+---@param targets dove.Targets
 local function fill_and_validate_targets(targets)
     for target_name, target_config in pairs(targets) do
         common.validate("targets." .. target_name, target_config, "table")
@@ -45,7 +45,7 @@ local function fill_and_validate_targets(targets)
     end
 end
 
----@param options Config
+---@param options dove.Config
 local function validate_opts(options)
     common.validate("options", options, "table")
     common.validate("options.environment", options.environment, "table")

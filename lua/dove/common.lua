@@ -268,6 +268,7 @@ end
 ---@param buffer integer
 ---@return integer[]
 function M.lsp_get_client_ids(buffer)
+    ---@type integer[]
     local client_ids = {}
     for _, client in ipairs(vim.lsp.get_clients({ bufnr = buffer })) do
         client_ids[#client_ids + 1] = client["id"]

@@ -1,45 +1,10 @@
----@alias PathResolver fun(): string?
-
----@alias Executor fun(command: string, args: string[]?)
-
----@class Executors
----@field [string] Executor
-
----@class Target
----@field source_path PathResolver|PathResolver[]
----@field auto_run_single_command boolean
----@field default_executor Executor
-
----@class Targets
----@field [string] Target
-
----@class Environment
----@field executors Executors
----@field [string] any
-
----@alias Picker fun(items: any[], opts: table, on_choice: fun(item: any?, index: integer?))
-
----@class Ui
----@field picker Picker
----@field enumerate_entries boolean
-
----@class Config
----@field targets Targets
----@field environment Environment
----@field cmd_list_delimiter string
----@field write_template_to_new_source_file boolean
----@field ui Ui
-
----@class MinimumTarget
----@field source_path PathResolver|PathResolver[]
-
 local common = require("dove.common")
 local preset = require("dove.preset")
 
 local M = {}
 
----@param minimum_target MinimumTarget
----@return Target
+---@param minimum_target dove.MinimumTarget
+---@return dove.Target
 function M.fill_target(minimum_target)
     common.validate("minimum_target", minimum_target, "table")
     return common.tbl_deep_extend("force", {
@@ -51,7 +16,7 @@ function M.fill_target(minimum_target)
 end
 
 ---@param options table?
----@return Config
+---@return dove.Config
 function M.create(options)
     return common.tbl_deep_extend("force", {
         targets = {

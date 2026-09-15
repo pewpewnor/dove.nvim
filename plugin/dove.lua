@@ -1,12 +1,8 @@
----@class DoveSubcommand
----@field func fun(target_name: string?)
----@field takes_target boolean
-
 local common = require("dove.common")
 local module = require("dove.module")
 local dove = require("dove")
 
----@type table<string, DoveSubcommand>
+---@type table<string, dove.Subcommand>
 local subcommands = {
     run = { func = dove.run_target, takes_target = true },
     prev = { func = dove.run_prev_task, takes_target = false },
@@ -25,6 +21,7 @@ table.sort(subcommand_names)
 ---@param arg_lead string
 ---@return string[]
 local function filter_by_prefix(candidates, arg_lead)
+    ---@type string[]
     local matches = {}
     for _, candidate in ipairs(candidates) do
         if candidate:sub(1, #arg_lead) == arg_lead then
@@ -38,6 +35,7 @@ end
 ---@param cmd_line string
 ---@return string[]
 local function complete(arg_lead, cmd_line)
+    ---@type string[]
     local words = {}
     for word in cmd_line:gmatch("%S+") do
         words[#words + 1] = word

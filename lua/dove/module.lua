@@ -4,8 +4,9 @@ local common = require("dove.common")
 
 local M = {}
 
----@param config Config
+---@param config dove.Config
 function M.init(config)
+    ---@type dove.Config
     M.config = config
     require("dove.parser").init(config)
     runner.init(config)
@@ -13,6 +14,7 @@ end
 
 ---@return string[]
 function M.get_target_names()
+    ---@type string[]
     local target_names = {}
     for target_name in pairs(M.config.targets) do
         target_names[#target_names + 1] = target_name
@@ -22,6 +24,7 @@ function M.get_target_names()
 end
 
 ---@param target_name string
+---@return dove.Target
 local function find_target(target_name)
     common.validate("target_name", target_name, "string")
     local target = M.config.targets[target_name]

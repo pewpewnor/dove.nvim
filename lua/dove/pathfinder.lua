@@ -1,7 +1,7 @@
 local common = require("dove.common")
 local M = {}
 
----@param resolver PathResolver
+---@param resolver dove.PathResolver
 ---@return string|nil
 local function resolve_path(resolver)
     local raw_path = resolver()
@@ -12,9 +12,10 @@ local function resolve_path(resolver)
     return common.path_normalize(common.expand(raw_path))
 end
 
----@param path_resolvers PathResolver|PathResolver[]
+---@param path_resolvers dove.PathResolver|dove.PathResolver[]
 ---@return string
 function M.get_true_path(path_resolvers)
+    ---@type dove.PathResolver[]
     local resolvers
     if type(path_resolvers) == "function" then
         resolvers = { path_resolvers }
@@ -26,6 +27,7 @@ function M.get_true_path(path_resolvers)
         )
     end
 
+    ---@type string?
     local first_path
     for _, resolver in ipairs(resolvers) do
         local path = resolve_path(resolver)
