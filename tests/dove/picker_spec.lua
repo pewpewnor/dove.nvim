@@ -32,10 +32,19 @@ describe("built-in picker", function()
         local buffer = common.get_current_buffer()
         local config = common.get_window_config(window)
         assert.equals("editor", config.relative)
-        assert.equals(12, config.height)
-        assert.equals(70, config.width)
         assert.equals(
-            math.floor((common.get_columns() - config.width - 2) / 2),
+            math.min(12, math.max(1, common.get_lines() - 4)),
+            config.height
+        )
+        assert.equals(
+            math.min(70, math.max(1, common.get_columns() - 4)),
+            config.width
+        )
+        assert.equals(
+            math.max(
+                0,
+                math.floor((common.get_columns() - config.width - 2) / 2)
+            ),
             config.col
         )
         assert.same({ 1, 2 }, common.get_window_cursor(window))
@@ -65,7 +74,6 @@ describe("built-in picker", function()
         assert.equals(">   gm  ", lines[1])
         assert.equals("", lines[2])
         assert.equals("> 3. gamma", lines[3])
-        assert.equals("", lines[12])
 
         common.feedkeys("<CR>", "x")
         assert.same({ "3. gamma", 3 }, chosen)

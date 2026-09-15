@@ -128,17 +128,15 @@ describe("source file execution", function()
             "    },",
             "}",
         })
-        setup(path, { auto_run_single_command = false })
+        setup(path, {
+            auto_run_single_command = false,
+            cmd_list_delimiter = "; ",
+        })
 
         dove.run_target("project")
 
         assert.equals(1, #executed_commands)
-        local shell_name = common.get_shell():gsub("\\", "/"):match("([^/]+)$")
-            or ""
-        shell_name = shell_name:lower()
-        local uses_cmd = shell_name == "cmd" or shell_name == "cmd.exe"
-        local delimiter = uses_cmd and " & " or "; "
-        assert.equals("first" .. delimiter .. "second", executed_commands[1])
+        assert.equals("first; second", executed_commands[1])
 
         local selected
         picker = function(items)
@@ -164,21 +162,37 @@ describe("source file execution", function()
         assert.same({ "first && second" }, executed_commands)
     end)
 
-    it("uses a cmd.exe-compatible default delimiter", function()
-        local path = common.path_join(temp_dir, "cmd-command-list.lua")
+    it("uses shell-compatible default delimiters", function()
+        local path = common.path_join(temp_dir, "default-command-list.lua")
         write_source_file(path, {
             "return {",
             '    { cmd = { "first", "second" } },',
             "}",
         })
-        set_common("get_shell", function()
-            return [[C:\Windows\System32\cmd.exe]]
-        end)
-        setup(path)
+        local cases = {
+            { shell = "/bin/sh", command = "first; second" },
+            { shell = "/bin/zsh", command = "first; second" },
+            {
+                shell = [[C:\Windows\System32\cmd.exe]],
+                command = "first & second",
+            },
+            {
+                shell = [[C:\Program Files\PowerShell\7\pwsh.exe]],
+                command = "first; second",
+            },
+        }
 
-        dove.run_target("project")
+        for _, case in ipairs(cases) do
+            executed_commands = {}
+            set_common("get_shell", function()
+                return case.shell
+            end)
+            setup(path)
 
-        assert.same({ "first & second" }, executed_commands)
+            dove.run_target("project")
+
+            assert.same({ case.command }, executed_commands)
+        end
     end)
 
     it("uses the configured picker", function()

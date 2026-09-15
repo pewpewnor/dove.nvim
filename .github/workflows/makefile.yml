@@ -34,7 +34,14 @@ jobs:
         runs-on: ${{ matrix.os }}
 
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout dove.nvim
+              uses: actions/checkout@v4
+
+            - name: Checkout plenary.nvim
+              uses: actions/checkout@v4
+              with:
+                  repository: nvim-lua/plenary.nvim
+                  path: .test-dependencies/plenary.nvim
 
             - name: Set up Neovim
               uses: rhysd/action-setup-vim@v1
@@ -48,3 +55,5 @@ jobs:
 
             - name: Run tests
               run: make test
+              env:
+                  PLENARY_DIR: ${{ github.workspace }}/.test-dependencies/plenary.nvim
