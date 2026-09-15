@@ -31,7 +31,6 @@ describe("setup", function()
         assert.is_nil(dove.delete_lua_file)
         assert.is_function(default.create)
         assert.is_function(module.config.picker)
-        assert.equals("; ", module.config.cmd_list_delimiter)
         assert.is_nil(module.config.display)
     end)
 
@@ -49,5 +48,16 @@ describe("setup", function()
 
         assert.is_false(success)
         assert.matches("options.cmd_list_delimiter", message)
+    end)
+
+    it("rejects invalid source resolver list entries", function()
+        local success, message = pcall(dove.setup, {
+            targets = {
+                invalid = { source = { true } },
+            },
+        })
+
+        assert.is_false(success)
+        assert.matches("targets.invalid.source.1", message)
     end)
 end)

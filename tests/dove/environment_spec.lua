@@ -59,10 +59,11 @@ describe("environment", function()
     it(
         "uses overridden environment values in default target sources",
         function()
+            local data_path = common.get_tempname()
             dove.setup({
                 environment = {
                     dove_data_path = function()
-                        return "/tmp/dove-test"
+                        return data_path
                     end,
                     cwd_path = function()
                         return "cwd"
@@ -76,7 +77,7 @@ describe("environment", function()
             local path =
                 pathfinder.get_true_path(module.config.targets.project.source)
             assert.equals(
-                common.path_normalize("/tmp/dove-test/projects/hash-cwd.lua"),
+                common.path_join(data_path, "projects", "hash-cwd.lua"),
                 path
             )
         end
@@ -84,13 +85,15 @@ describe("environment", function()
 
     it("passes the effective environment to target source resolvers", function()
         local received_environment
+        local source_path =
+            common.path_join(common.get_tempname(), "project.lua")
         dove.setup({
             environment = { marker = "configured" },
             targets = {
                 project = {
                     source = function(environment)
                         received_environment = environment
-                        return "/tmp/dove-test/project.lua"
+                        return source_path
                     end,
                 },
             },

@@ -160,6 +160,16 @@ function M.get_shell()
     return vim.o.shell
 end
 
+---@return string
+function M.get_default_cmd_list_delimiter()
+    local shell_name = M.get_shell():gsub("\\", "/"):match("([^/]+)$") or ""
+    shell_name = shell_name:lower()
+    if shell_name == "cmd" or shell_name == "cmd.exe" then
+        return " & "
+    end
+    return "; "
+end
+
 ---@param what string
 ---@return string
 function M.get_stdpath(what)
@@ -294,6 +304,13 @@ end
 ---@return string
 function M.path_join(...)
     return vim.fs.joinpath(...)
+end
+
+---@param path string
+---@param base string
+---@return string
+function M.path_absolute(path, base)
+    return vim.fs.abspath(path, { cwd = base })
 end
 
 ---@param path string

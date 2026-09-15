@@ -13,6 +13,25 @@ local function fill_and_validate_targets(targets)
             target_config.source,
             { "function", "table" }
         )
+        if type(target_config.source) == "table" then
+            if
+                not common.is_list(target_config.source)
+                or #target_config.source == 0
+            then
+                error(
+                    "dove.nvim: targets."
+                        .. target_name
+                        .. ".source must be a non-empty list of functions"
+                )
+            end
+            for index, resolver in ipairs(target_config.source) do
+                common.validate(
+                    "targets." .. target_name .. ".source." .. index,
+                    resolver,
+                    "function"
+                )
+            end
+        end
         common.validate(
             "targets." .. target_name .. ".auto_run_single_command",
             target_config.auto_run_single_command,

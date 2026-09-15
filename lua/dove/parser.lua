@@ -35,8 +35,8 @@ end
 ---@return string
 local function resolve_import_path(path, parent_path)
     local expanded = common.expand(path)
-    if expanded:sub(1, 1) ~= "/" and parent_path then
-        expanded = common.path_join(common.dirname(parent_path), expanded)
+    if parent_path then
+        expanded = common.path_absolute(expanded, common.dirname(parent_path))
     end
     return common.path_normalize(expanded)
 end
@@ -62,7 +62,7 @@ local function load_source_file(path, loading)
         end
         local imported_path = resolve_import_path(module_name, path)
         local imported = load_source_file(imported_path, loading)
-        imported_lists[imported] = true
+        imported_lists[imported] = imported_path
         return imported
     end
 
@@ -169,8 +169,9 @@ local function parse_list(list, source_file_path)
     end
     local entries = {}
     for _, item in ipairs(list) do
-        if imported_lists[item] then
-            local imported_entries = parse_list(item, source_file_path)
+        local imported_path = imported_lists[item]
+        if imported_path then
+            local imported_entries = parse_list(item, imported_path)
             for _, entry in ipairs(imported_entries) do
                 entries[#entries + 1] = entry
             end

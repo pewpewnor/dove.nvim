@@ -63,8 +63,8 @@ Every entry is a table with these fields:
 - `executor`: optional executor function.
 
 A `cmd` list is joined with `cmd_list_delimiter` and passed to its executor
-once. The default delimiter is `"; "`, so every item runs sequentially in one
-shell session:
+once. The default delimiter is `"; "` (`" & "` with `cmd.exe`), so every item
+runs sequentially in one shell session:
 
 ```lua
 return {

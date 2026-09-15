@@ -8,6 +8,7 @@ describe("source file execution", function()
     local temp_dir
     local original_cmd
     local original_expand
+    local original_get_shell
     local loader_enabled
     local picker
 
@@ -54,6 +55,7 @@ describe("source file execution", function()
         common.mkdir_with_parents(temp_dir)
         original_cmd = common.cmd
         original_expand = common.expand
+        original_get_shell = common.get_shell
         set_common("cmd", function() end)
     end)
 
@@ -63,6 +65,7 @@ describe("source file execution", function()
         end
         set_common("cmd", original_cmd)
         set_common("expand", original_expand)
+        set_common("get_shell", original_get_shell)
         common.path_remove_recursive(temp_dir)
     end)
 
@@ -130,7 +133,12 @@ describe("source file execution", function()
         dove.run_target("project")
 
         assert.equals(1, #executed_commands)
-        assert.equals("first; second", executed_commands[1])
+        local shell_name = common.get_shell():gsub("\\", "/"):match("([^/]+)$")
+            or ""
+        shell_name = shell_name:lower()
+        local uses_cmd = shell_name == "cmd" or shell_name == "cmd.exe"
+        local delimiter = uses_cmd and " & " or "; "
+        assert.equals("first" .. delimiter .. "second", executed_commands[1])
 
         local selected
         picker = function(items)
@@ -154,6 +162,23 @@ describe("source file execution", function()
         dove.run_target("project")
 
         assert.same({ "first && second" }, executed_commands)
+    end)
+
+    it("uses a cmd.exe-compatible default delimiter", function()
+        local path = common.path_join(temp_dir, "cmd-command-list.lua")
+        write_source_file(path, {
+            "return {",
+            '    { cmd = { "first", "second" } },',
+            "}",
+        })
+        set_common("get_shell", function()
+            return [[C:\Windows\System32\cmd.exe]]
+        end)
+        setup(path)
+
+        dove.run_target("project")
+
+        assert.same({ "first & second" }, executed_commands)
     end)
 
     it("uses the configured picker", function()
@@ -276,6 +301,23 @@ describe("source file execution", function()
         assert.same({ "echo relative" }, executed_commands)
     end)
 
+    it("attributes imported entry errors to the imported file", function()
+        local imported_path = common.path_join(temp_dir, "invalid-shared.lua")
+        local path = common.path_join(temp_dir, "project-with-import.lua")
+        write_source_file(imported_path, { 'return { "invalid" }' })
+        write_source_file(
+            path,
+            { 'return { require("./invalid-shared.lua") }' }
+        )
+        setup(path)
+
+        local success, message = pcall(dove.run_target, "project")
+
+        assert.is_false(success)
+        assert.matches("invalid%-shared%.lua", message)
+        assert.is_nil(message:match("project%-with%-import%.lua"))
+    end)
+
     it("reloads files on every run", function()
         local path = common.path_join(temp_dir, "reload.lua")
         write_source_file(path, { 'return { { "echo first" } }' })
@@ -318,7 +360,11 @@ describe("source file execution", function()
         dove.edit_source_file("project")
 
         assert.is_true(common.is_file_and_readable(path))
-        assert.matches("^return {", common.read_file(path))
+        local chunk, load_error = loadfile(path)
+        assert.is_nil(load_error)
+        local source = assert(chunk)()
+        assert.equals("greetings", source[1].name)
+        assert.equals("echo Hello, World!", source[1].cmd)
     end)
 
     it("deletes a target's source file", function()

@@ -69,9 +69,10 @@ Do not set both `[1]` and `cmd`.
 
 When `cmd` is a list, dove.nvim joins its items with
 `cmd_list_delimiter` and sends the result to the executor once. With the
-default `"; "`, the commands run sequentially in the same shell session, so
-state such as variables and the working directory carries between items. Every
-item is attempted, and the final item's status is the command's exit status.
+default `"; "` (`" & "` with `cmd.exe`), the commands run sequentially in the
+same shell session, so state such as variables and the working directory
+carries between items. Every item is attempted, and the final item's status is
+the command's exit status.
 
 ```lua
 return {
@@ -127,10 +128,10 @@ return {
 }
 ```
 
-Paths beginning with `/`, `~/`, `./`, or `../`, and names ending in `.lua`, are
-loaded as source files. Relative paths are resolved from the importing file.
-Other names use Lua's normal `require()`. Imported source lists are flattened in
-place. Circular source imports are rejected.
+Absolute paths, paths beginning with `~/`, `./`, or `../`, and names ending in
+`.lua` are loaded as source files. Relative paths are resolved from the
+importing file. Other names use Lua's normal `require()`. Imported source lists
+are flattened in place. Circular source imports are rejected.
 
 ## Configuration options
 
@@ -174,7 +175,7 @@ local preset = require("dove.preset")
             -- see section on preset environment
         },
     },
-    cmd_list_delimiter = "; ",
+    cmd_list_delimiter = <"; ", or " & " with cmd.exe>,
     write_template_to_new_source_file = true,
     picker = <built-in picker>,
 }
@@ -187,8 +188,10 @@ merged into these defaults.
 
 Type: `string`
 
-The string used to join a source entry's `cmd` list. The default is `"; "`.
-For example, set it to `" && "` to stop after the first failed command.
+The string used to join a source entry's `cmd` list. The default is `"; "`, or
+`" & "` when using `cmd.exe`. The value is passed directly to the configured
+shell. On shells that support it, set it to `" && "` to stop after the first
+failed command.
 
 ### `targets`
 

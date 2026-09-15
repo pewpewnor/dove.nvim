@@ -57,7 +57,10 @@ function M.bg_exit_status(command)
     common.run_shell_async(command, function(result)
         print(
             result.code == 0 and "dove.nvim: command job success (exit code 0)"
-                or "dove.nvim: command job error (exit code 1)"
+                or string.format(
+                    "dove.nvim: command job error (exit code %d)",
+                    result.code
+                )
         )
     end)
 end

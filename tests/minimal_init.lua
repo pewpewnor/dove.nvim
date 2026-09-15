@@ -2,8 +2,14 @@ package.path = "./lua/?.lua;./lua/?/init.lua;" .. package.path
 
 local common = require("dove.common")
 
-local plenary_dir = os.getenv("PLENARY_DIR") or "/tmp/plenary.nvim"
+local plenary_dir = os.getenv("PLENARY_DIR")
+    or common.path_join(
+        common.get_stdpath("cache"),
+        "dove.nvim",
+        "plenary.nvim"
+    )
 if not common.is_directory(plenary_dir) then
+    common.mkdir_with_parents(common.dirname(plenary_dir))
     common.run_process_silent({
         "git",
         "clone",
