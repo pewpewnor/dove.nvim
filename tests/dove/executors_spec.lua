@@ -24,30 +24,27 @@ describe("executors", function()
         set_common("run_shell_async", original_run_shell_async)
     end)
 
-    it("opens a terminal below all windows", function()
+    it("sets the height of a split terminal", function()
         local command
         set_common("cmd", function(value)
             command = value
         end)
 
-        executors.bottom_split("make test")
+        executors.split("make test", { "12" })
 
-        assert.equals(
-            "rightbelow split | wincmd J | terminal make test",
-            command
-        )
+        assert.equals("rightbelow 12 split | terminal make test", command)
     end)
 
-    it("sets the height of a terminal below all windows", function()
+    it("runs a command after opening a split terminal", function()
         local command
         set_common("cmd", function(value)
             command = value
         end)
 
-        executors.bottom_split("make test", { "12" })
+        executors.split("make test", { nil, "wincmd J | resize -3" })
 
         assert.equals(
-            "rightbelow 12 split | wincmd J | terminal make test",
+            "rightbelow split | wincmd J | resize -3 | terminal make test",
             command
         )
     end)

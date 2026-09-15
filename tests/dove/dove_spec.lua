@@ -15,7 +15,7 @@ describe("setup", function()
 
         assert.same({ "filetype", "project" }, module.get_target_names())
         assert.is_function(preset.executors.new_tab)
-        assert.is_function(preset.executors.bottom_split)
+        assert.is_function(preset.executors.split)
         assert.is_function(preset.executors.vsplit)
         assert.is_function(preset.file_path)
         assert.is_function(preset.dove_data_path)
@@ -35,14 +35,8 @@ describe("setup", function()
         assert.is_function(module.config.targets.filetype.source_path)
         assert.is_nil(module.config.targets.project.source)
         assert.is_nil(module.config.targets.filetype.source)
-        assert.equals(
-            preset.executors.bottom_split,
-            module.config.targets.project.default_executor
-        )
-        assert.equals(
-            preset.executors.bottom_split,
-            module.config.targets.filetype.default_executor
-        )
+        assert.is_function(module.config.targets.project.default_executor)
+        assert.is_function(module.config.targets.filetype.default_executor)
         assert.is_function(module.config.ui.picker)
         assert.is_true(module.config.ui.enumerate_entries)
         assert.is_nil(module.config.display)

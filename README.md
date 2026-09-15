@@ -143,7 +143,6 @@ Use `dove.executors` in source files and
 | `preset.executors.new_tab`        | Opens a terminal in a new tab                  |
 | `preset.executors.current_buffer` | Opens a terminal in the current buffer         |
 | `preset.executors.split`          | Opens a terminal in a horizontal split         |
-| `preset.executors.bottom_split`   | Opens a full-width terminal below all windows  |
 | `preset.executors.vsplit`         | Opens a terminal in a vertical split           |
 | `preset.executors.print`          | Runs synchronously and prints stdout           |
 | `preset.executors.silent`         | Runs synchronously without output              |
@@ -223,11 +222,11 @@ In the example, source files would be able to access the custom values as
 
 ### Targets
 
-| Option                    | Details                                                                                    |
-| ------------------------- | ------------------------------------------------------------------------------------------ |
-| `source_path`             | A resolver function or a non-empty list of resolver functions.                             |
-| `auto_run_single_command` | Run one entry without opening the picker. Defaults to `true`.                              |
-| `default_executor`        | Executor used when an entry does not set one. Defaults to `preset.executors.bottom_split`. |
+| Option                    | Details                                                                                                 |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `source_path`             | A resolver function or a non-empty list of resolver functions.                                          |
+| `auto_run_single_command` | Run one entry without opening the picker. Defaults to `true`.                                           |
+| `default_executor`        | Executor used when an entry does not set one. Defaults to a short, full-width `preset.executors.split`. |
 
 Resolver functions must returns a string path. Use `require("dove.preset")` for
 built-in path values. With a list, dove.nvim uses the first readable path, or

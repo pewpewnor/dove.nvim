@@ -279,11 +279,11 @@ known options are type-checked.
 
 Each target supports:
 
-| Option                    | Type                          | Default                         |
-| ------------------------- | ----------------------------- | ------------------------------- |
-| `source_path`             | function or list of functions | Required for a new target       |
-| `auto_run_single_command` | boolean                       | `true`                          |
-| `default_executor`        | function                      | `preset.executors.bottom_split` |
+| Option                    | Type                          | Default                                      |
+| ------------------------- | ----------------------------- | -------------------------------------------- |
+| `source_path`             | function or list of functions | Required for a new target                    |
+| `auto_run_single_command` | boolean                       | `true`                                       |
+| `default_executor`        | function                      | A short, full-width `preset.executors.split` |
 
 A source resolver takes no arguments and returns a path string or `nil`.
 Returned paths are normalized and `~` is expanded.
@@ -313,7 +313,7 @@ Built-in paths and settings:
 
 - `project`: `stdpath("data")/dove/projects/<sha256-of-cwd>.lua`.
 - `filetype`: `stdpath("data")/dove/filetypes/<filetype>.lua`.
-- Both auto-run one entry and use `preset.executors.bottom_split`.
+- Both auto-run one entry and use a short, full-width `preset.executors.split`.
 
 ### `environment`
 
@@ -403,7 +403,8 @@ end
 Source entries pass an empty argument list. When a terminal executor is called
 directly, the first argument-list item is inserted as an Ex count before its
 `tabnew`, `split`, or `vsplit` command. For splits, this sets the height or
-width.
+width. The second item for `split` is an Ex command run after creating the
+window and before opening the terminal.
 
 Source files use `dove.executors`. Configuration uses
 `require("dove.preset").executors`.
@@ -413,7 +414,6 @@ Source files use `dove.executors`. Configuration uses
 | `preset.executors.new_tab`        | Open a terminal in a new tab                                       |
 | `preset.executors.current_buffer` | Open a terminal in the current buffer                              |
 | `preset.executors.split`          | Open a terminal in a horizontal split                              |
-| `preset.executors.bottom_split`   | Open a full-width terminal below all windows                       |
 | `preset.executors.vsplit`         | Open a terminal in a vertical split                                |
 | `preset.executors.print`          | Run synchronously and print stdout                                 |
 | `preset.executors.silent`         | Run synchronously without output                                   |
@@ -431,6 +431,7 @@ local executors = require("dove.preset").executors
 
 executors.split("make test", { "12" })
 executors.vsplit("make test", { "80" })
+executors.split("make test", { nil, "wincmd J | resize -3" })
 ```
 
 ## Lua API

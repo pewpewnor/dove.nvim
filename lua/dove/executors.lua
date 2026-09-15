@@ -3,6 +3,8 @@ local common = require("dove.common")
 local M = {}
 
 ---@type Executor
+---@param args? string[] Optional arguments:
+--- - `args[1]`: Ex count placed before `tabnew`.
 function M.new_tab(command, args)
     args = args or {}
     if #args == 0 then
@@ -18,31 +20,21 @@ function M.current_buffer(command)
 end
 
 ---@type Executor
+---@param args? string[] Optional arguments:
+--- - `args[1]`: Split height.
+--- - `args[2]`: Ex command run after creating the split and before opening the terminal.
 function M.split(command, args)
     args = args or {}
-    if #args == 0 then
-        common.cmd("rightbelow split | terminal " .. command)
-    else
-        common.cmd(args[1] .. " split | terminal " .. command)
+    local split = (args[1] and args[1] .. " " or "") .. "split"
+    if args[2] then
+        split = split .. " | " .. args[2]
     end
+    common.cmd("rightbelow " .. split .. " | terminal " .. command)
 end
 
 ---@type Executor
-function M.bottom_split(command, args)
-    args = args or {}
-    if #args == 0 then
-        common.cmd("rightbelow split | wincmd J | terminal " .. command)
-    else
-        common.cmd(
-            "rightbelow "
-                .. args[1]
-                .. " split | wincmd J | terminal "
-                .. command
-        )
-    end
-end
-
----@type Executor
+---@param args? string[] Optional arguments:
+--- - `args[1]`: Split width.
 function M.vsplit(command, args)
     args = args or {}
     if #args == 0 then

@@ -1,73 +1,17 @@
 ---@diagnostic disable: undefined-field
 
 local dove = require("dove")
-local common = require("dove.common")
+local simulation = require("tests.dove.simulation_helpers")
 
 describe("source file execution", function()
-    local executed_commands
-    local temp_dir
-    local original_cmd
-    local original_expand
-    local original_get_shell
-    local loader_enabled
-    local picker
-
-    local function test_executor(command)
-        executed_commands[#executed_commands + 1] = command
-    end
-
-    local function write_source_file(path, lines)
-        common.mkdir_with_parents(common.dirname(path))
-        assert.is_true(common.write_file(path, lines))
-    end
-
-    local function set_common(name, value)
-        rawset(common, name, value)
-    end
-
-    local function setup(path, options)
-        options = options or {}
-        local auto_run_single_command = options.auto_run_single_command ~= false
-        options.auto_run_single_command = nil
-        options.ui = options.ui or {}
-        options.ui.picker = options.ui.picker
-            or function(...)
-                return picker(...)
-            end
-        options.targets = {
-            project = {
-                source_path = function()
-                    return path
-                end,
-                auto_run_single_command = auto_run_single_command,
-                default_executor = test_executor,
-            },
-        }
-        dove.setup(options)
-    end
+    local context
 
     before_each(function()
-        executed_commands = {}
-        loader_enabled = false
-        picker = function(items, _, on_choice)
-            on_choice(items[1], 1)
-        end
-        temp_dir = common.get_tempname()
-        common.mkdir_with_parents(temp_dir)
-        original_cmd = common.cmd
-        original_expand = common.expand
-        original_get_shell = common.get_shell
-        set_common("cmd", function() end)
+        context = simulation.new()
     end)
 
     after_each(function()
-        if loader_enabled then
-            common.enable_loader(false)
-        end
-        set_common("cmd", original_cmd)
-        set_common("expand", original_expand)
-        set_common("get_shell", original_get_shell)
-        common.path_remove_recursive(temp_dir)
+        context:cleanup()
     end)
 
     it("runs named and positional command tables", function()
