@@ -105,8 +105,9 @@ Every entry must be a table and must have exactly one command field:
 | `name`     | Optional picker label. Defaults to the command.                             |
 | `executor` | Optional executor. Overrides the target's default executor.                 |
 
-For a `cmd` list, items are joined with `cmd_list_delimiter` and sent as a
-single shell command. The default delimiter is `"; "`, or `" & "` on windows.
+For a `cmd` list, items are joined with the string returned by
+`cmd_list_delimiter` and sent as a single shell command. The default function
+returns `"; "`, or `" & "` for `cmd.exe`.
 
 ### Preset environment
 
@@ -163,7 +164,8 @@ return {
 
 ## Configuration
 
-Passing `opts = {}` to lazy.nvim uses the defaults. To customize them:
+Passing `opts = {}` to lazy.nvim uses the
+[default configuration](docs/dove.md#defaults). To customize it:
 
 ```lua
 local dove = require("dove")
@@ -208,7 +210,9 @@ dove.setup({
             custom_func = function() end,
         },
     },
-    cmd_list_delimiter = " && ",
+    cmd_list_delimiter = function()
+        return " && "
+    end,
     write_template_to_new_source_file = false,
     ui = {
         picker = vim.ui.select,
@@ -234,12 +238,12 @@ the first returned path when `:Dove edit` creates it.
 
 ### Other options
 
-| Option                              | Details                                                                      |
-| ----------------------------------- | ---------------------------------------------------------------------------- |
-| `cmd_list_delimiter`                | Separator for `cmd` lists. Defaults to `"; "` or `" & "` with `cmd.exe`.     |
-| `write_template_to_new_source_file` | Write a template when `:Dove edit` opens a missing file. Defaults to `true`. |
-| `environment`                       | Add or replace values available as `dove.*`.                                 |
-| `ui`                                | Configure the picker and whether entry labels are numbered.                  |
+| Option                              | Details                                                                              |
+| ----------------------------------- | ------------------------------------------------------------------------------------ |
+| `cmd_list_delimiter`                | Returns the separator for `cmd` lists. Defaults to `"; "` or `" & "` with `cmd.exe`. |
+| `write_template_to_new_source_file` | Write a template when `:Dove edit` opens a missing file. Defaults to `true`.         |
+| `environment`                       | Add or replace values available as `dove.*`.                                         |
+| `ui`                                | Configure the picker and whether entry labels are numbered.                          |
 
 ## Built-in picker
 

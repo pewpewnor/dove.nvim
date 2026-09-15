@@ -26,7 +26,7 @@
 ---@class dove.Config
 ---@field targets dove.Targets
 ---@field environment dove.Environment
----@field cmd_list_delimiter string
+---@field cmd_list_delimiter fun(): string
 ---@field write_template_to_new_source_file boolean
 ---@field ui dove.Ui
 

@@ -122,7 +122,9 @@ local function normalize_command(command, source_file_path)
         common.validate("entry command " .. index, item, "string")
         commands[index] = item
     end
-    return table.concat(commands, M.config.cmd_list_delimiter)
+    local delimiter = M.config.cmd_list_delimiter()
+    common.validate("cmd_list_delimiter return value", delimiter, "string")
+    return table.concat(commands, delimiter)
 end
 
 ---@param item dove.RawEntry

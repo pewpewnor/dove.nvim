@@ -52,7 +52,7 @@ local function validate_opts(options)
     common.validate(
         "options.cmd_list_delimiter",
         options.cmd_list_delimiter,
-        "string"
+        "function"
     )
     common.validate(
         "options.write_template_to_new_source_file",

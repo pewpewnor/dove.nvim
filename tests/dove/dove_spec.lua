@@ -69,7 +69,7 @@ describe("setup", function()
 
     it("rejects an invalid command list delimiter", function()
         local success, message = pcall(dove.setup, {
-            cmd_list_delimiter = true,
+            cmd_list_delimiter = "; ",
         })
 
         assert.is_false(success)

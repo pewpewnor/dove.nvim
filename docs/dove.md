@@ -49,6 +49,59 @@ require("dove").setup()
   the plugin.
 - See [Configuration options](#configuration-options) for every option.
 
+## Defaults
+
+Default plugin configuration opts is equivalent to:
+
+```lua
+local preset = require("dove.preset")
+{
+    targets = {
+        project = {
+            source_path = function()
+                return preset.dove_data_path()
+                    .. "/projects/"
+                    .. preset.hash_sha256(preset.cwd_path())
+                    .. ".lua"
+            end,
+            auto_run_single_command = true,
+            default_executor = function(command)
+                preset.executors.split(
+                    command,
+                    { nil, "wincmd J | resize -4" }
+                )
+            end,
+        },
+        filetype = {
+            source_path = function()
+                return preset.dove_data_path()
+                    .. "/filetypes/"
+                    .. preset.file_type()
+                    .. ".lua"
+            end,
+            auto_run_single_command = true,
+            default_executor = function(command)
+                preset.executors.split(
+                    command,
+                    { nil, "wincmd J | resize -4" }
+                )
+            end,
+        },
+    },
+    environment = {
+        dove = preset,
+    },
+    cmd_list_delimiter = function()
+        return vim.o.shell:match("cmd%.exe$") and " & " or "; "
+    end,
+    write_template_to_new_source_file = true,
+    ui = {
+        picker = require("dove.picker"), -- see Built-in picker.
+        enumerate_entries = true,
+    },
+}
+```
+
 ## Quick start
 
 Open the current project's source file:
@@ -150,14 +203,14 @@ return {
 }
 ```
 
-dove.nvim joins the items with `cmd_list_delimiter` and calls the executor once.
-They run in one shell session, so directory changes and variables carry between
-items.
+dove.nvim calls `cmd_list_delimiter`, joins the items with its return value, and
+calls the executor once. They run in one shell session, so directory changes and
+variables carry between items.
 
-The default delimiter is `"; "`, or `" & "` for `cmd.exe`. It runs every item,
-and the last item's status is the combined command's status. Set
-`cmd_list_delimiter = " && "` on a compatible shell to stop on failure. See
-the **`cmd_list_delimiter`** configuration option.
+The default function returns `"; "`, or `" & "` for `cmd.exe`. It runs every
+item, and the last item's status is the combined command's status. Return
+`" && "` from `cmd_list_delimiter` on a compatible shell to stop on failure.
+See the **`cmd_list_delimiter`** configuration option.
 
 ### Source environment
 
@@ -259,7 +312,9 @@ require("dove").setup({
         test_prefix = "env TEST=1 ",
         executors = { quick = preset.executors.bg_exit_status },
     },
-    cmd_list_delimiter = " && ",
+    cmd_list_delimiter = function()
+        return " && "
+    end,
     write_template_to_new_source_file = false,
     ui = {
         picker = vim.ui.select,
@@ -340,9 +395,10 @@ The source can then use `dove.test_prefix`, the replaced `dove.file_path()`, and
 
 ### `cmd_list_delimiter`
 
-- Type: `string`.
-- Default: `"; "`, or `" & "` when `shell` is `cmd.exe`.
-- Joins list-valued entry commands and is passed directly to the shell.
+- Type: function returning a string.
+- Default: returns `"; "`, or `" & "` when `shell` is `cmd.exe`.
+- Its return value joins list-valued entry commands and is passed directly to
+  the shell.
 
 See **Command lists** for execution behavior.
 

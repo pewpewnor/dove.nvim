@@ -76,7 +76,9 @@ describe("source file execution", function()
         })
         context:setup(path, {
             auto_run_single_command = false,
-            cmd_list_delimiter = "; ",
+            cmd_list_delimiter = function()
+                return "; "
+            end,
         })
 
         dove.run_target("project")
@@ -102,11 +104,38 @@ describe("source file execution", function()
             '    { cmd = { "first", "second" } },',
             "}",
         })
-        context:setup(path, { cmd_list_delimiter = " && " })
+        context:setup(path, {
+            cmd_list_delimiter = function()
+                return " && "
+            end,
+        })
 
         dove.run_target("project")
 
         assert.same({ "first && second" }, context.executed_commands)
+    end)
+
+    it("rejects an invalid command list delimiter return value", function()
+        local path = common.path_join(
+            context.temp_dir,
+            "invalid-command-list-delimiter.lua"
+        )
+        context:write_source_file(path, {
+            "return {",
+            '    { cmd = { "first", "second" } },',
+            "}",
+        })
+        context:setup(path, {
+            cmd_list_delimiter = function()
+                return true
+            end,
+        })
+
+        local success, message = pcall(dove.run_target, "project")
+
+        assert.is_false(success)
+        assert.matches("cmd_list_delimiter return value", message)
+        assert.same({}, context.executed_commands)
     end)
 
     it("uses shell-compatible default delimiters", function()
