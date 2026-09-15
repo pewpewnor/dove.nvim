@@ -21,8 +21,9 @@
 
 ---@class Config
 ---@field targets Targets
----@field write_template_to_new_source_file boolean
 ---@field environment Environment
+---@field cmd_list_delimiter string
+---@field write_template_to_new_source_file boolean
 ---@field picker Picker
 
 ---@class MinimumTarget
@@ -67,8 +68,9 @@ function M.create(options)
                 end,
             }),
         },
-        write_template_to_new_source_file = true,
         environment = common.tbl_deep_extend("force", {}, preset),
+        cmd_list_delimiter = "; ",
+        write_template_to_new_source_file = true,
         picker = require("dove.picker"),
     }, options or {})
 end

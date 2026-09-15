@@ -31,6 +31,7 @@ describe("setup", function()
         assert.is_nil(dove.delete_lua_file)
         assert.is_function(default.create)
         assert.is_function(module.config.picker)
+        assert.equals("; ", module.config.cmd_list_delimiter)
         assert.is_nil(module.config.display)
     end)
 
@@ -39,5 +40,14 @@ describe("setup", function()
 
         assert.is_false(success)
         assert.matches("options.picker", message)
+    end)
+
+    it("rejects an invalid command list delimiter", function()
+        local success, message = pcall(dove.setup, {
+            cmd_list_delimiter = true,
+        })
+
+        assert.is_false(success)
+        assert.matches("options.cmd_list_delimiter", message)
     end)
 end)

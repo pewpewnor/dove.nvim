@@ -142,6 +142,20 @@ describe("source file execution", function()
         assert.equals("third", selected[2].command)
     end)
 
+    it("joins a command list with the configured delimiter", function()
+        local path = common.path_join(temp_dir, "command-list-delimiter.lua")
+        write_source_file(path, {
+            "return {",
+            '    { cmd = { "first", "second" } },',
+            "}",
+        })
+        setup(path, { cmd_list_delimiter = " && " })
+
+        dove.run_target("project")
+
+        assert.same({ "first && second" }, executed_commands)
+    end)
+
     it("uses the configured picker", function()
         local path = common.path_join(temp_dir, "selection-ui.lua")
         write_source_file(path, {

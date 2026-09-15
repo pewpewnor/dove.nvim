@@ -31,6 +31,11 @@ local function validate_opts(options)
     common.validate("options", options, "table")
     common.validate("options.environment", options.environment, "table")
     common.validate(
+        "options.cmd_list_delimiter",
+        options.cmd_list_delimiter,
+        "string"
+    )
+    common.validate(
         "options.write_template_to_new_source_file",
         options.write_template_to_new_source_file,
         "boolean"

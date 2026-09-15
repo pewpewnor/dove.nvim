@@ -67,11 +67,11 @@ Every entry must be a table with a command in `[1]` or `cmd`.
 
 Do not set both `[1]` and `cmd`.
 
-When `cmd` is a list, dove.nvim joins its items with semicolons and sends the
-result to the executor once. The commands therefore run sequentially in the
-same shell session, so state such as variables and the working directory
-carries between items. Every item is attempted, and the final item's status is
-the command's exit status.
+When `cmd` is a list, dove.nvim joins its items with
+`cmd_list_delimiter` and sends the result to the executor once. With the
+default `"; "`, the commands run sequentially in the same shell session, so
+state such as variables and the working directory carries between items. Every
+item is attempted, and the final item's status is the command's exit status.
 
 ```lua
 return {
@@ -166,14 +166,29 @@ local preset = require("dove.preset")
             default_executor = preset.executors.new_tab,
         },
     },
+    environment = {
+        arbit = {
+            executors = {
+                -- see section on preset executors
+            },
+            -- see section on preset environment
+        },
+    },
+    cmd_list_delimiter = "; ",
     write_template_to_new_source_file = true,
-    environment = {},
     picker = <built-in picker>,
 }
 ```
 
 The built-in environment is added automatically, then user options are deeply
 merged into these defaults.
+
+### `cmd_list_delimiter`
+
+Type: `string`
+
+The string used to join a source entry's `cmd` list. The default is `"; "`.
+For example, set it to `" && "` to stop after the first failed command.
 
 ### `targets`
 

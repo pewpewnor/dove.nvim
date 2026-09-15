@@ -62,8 +62,9 @@ Every entry is a table with these fields:
 - `name`: optional label shown in the picker.
 - `executor`: optional executor function.
 
-A `cmd` list is joined with semicolons and passed to its executor once, so every
-item runs sequentially in one shell session:
+A `cmd` list is joined with `cmd_list_delimiter` and passed to its executor
+once. The default delimiter is `"; "`, so every item runs sequentially in one
+shell session:
 
 ```lua
 return {
@@ -121,6 +122,7 @@ local dove = require("dove")
 local preset = require("dove.preset")
 
 dove.setup({
+    cmd_list_delimiter = " && ",
     targets = {
         project = {
             source = function()
