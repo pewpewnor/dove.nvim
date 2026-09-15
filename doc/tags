@@ -1,10 +1,12 @@
 dove-commands	dove.txt	/*dove-commands*
+dove-concepts	dove.txt	/*dove-concepts*
 dove-configuration-options	dove.txt	/*dove-configuration-options*
 dove-executors	dove.txt	/*dove-executors*
 dove-health-check	dove.txt	/*dove-health-check*
 dove-installation	dove.txt	/*dove-installation*
 dove-links	dove.txt	/*dove-links*
 dove-lua-api	dove.txt	/*dove-lua-api*
+dove-quick-start	dove.txt	/*dove-quick-start*
 dove-setup	dove.txt	/*dove-setup*
 dove-source-files	dove.txt	/*dove-source-files*
 dove-table-of-contents	dove.txt	/*dove-table-of-contents*

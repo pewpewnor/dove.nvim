@@ -24,7 +24,7 @@ discussion first when a change needs design agreement.
 
 ### Commit messages
 
-Use a clear commit prefix when practical:
+Use a clear commit prefix:
 
 - `fix:` for bug fixes.
 - `feat:` for features.
@@ -32,8 +32,10 @@ Use a clear commit prefix when practical:
 - `docs:` for documentation only changes.
 - `chore:` for codebase maintenance.
 
+Write only the header for commit message except for when attributing co-authors.
+
 ### Checks
 
-All CI checks must pass before the pull request can be merged.
-You may also run these checks locally first, e.g. `make test`,
-`lua-language-server`, and `stylua`.
+All CI checks must pass before the pull request can be merged. You may also run
+these checks locally first, e.g. `make test`, `lua-language-server`, and
+`stylua`.

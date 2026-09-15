@@ -4,8 +4,10 @@
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
 
+  - Concepts                                                   |dove-concepts|
   - Installation                                           |dove-installation|
   - Setup                                                         |dove-setup|
+  - Quick start                                             |dove-quick-start|
   - Commands                                                   |dove-commands|
   - Source files                                           |dove-source-files|
   - Configuration options                         |dove-configuration-options|
@@ -13,9 +15,25 @@ Table of Contents                                     *dove-table-of-contents*
   - Lua API                                                     |dove-lua-api|
   - Health check                                           |dove-health-check|
   - Links                                                         |dove-links|
-dove.nvim runs project and file commands from Lua source files.
+dove.nvim runs project and file commands defined in Lua source files.
 
-It requires Neovim v0.12.x or newer.
+_Requirement: Neovim v0.12.x or newer._
+
+
+CONCEPTS                                                       *dove-concepts*
+
+- A **target** names a command collection and resolves its source file.
+- A **source file** returns the entries available for a target.
+- An **entry** defines a shell command, picker label, and optional executor.
+- An **executor** decides how and where to run the command.
+
+The built-in targets are:
+
+- `project`: commands for the current working directory, stored per directory.
+- `filetype`: commands shared by buffers with the current buffer’s filetype.
+
+Targets resolve their paths when used. Changing directory, buffer, or filetype
+can therefore change which source file a built-in target uses.
 
 
 INSTALLATION                                               *dove-installation*
@@ -25,275 +43,321 @@ With lazy.nvim <https://github.com/folke/lazy.nvim>:
 >lua
     {
         "pewpewnor/dove.nvim",
-        lazy = false,
         opts = {},
     }
 <
 
-- Add `cmd = "Dove"` to the plugin spec for command-based lazy loading.
-- Command-only lazy loading keeps the vimdoc off `runtimepath` until `:Dove`
-    runs once. Use startup loading if help must be available through a picker
-    before that.
+- `opts = {}` calls `require("dove").setup({})`.
+- Add `cmd = "Dove"` for command-based lazy loading.
+- Command-based lazy loading adds the vimdoc to `runtimepath` only after the
+    first `:Dove` command. Load at startup if a help picker must find it earlier.
+
+Otherwise, add dove.nvim to `runtimepath`, then configure it as described in
+|dove-setup|.
 
 
 SETUP                                                             *dove-setup*
+
+Call before using commands or Lua API:
 
 >lua
     require("dove").setup()
 <
 
 - `setup()` accepts an optional options table.
-- It deeply merges the options into the defaults, validates the result, and
-    initializes the plugin.
-- Call it before using commands or other Lua API functions.
+- It merges options into the defaults, validates the result, and initializes
+    the plugin.
+- See |dove-configuration-options| for every option.
 
 
-COMMANDS                                                       *dove-commands*
+QUICK START                                                 *dove-quick-start*
 
-dove.nvim defines one user command with four subcommands:
+Open the current project’s source file:
 
-  -----------------------------------------------------------------------
-  Command                                Action
-  -------------------------------------- --------------------------------
-  :Dove run {target}                     Read the target’s source file
-                                         and run an entry
+>vim
+    :Dove edit project
+<
 
-  :Dove prev                             Repeat the last executed entry
-
-  :Dove edit {target}                    Create when needed, then open
-                                         the target’s source file in a
-                                         new tab
-
-  :Dove delete {target}                  Delete the target’s resolved
-                                         source file
-  -----------------------------------------------------------------------
-- The default targets are `project` and `filetype`.
-- Subcommands and target names support completion.
-- Missing, extra, and unknown arguments are rejected.
-- `run` prints a message and stops when the resolved source is missing or
-    returns an empty list.
-- A successfully selected entry becomes the previous task. Cancelling the
-    picker does not replace it.
-- `prev` uses the stored command and executor without loading the source again.
-- `edit` creates missing parent directories and, when enabled, writes a starter
-    entry for a missing source file.
-- `delete` removes the resolved file immediately without confirmation.
-
-
-SOURCE FILES                                               *dove-source-files*
-
-A source file is a Lua file that returns a list of entries:
+Replace its contents with:
 
 >lua
     return {
         { "make test" },
-        { name = "build & run", cmd = "make build && make run" },
+        { name = "build", cmd = "make build" },
         {
-            cmd = "git status --short",
-            name = "status",
+            name = "current file stats",
+            cmd = "wc " .. dove.file_path(),
             executor = dove.executors.print,
         },
     }
 <
 
-- The returned table must be a list.
-- Every item must be an entry table.
-- Every entry must have exactly one command field: `[1]` or `cmd`.
+Run an entry:
 
-  -----------------------------------------------------------------------
-  Field          Type        Required                Meaning
-  -------------- ----------- ----------------------- --------------------
-  [1]            string      One command field       Positional command
+>vim
+    :Dove run project
+<
 
-  cmd            string or   One command field       Named command
-                 list of                             
-                 strings                             
+- One entry runs immediately by default.
+- Multiple entries open the picker.
+- Sources are reloaded on every run; restarting Neovim is unnecessary.
+- Use `:Dove edit filetype` and `:Dove run filetype` for the current filetype.
 
-  name           string      No                      Picker label;
-                                                     defaults to the
-                                                     command
 
-  executor       function    No                      Overrides the
-                                                     target’s default
-                                                     executor
-  -----------------------------------------------------------------------
-- Do not set both `[1]` and `cmd`.
-- A list-valued `cmd` is joined with `cmd_list_delimiter` and sent to the
-    executor once.
-- The default delimiter is `"; "`, or `" & "` with `cmd.exe`.
-- The default runs every item sequentially in one shell session, so variables and
-    working-directory changes carry between items.
-- The final item’s exit status becomes the combined command’s exit status.
+COMMANDS                                                       *dove-commands*
+
+  ---------------------------------------------------------------------------
+  Command                 Action
+  ----------------------- ---------------------------------------------------
+  :Dove run {target}      Load the target’s source and run an entry
+
+  :Dove prev              Repeat the last executed entry
+
+  :Dove edit {target}     Create when needed, then open the source in a new
+                          tab
+
+  :Dove delete {target}   Delete the resolved source immediately, without
+                          confirmation
+  ---------------------------------------------------------------------------
+- Subcommands and target names support completion.
+- Missing, extra, and unknown arguments are rejected.
+- `run` stops with a message when no readable source exists or it has no
+    entries.
+- Selecting an entry stores its final command and executor. Cancelling the
+    picker does not replace the previous task.
+- `prev` uses that stored task without reloading the source.
+- `edit` creates missing parent directories. See **Source file templates** for
+    new files.
+
+
+SOURCE FILES                                               *dove-source-files*
+
+A source file returns a list of entry tables:
 
 >lua
     return {
+        { "make test" },
+        { name = "lint", cmd = "make lint" },
         {
-            name = "stats for this file",
-            cmd = {
-                "wc " .. dove.file_path(),
-                "echo lines: $(wc -l < " .. dove.file_path() .. ")",
-                "echo words: $(wc -w < " .. dove.file_path() .. ")",
-            },
+            name = "check and build",
+            cmd = { "make check", "make build" },
+            executor = dove.executors.new_tab,
         },
     }
 <
 
-When a source has only one entry, it must still return a list:
+The outer list is required even for one entry. An empty list is also valid:
+
+>lua
+    return {}
+<
+
+Every entry supports:
+
+  ---------------------------------------------------------------------------
+  Field      Type                Required      Meaning
+  ---------- ------------------- ------------- ------------------------------
+  [1]        string              One command   Positional command
+                                 field         
+
+  cmd        string or list of   One command   Named command
+             strings             field         
+
+  name       string              No            Picker label; defaults to the
+                                               command
+
+  executor   function            No            Overrides the target’s default
+                                               executor
+  ---------------------------------------------------------------------------
+- Set exactly one of `[1]` or `cmd`.
+- A string item is not an entry; wrap it in a table.
+- Commands run through Neovim’s configured `shell`.
+- An entry executor takes priority over its target’s `default_executor`.
+
+
+COMMAND LISTS ~
+
+A named `cmd` may be a non-empty list of strings:
 
 >lua
     return {
-        { name = "a", cmd = "touch hello" },
+        {
+            name = "test and build",
+            cmd = { "make test", "make build" },
+        },
     }
 <
 
-- A source with one entry still needs the outer list.
-- When `auto_run_single_command` is true, that entry runs without a picker.
-- An empty source is written as `return {}`; running it prints a message and
-    does nothing.
+dove.nvim joins the items with `cmd_list_delimiter` and calls the executor
+once. They run in one shell session, so directory changes and variables carry
+between items.
+
+The default delimiter is `"; "`, or `" & "` for `cmd.exe`. It runs every item,
+and the last item’s status is the combined command’s status. Set
+`cmd_list_delimiter = " && "` on a compatible shell to stop on failure. See the
+**cmd_list_delimiter** configuration option.
 
 
 SOURCE ENVIRONMENT ~
 
-Source files run with the configured `environment`. Its keys are available on
-the `dove` table inside the file:
+Source files receive the configured environment as `dove`:
 
 >lua
     return {
-        { dove.prefix .. "go test -run " .. dove.cword() },
         {
-            "git status --short",
-            executor = dove.executors.print,
+            name = "test under cursor",
+            cmd = "go test -run " .. dove.cword(),
+            executor = dove.executors.bg_exit_status,
         },
     }
 <
 
-- Normal Lua globals remain available alongside `dove`.
-- Each source load receives a fresh Lua environment table.
-- Its `dove` value refers to the environment configured by `setup()`.
+- Normal Lua globals remain available.
+- Each source evaluation gets a fresh Lua environment table.
+- `dove` refers to the environment created by `setup()`.
+- Custom values are covered under the **environment** configuration option.
+
+Built-in values:
+
+  ----------------------------------------------------------------------------
+  Value                           Result
+  ------------------------------- --------------------------------------------
+  dove.executors                  Built-in and configured executors
+
+  dove.file_path()                Filename-escaped absolute buffer path
+
+  dove.file_path_relative()       Filename-escaped buffer path relative to the
+                                  cwd
+
+  dove.file_name()                Filename-escaped buffer filename
+
+  dove.file_name_no_extension()   Filename-escaped buffer filename without
+                                  extension
+
+  dove.file_type()                Current buffer filetype
+
+  dove.file_extension()           Filename-escaped buffer filename extension
+
+  dove.dir_path()                 Filename-escaped directory containing the
+                                  buffer
+
+  dove.dir_name()                 Filename-escaped name of the buffer’s
+                                  directory
+
+  dove.cwd_path()                 Filename-escaped current working directory
+
+  dove.cwd_name()                 Filename-escaped current working-directory
+                                  name
+
+  dove.config_path()              Filename-escaped Neovim config directory
+
+  dove.data_path()                Filename-escaped Neovim data directory
+
+  dove.dove_data_path()           Filename-escaped dove.nvim data directory;
+                                  creates it
+
+  dove.cword()                    Word under the cursor
+
+  dove.cWORD()                    WORD under the cursor
+
+  dove.hash_sha256(value)         SHA-256 digest of a string
+  ----------------------------------------------------------------------------
+Use the same values in Neovim configuration through `require("dove.preset")`.
 
 
 IMPORTS ~
 
-Use `require()` to include another source list:
+Import and flatten another source list with `require()`:
 
 >lua
     return {
         require("./shared.lua"),
+        require("../team.lua"),
         require("~/commands/common.lua"),
         { "make test" },
     }
 <
 
-- Absolute paths, paths beginning with `~`, `./`, or `../`, and names ending
-    in `.lua` load source files.
-- Relative paths start from the directory containing the importing file.
+A required name is a source-file import when it:
+
+- Is an absolute path.
+- Starts with `~`, `./`, or `../`.
+- Ends with `.lua`.
+
+For source-file imports:
+
+- Relative paths start from the importing file’s directory.
 - `~` is expanded.
-- Other names use Lua’s normal `require()`.
-- Imported lists are flattened in place and follow the root source’s entry
-    rules.
-- Circular source imports are rejected.
+- The imported file follows the same source-list and entry rules.
+- Its entries are inserted at the import’s position.
+- Imports may nest; circular imports are rejected.
+- Entry errors identify the imported file containing them.
+
+Other names use Lua’s normal `require()` and are not flattened.
 
 
 CONFIGURATION OPTIONS                             *dove-configuration-options*
 
-
-DEFAULTS ~
-
-The user-configurable defaults are equivalent to:
+Calling `setup()` again discards previous user options and starts from fresh
+defaults.
 
 >lua
     local preset = require("dove.preset")
     
-    {
+    require("dove").setup({
         targets = {
             project = {
                 source_path = function()
-                    return vim.fs.joinpath(
-                        preset.dove_data_path(),
-                        "projects",
-                        preset.hash_sha256(preset.cwd_path()) .. ".lua"
-                    )
+                    return preset.cwd_path() .. "/.dove.lua"
                 end,
-                auto_run_single_command = true,
-                default_executor = preset.executors.bottom_split,
+                auto_run_single_command = false,
+                default_executor = preset.executors.split,
             },
-            filetype = {
+            scripts = {
                 source_path = function()
-                    return vim.fs.joinpath(
-                        preset.dove_data_path(),
-                        "filetypes",
-                        preset.file_type() .. ".lua"
-                    )
+                    return preset.config_path() .. "/dove/scripts.lua"
                 end,
-                auto_run_single_command = true,
-                default_executor = preset.executors.bottom_split,
             },
         },
         environment = {
-            executors = {
-                -- see the Executors section
-            },
-            -- see the Source environment section
+            test_prefix = "env TEST=1 ",
+            executors = { quick = preset.executors.bg_exit_status },
         },
-        cmd_list_delimiter = <"; ", or " & " with cmd.exe>,
-        write_template_to_new_source_file = true,
-        selection = {
-            picker = <built-in picker>,
-            enumerate_entries = true,
+        cmd_list_delimiter = " && ",
+        write_template_to_new_source_file = false,
+        ui = {
+            picker = vim.ui.select,
+            enumerate_entries = false,
         },
-    }
+    })
 <
 
-- The built-in environment is added automatically.
-- User options are deeply merged into the defaults.
-- Calling `setup()` again starts with a fresh default configuration before
-    applying the new options.
-- `project` stores its source under `stdpath("data")/dove/projects`, using a
-    SHA-256 digest of the working-directory path as its filename.
-- `filetype` stores its source under `stdpath("data")/dove/filetypes`, using
-    the current buffer filetype as its filename.
-
-
-CMD_LIST_DELIMITER ~
-
-- Type: `string`.
-- Joins the items in a list-valued `cmd`.
-- Defaults to `"; "`, or `" & "` when the configured shell is `cmd.exe`.
-- Is passed directly to the configured shell.
-- Can be set to `" && "` on supporting shells to stop after the first failure.
+All options are optional. Custom target names and environment keys are allowed;
+known options are type-checked.
 
 
 TARGETS ~
 
 - Type: `table<string, Target>`.
+- Defaults: `project` and `filetype`.
+- User targets merge by name with built-in targets.
 
-Each target has:
+Each target supports:
 
-  --------------------------------------------------------------------------
-  Option                    Type             Meaning
-  ------------------------- ---------------- -------------------------------
-  source_path               function or list Resolves the source-file path
-                            of functions     
+  ----------------------------------------------------------------------------------
+  Option                    Type                     Default
+  ------------------------- ------------------------ -------------------------------
+  source_path               function or list of      Required for a new target
+                            functions                
 
-  auto_run_single_command   boolean          Skips the picker for one entry
+  auto_run_single_command   boolean                  true
 
-  default_executor          function         Runs entries without their own
-                                             executor; defaults to
-                                             preset.executors.bottom_split
-  --------------------------------------------------------------------------
-- A source resolver takes no arguments and returns a path string or `nil`.
-- Returned paths are normalized and `~` is expanded.
-- Built-in path helpers are available from `require("dove.preset")`:
+  default_executor          function                 preset.executors.bottom_split
+  ----------------------------------------------------------------------------------
+A source resolver takes no arguments and returns a path string or `nil`.
+Returned paths are normalized and `~` is expanded.
 
->lua
-    source_path = function()
-        return preset.cwd_path() .. "/.dove.lua"
-    end
-<
-
-- With multiple resolvers, the first readable file wins.
-- If no returned path is readable, the first non-`nil` path wins so `:Dove   edit` can create it.
-- Resolution fails when every resolver returns `nil`.
+Use a non-empty resolver list for fallbacks:
 
 >lua
     source_path = {
@@ -301,143 +365,108 @@ Each target has:
             return preset.cwd_path() .. "/.dove.lua"
         end,
         function()
-            return preset.config_path() .. "/dove/fallback.lua"
+            return preset.config_path() .. "/dove/project.lua"
         end,
     }
 <
 
+Resolution rules:
 
-WRITE_TEMPLATE_TO_NEW_SOURCE_FILE ~
+- The first readable file wins.
+- Resolvers returning `nil` are skipped.
+- If none is readable, the first non-`nil` path wins so `:Dove edit` can create
+    it.
+- Resolution fails if every resolver returns `nil`.
 
-- Type: `boolean`.
-- Defaults to `true`.
-- When true, `:Dove edit` writes a starter template before opening a missing
-    source file.
-- When false, `:Dove edit` opens an empty buffer for that path.
+Built-in paths and settings:
+
+- `project`: `stdpath("data")/dove/projects/<sha256-of-cwd>.lua`.
+- `filetype`: `stdpath("data")/dove/filetypes/<filetype>.lua`.
+- Both auto-run one entry and use `preset.executors.bottom_split`.
 
 
 ENVIRONMENT ~
 
 - Type: `table`.
-- Values are exposed through the source file’s `dove` table.
-- Custom values are deeply merged with the built-ins.
-- Individual built-in values and executors can be extended or replaced.
+- Default: all values under **Source environment**.
+
+Custom values deeply merge with the built-ins. Add values and executors, or
+replace built-ins:
 
 >lua
     environment = {
-        prefix = "env DEBUG=1 ",
-        branch = function()
-            local result = vim.system(
-                { "git", "branch", "--show-current" },
-                { text = true }
-            ):wait()
-            return result.stdout:gsub("%s+$", "")
+        test_prefix = "env TEST=1 ",
+        file_path = function()
+            return "fixed-input.lua"
         end,
         executors = {
-            capture = function(command)
-                vim.system(
-                    { vim.o.shell, vim.o.shellcmdflag, command },
-                    { text = true },
-                    function(result) vim.notify(result.stdout) end
-                )
-            end,
+            quick = preset.executors.bg_exit_status,
         },
     }
 <
 
-The built-in environment contains:
-
-  -----------------------------------------------------------------------
-  Value                            Result
-  -------------------------------- --------------------------------------
-  dove.executors                   Built-in executor table
-
-  dove.file_path()                 Escaped absolute buffer path
-
-  dove.file_path_relative()        Escaped buffer path relative to the
-                                   working directory
-
-  dove.file_name()                 Escaped buffer filename
-
-  dove.file_name_no_extension()    Escaped buffer filename without its
-                                   extension
-
-  dove.file_type()                 Current buffer filetype
-
-  dove.file_extension()            Escaped buffer filename extension
-
-  dove.dir_path()                  Escaped directory containing the
-                                   buffer
-
-  dove.dir_name()                  Escaped name of the directory
-                                   containing the buffer
-
-  dove.cwd_path()                  Escaped working-directory path
-
-  dove.cwd_name()                  Escaped working-directory name
-
-  dove.config_path()               Escaped Neovim config path
-
-  dove.data_path()                 Escaped Neovim data path
-
-  dove.dove_data_path()            Escaped dove.nvim data path; creates
-                                   it if needed
-
-  dove.cword()                     Word under the cursor
-
-  dove.cWORD()                     WORD under the cursor
-
-  dove.hash_sha256(value)          SHA-256 digest of a string
-  -----------------------------------------------------------------------
-- Outside source files, access these built-ins through `require("dove.preset")`.
+The source can then use `dove.test_prefix`, the replaced `dove.file_path()`,
+and `dove.executors.quick`.
 
 
-SELECTION ~
+CMD_LIST_DELIMITER ~
 
-- Type: `table`.
+- Type: `string`.
+- Default: `"; "`, or `" & "` when `shell` is `cmd.exe`.
+- Joins list-valued entry commands and is passed directly to the shell.
 
-Configure the picker and entry labels with:
+See **Command lists** for execution behavior.
+
+
+SOURCE FILE TEMPLATES ~
+
+`write_template_to_new_source_file` controls `:Dove edit` for a missing file:
+
+- Type: `boolean`.
+- Default: `true`.
+- `true`: write a valid starter source before opening it.
+- `false`: open an empty buffer at the resolved path.
+- Existing files are never replaced.
+
+
+UI ~
 
 >lua
-    selection = {
-        picker = <vim.ui.select-compatible function>,
-        enumerate_entries = true,
+    ui = {
+        picker = vim.ui.select,
+        enumerate_entries = false,
     }
 <
 
-- `picker` defaults to a dependency-free floating picker.
-- Matching is case-insensitive. Contiguous substring matches rank first;
-    otherwise, characters may match in order across the label.
-- The first line is the editable query. Leading and trailing spaces are
-    ignored.
+- `picker`: a `vim.ui.select`-compatible function. Defaults to the built-in
+    picker.
+- `enumerate_entries`: prefixes labels with `"<number>. "`. Defaults to `true`.
+
+A custom picker receives `items`, `opts`, and `on_choice`:
+
+- `items` contains processed entries.
+- `opts.prompt` includes the target name.
+- `opts.format_item(entry)` returns the display label.
+- Call `on_choice(item, index)` to run an entry or `on_choice()` to cancel.
+
+
+BUILT-IN PICKER
+
+- Type to filter labels; leading and trailing query spaces are ignored.
+- Matching is case-insensitive. Substrings rank above fuzzy in-order matches.
 - Selection wraps at both ends.
-- Next-entry keys are `<C-n>`, `<C-j>`, `<Down>`, and `<Tab>`.
-- Previous-entry keys are `<C-p>`, `<C-k>`, `<Up>`, and `<S-Tab>`.
-- Choose with `<CR>` or `<C-y>`.
-- Cancel with `<Esc>`, `<C-c>`, or normal-mode `q`.
-- Normal-mode `i` or `a` returns focus to the query.
-- `enumerate_entries` defaults to `true` and prefixes labels with
-    `"<number>. "`. Set it to `false` to omit the prefix.
-- A custom picker receives `items`, `opts`, and `on_choice`, following the
-    `vim.ui.select` signature.
-- `opts.prompt` contains the target name and `opts.format_item` produces the
-    entry label.
-- Calling `on_choice` without an item cancels execution.
 
-To use Neovim’s configured `vim.ui.select` implementation:
-
->lua
-    require("dove").setup({
-        selection = {
-            picker = vim.ui.select,
-        },
-    })
-<
-
+  Action           Keys
+  ---------------- ---------------------------------------
+  Next entry       <C-n>, <C-j>, <Down>, <Tab>
+  Previous entry   <C-p>, <C-k>, <Up>, <S-Tab>
+  Choose           <CR>, <C-y>
+  Cancel           <Esc>, <C-c>, normal-mode q
+  Edit query       Type in insert mode; normal-mode i, a
 
 EXECUTORS                                                     *dove-executors*
 
-An executor receives the final command string and an optional argument list:
+An executor receives the final command and an optional argument list:
 
 >lua
     local function executor(command, args)
@@ -445,84 +474,95 @@ An executor receives the final command string and an optional argument list:
     end
 <
 
-- Source entries currently pass an empty argument list.
-- The second parameter remains part of the executor interface.
-- An entry’s executor takes priority over its target’s `default_executor`.
-- Source files access built-in executors through `dove.executors`.
-- Plugin configuration accesses the same functions through
-    `require("dove.preset").executors`.
+Source entries pass an empty argument list. When a terminal executor is called
+directly, the first argument-list item is inserted as an Ex count before its
+`tabnew`, `split`, or `vsplit` command. For splits, this sets the height or
+width.
 
-  -----------------------------------------------------------------------
-  Executor                            Behavior
-  ----------------------------------- -----------------------------------
-  preset.executors.new_tab            Opens a terminal in a new tab
+Source files use `dove.executors`. Configuration uses
+`require("dove.preset").executors`.
 
-  preset.executors.current_buffer     Opens a terminal in the current
-                                      buffer
+  ---------------------------------------------------------------------------------
+  Executor                          Behavior
+  --------------------------------- -----------------------------------------------
+  preset.executors.new_tab          Open a terminal in a new tab
 
-  preset.executors.split              Opens a terminal in a horizontal
-                                      split
+  preset.executors.current_buffer   Open a terminal in the current buffer
 
-  preset.executors.bottom_split       Opens a full-width terminal below
-                                      all windows
+  preset.executors.split            Open a terminal in a horizontal split
 
-  preset.executors.vsplit             Opens a terminal in a vertical
-                                      split
+  preset.executors.bottom_split     Open a full-width terminal below all windows
 
-  preset.executors.print              Runs synchronously and prints
-                                      stdout
+  preset.executors.vsplit           Open a terminal in a vertical split
 
-  preset.executors.silent             Runs synchronously without output
+  preset.executors.print            Run synchronously and print stdout
 
-  preset.executors.bg_silent          Runs asynchronously without output
+  preset.executors.silent           Run synchronously without output
 
-  preset.executors.bg_exit_status     Runs asynchronously and prints
-                                      success or failure with the exit
-                                      code
-  -----------------------------------------------------------------------
-- Terminal executors use Neovim’s configured shell through `:terminal`.
-- `silent` and `print` wait for the command to finish.
-- The two `bg_*` executors return immediately.
+  preset.executors.bg_silent        Run asynchronously without output
+
+  preset.executors.bg_exit_status   Run asynchronously and print success or failure
+                                    with the exit code
+  ---------------------------------------------------------------------------------
+- Terminal executors use Neovim’s shell through `:terminal`.
+- `print` and `silent` block until completion.
+- The `bg_*` executors return immediately.
+
+Direct calls can set split size:
+
+>lua
+    local executors = require("dove.preset").executors
+    
+    executors.split("make test", { "12" })
+    executors.vsplit("make test", { "80" })
+<
 
 
 LUA API                                                         *dove-lua-api*
 
-All public functions are returned by `require("dove")`:
+`require("dove")` returns:
 
-  -----------------------------------------------------------------------
-  Function                              Meaning
-  ------------------------------------- ---------------------------------
-  setup(options?)                       Configure and initialize the
-                                        plugin
+  ----------------------------------------------------------------------------
+  Function                          Behavior
+  --------------------------------- ------------------------------------------
+  setup(options?)                   Configure and initialize the plugin
 
-  run_target(target_name)               Run an entry from a named target
+  run_target(target_name)           Run an entry from a named target
 
-  run_prev_task()                       Repeat the last executed task
+  run_prev_task()                   Repeat the last executed task
 
-  edit_source_file(target_name)         Create when needed, then open a
-                                        target source file
+  edit_source_file(target_name)     Create when needed, then open a target
+                                    source file
 
-  delete_source_file(target_name)       Delete a target’s resolved source
-                                        file
-  -----------------------------------------------------------------------
-- `require("dove.preset")` returns the built-in source environment for use in
-    plugin configuration.
+  delete_source_file(target_name)   Delete a target’s resolved source file
+  ----------------------------------------------------------------------------
+For example, map `<leader>dr` to run the `project` target:
+
+>lua
+    local dove = require("dove")
+    
+    vim.keymap.set("n", "<leader>dr", function()
+        dove.run_target("project")
+    end, { desc = "Dove: run project target" })
+<
+
+The behavior under |dove-commands| also applies to these functions.
+`require("dove.preset")` returns the built-in source environment for use in
+configuration; see **Source environment** and |dove-executors|.
 
 
 HEALTH CHECK                                               *dove-health-check*
 
-Run:
+Run `:checkhealth dove`. It reports:
 
->vim
-    :checkhealth dove
-<
+- Whether Neovim v0.12.0 or newer is running.
+- Whether `setup()` was called.
+- Whether the configured `shell` is executable.
+- Whether each target resolves a source path.
+- Whether each resolved source’s parent directory is writable.
 
-- Reports whether Neovim v0.12.0 or newer is running.
-- Reports whether `setup()` was called.
-- Reports whether the configured shell is executable.
-- After setup, resolves every target and checks whether its source file’s
-    parent directory is writable.
-- Reports a missing or non-writable source directory as a warning.
+A missing or non-writable source directory is a warning. An unresolvable target
+is an error.
 
 
 LINKS                                                             *dove-links*

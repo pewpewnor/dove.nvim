@@ -17,34 +17,35 @@ A target tells dove.nvim where to look for Lua files defined by you.
 
 Built-in targets that you can immediately use without extra configuration:
 
-- `project` to execute commands for current working directory, e.g. commands to
-  build the project or run all tests.
-- `filetype` to execute commands based on current buffer's filetype, e.g.
-  command to compile the file and execute the binary.
+- Target `project` to execute commands for the current working directory, e.g.
+  commands to build the project or run all tests.
+- Target `filetype` to execute commands based on the current buffer's filetype,
+  e.g. a command to compile the file and execute the binary.
 
 You may also add new targets or override any of the above.
 
 ### Step 2: Write Lua code to define your commands
 
-You may edit the Lua file that the target will load (which we refer as source
-file). Edit the source file to define your own list of commands that can be
-selected later.
+You may edit the Lua file that the target will load (which we refer to as the
+**source file**). Edit the source file to define your own list of commands that
+can be selected later.
 
 To help write commands efficiently:
 
-- Use preset functions to refer to current buffer's file path, parent directory,
-  etc when defining commands within source file.
-- Use preset executors dove.nvim where and how to execute the command, e.g. run
-  inside of a Neovim terminal or in the background.
+- Use [preset functions](#preset-environment) to refer to the current buffer's
+  file path, parent directory, etc. when defining commands within the source
+  file.
+- Use [preset executors](#preset-executors) to tell dove.nvim where and how to
+  execute the command, e.g. run inside a Neovim terminal or in the background.
 
 You may also define/override variables, functions, and executors that the source
 file can access. By default, all commands will be executed in a new pane.
 
-### Step 3: Run the target and select command to run
+### Step 3: Run the target and select a command to run
 
 When you run a target, dove.nvim loads the source file found within the target's
-path and retrieves its list of commands.
-Then it will ask you to choose one command you would like to execute.
+path and retrieves its list of commands. Then it will ask you to choose one
+command you would like to execute.
 
 ## Installation
 
@@ -65,10 +66,6 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 | `:Dove prev`            | Repeat the last executed entry               |
 | `:Dove edit {target}`   | Open a target's source file                  |
 | `:Dove delete {target}` | Delete a target's source file                |
-
-The default targets are `project` and `filetype`. Commands and target names
-support completion. By default, one entry runs immediately; multiple entries
-use the picker.
 
 ## Writing source files
 
@@ -99,29 +96,17 @@ return {
 }
 ```
 
-Every entry must be a table with exactly one command field:
+Every entry must be a table and must have exactly one command field:
 
 | Field      | Details                                                                     |
 | ---------- | --------------------------------------------------------------------------- |
-| `[1]`      | A command string. Use this or `cmd`.                                        |
+| `[1]`      | A command string. Use either this or `cmd`.                                 |
 | `cmd`      | A command string or a non-empty list of command strings. Use this or `[1]`. |
 | `name`     | Optional picker label. Defaults to the command.                             |
 | `executor` | Optional executor. Overrides the target's default executor.                 |
 
-Do not set both `[1]` and `cmd`. A source with one entry still needs the outer
-list:
-
-```lua
-return {
-    { "ls " .. dove.dir_path() },
-}
-```
-
-For a `cmd` list:
-
-- Items are joined with `cmd_list_delimiter` and sent as one shell command.
-- The default delimiter is `"; "` or `" & "` with `cmd.exe`.
-- Set it to `" && "` to stop after the first failed item on shells that support it.
+For a `cmd` list, items are joined with `cmd_list_delimiter` and sent as a
+single shell command. The default delimiter is `"; "`, or `" & "` on windows.
 
 ### Preset environment
 
@@ -177,10 +162,6 @@ return {
 }
 ```
 
-Paths starting with `/`, `~`, `./`, or `../`, and names ending in `.lua`, load
-source files. Other names use Lua's normal `require()`. Imported lists are
-flattened, and relative paths start from the importing file.
-
 ## Configuration
 
 Passing `opts = {}` to lazy.nvim uses the defaults. To customize them:
@@ -230,7 +211,7 @@ dove.setup({
     },
     cmd_list_delimiter = " && ",
     write_template_to_new_source_file = false,
-    selection = {
+    ui = {
         picker = vim.ui.select,
         enumerate_entries = false,
     },
@@ -248,9 +229,9 @@ In the example, source files would be able to access the custom values as
 | `auto_run_single_command` | Run one entry without opening the picker. Defaults to `true`.                              |
 | `default_executor`        | Executor used when an entry does not set one. Defaults to `preset.executors.bottom_split`. |
 
-A resolver takes no arguments and returns a path. Use `require("dove.preset")`
-for built-in path values. With a list, dove.nvim uses the first readable path,
-or the first returned path when `:Dove edit` creates it.
+Resolver functions must returns a string path. Use `require("dove.preset")` for
+built-in path values. With a list, dove.nvim uses the first readable path, or
+the first returned path when `:Dove edit` creates it.
 
 ### Other options
 
@@ -259,7 +240,7 @@ or the first returned path when `:Dove edit` creates it.
 | `cmd_list_delimiter`                | Separator for `cmd` lists. Defaults to `"; "` or `" & "` with `cmd.exe`.     |
 | `write_template_to_new_source_file` | Write a template when `:Dove edit` opens a missing file. Defaults to `true`. |
 | `environment`                       | Add or replace values available as `dove.*`.                                 |
-| `selection`                         | Configure the picker and whether entry labels are numbered.                  |
+| `ui`                                | Configure the picker and whether entry labels are numbered.                  |
 
 ## Built-in picker
 
@@ -270,9 +251,8 @@ The built-in picker opens in a centered floating window.
 - Confirm selection by pressing `<CR>`.
 - Close picker with `<Esc>`.
 
-Set `selection.picker` to any `vim.ui.select`-compatible function to use
-another picker. `selection.enumerate_entries` defaults to `true`; set it to
-`false` to omit the `"<number>. "` prefix from entry labels.
+Change the picker by setting `ui.picker` to any `vim.ui.select` compatible
+function.
 
 ## Lua API
 
@@ -286,7 +266,17 @@ another picker. `selection.enumerate_entries` defaults to `true`; set it to
 | `edit_source_file(target_name)`   | Open a target source file           |
 | `delete_source_file(target_name)` | Delete a target source file         |
 
-Run `:checkhealth dove` for setup diagnostics.
+For example, map `<leader>dp` to run the `project` target:
+
+```lua
+local dove = require("dove")
+
+vim.keymap.set("n", "<leader>dr", function()
+    dove.run_target("project")
+end, { desc = "Dove: run project target" })
+```
+
+Run `:checkhealth dove` for diagnostics.
 
 See [the full documentation](docs/dove.md) for the complete option and
 source-file reference. See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.
