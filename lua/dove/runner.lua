@@ -64,10 +64,10 @@ function M.select_and_run_entry(target)
     for index, entry in ipairs(entries) do
         entry_indices[entry] = index
     end
-    M.config.selection.picker(entries, {
+    M.config.ui.picker(entries, {
         prompt = string.format("Dove: run target = '%s'", target.name),
         format_item = function(entry)
-            if M.config.selection.enumerate_entries then
+            if M.config.ui.enumerate_entries then
                 return entry_indices[entry] .. ". " .. entry.name
             end
             return entry.name

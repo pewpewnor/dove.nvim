@@ -43,27 +43,34 @@ describe("setup", function()
             preset.executors.bottom_split,
             module.config.targets.filetype.default_executor
         )
-        assert.is_function(module.config.selection.picker)
-        assert.is_true(module.config.selection.enumerate_entries)
+        assert.is_function(module.config.ui.picker)
+        assert.is_true(module.config.ui.enumerate_entries)
         assert.is_nil(module.config.display)
     end)
 
-    it("rejects an invalid selection picker", function()
+    it("rejects an invalid ui picker", function()
         local success, message = pcall(dove.setup, {
-            selection = { picker = true },
+            ui = { picker = true },
         })
 
         assert.is_false(success)
-        assert.matches("options.selection.picker", message)
+        assert.matches("options.ui.picker", message)
+    end)
+
+    it("rejects an invalid ui option", function()
+        local success, message = pcall(dove.setup, { ui = true })
+
+        assert.is_false(success)
+        assert.matches("options.ui", message)
     end)
 
     it("rejects an invalid entry enumeration option", function()
         local success, message = pcall(dove.setup, {
-            selection = { enumerate_entries = "yes" },
+            ui = { enumerate_entries = "yes" },
         })
 
         assert.is_false(success)
-        assert.matches("options.selection.enumerate_entries", message)
+        assert.matches("options.ui.enumerate_entries", message)
     end)
 
     it("rejects an invalid command list delimiter", function()

@@ -29,8 +29,8 @@ describe("source file execution", function()
         options = options or {}
         local auto_run_single_command = options.auto_run_single_command ~= false
         options.auto_run_single_command = nil
-        options.selection = options.selection or {}
-        options.selection.picker = options.selection.picker
+        options.ui = options.ui or {}
+        options.ui.picker = options.ui.picker
             or function(...)
                 return picker(...)
             end
@@ -208,7 +208,7 @@ describe("source file execution", function()
         local received_labels
         setup(path, {
             auto_run_single_command = false,
-            selection = {
+            ui = {
                 picker = function(items, opts, on_choice)
                     received_prompt = opts.prompt
                     received_labels = {
@@ -237,7 +237,7 @@ describe("source file execution", function()
         local received_labels
         setup(path, {
             auto_run_single_command = false,
-            selection = {
+            ui = {
                 enumerate_entries = false,
                 picker = function(items, opts, on_choice)
                     received_labels = {
