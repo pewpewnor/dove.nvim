@@ -310,7 +310,11 @@ end
 ---@param base string
 ---@return string
 function M.path_absolute(path, base)
-    return vim.fs.abspath(path, { cwd = base })
+    local absolute = vim.fs.abspath(path)
+    if vim.fs.normalize(path) == vim.fs.normalize(absolute) then
+        return absolute
+    end
+    return vim.fs.abspath(vim.fs.joinpath(base, path))
 end
 
 ---@param path string

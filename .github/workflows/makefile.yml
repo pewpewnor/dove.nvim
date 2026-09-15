@@ -35,7 +35,12 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - uses: MunifTanjim/setup-neovim-action@v1
+
+            - name: Set up Neovim
+              uses: rhysd/action-setup-vim@v1
+              with:
+                  neovim: true
+                  version: v0.12.5
 
             - name: Install make on Windows
               if: runner.os == 'Windows'
