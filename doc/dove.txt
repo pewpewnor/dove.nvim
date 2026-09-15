@@ -215,7 +215,7 @@ The user-configurable defaults are equivalent to:
                     )
                 end,
                 auto_run_single_command = true,
-                default_executor = preset.executors.split,
+                default_executor = preset.executors.bottom_split,
             },
             filetype = {
                 source_path = function()
@@ -226,7 +226,7 @@ The user-configurable defaults are equivalent to:
                     )
                 end,
                 auto_run_single_command = true,
-                default_executor = preset.executors.split,
+                default_executor = preset.executors.bottom_split,
             },
         },
         environment = {
@@ -269,19 +269,18 @@ TARGETS ~
 
 Each target has:
 
-  ------------------------------------------------------------------------
+  --------------------------------------------------------------------------
   Option                    Type             Meaning
-  ------------------------- ---------------- -----------------------------
+  ------------------------- ---------------- -------------------------------
   source_path               function or list Resolves the source-file path
                             of functions     
 
-  auto_run_single_command   boolean          Skips the picker for one
-                                             entry
+  auto_run_single_command   boolean          Skips the picker for one entry
 
-  default_executor          function         Runs entries without their
-                                             own executor; defaults to
-                                             preset.executors.split
-  ------------------------------------------------------------------------
+  default_executor          function         Runs entries without their own
+                                             executor; defaults to
+                                             preset.executors.bottom_split
+  --------------------------------------------------------------------------
 - A source resolver takes no arguments and returns a path string or `nil`.
 - Returned paths are normalized and `~` is expanded.
 - Built-in path helpers are available from `require("dove.preset")`:
@@ -463,6 +462,9 @@ An executor receives the final command string and an optional argument list:
 
   preset.executors.split              Opens a terminal in a horizontal
                                       split
+
+  preset.executors.bottom_split       Opens a full-width terminal below
+                                      all windows
 
   preset.executors.vsplit             Opens a terminal in a vertical
                                       split

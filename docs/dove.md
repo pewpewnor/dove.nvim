@@ -175,7 +175,7 @@ local preset = require("dove.preset")
                 )
             end,
             auto_run_single_command = true,
-            default_executor = preset.executors.split,
+            default_executor = preset.executors.bottom_split,
         },
         filetype = {
             source_path = function()
@@ -186,7 +186,7 @@ local preset = require("dove.preset")
                 )
             end,
             auto_run_single_command = true,
-            default_executor = preset.executors.split,
+            default_executor = preset.executors.bottom_split,
         },
     },
     environment = {
@@ -232,7 +232,7 @@ Each target has:
 | ------ | ---- | ------- |
 | `source_path` | function or list of functions | Resolves the source-file path |
 | `auto_run_single_command` | boolean | Skips the picker for one entry |
-| `default_executor` | function | Runs entries without their own executor; defaults to `preset.executors.split` |
+| `default_executor` | function | Runs entries without their own executor; defaults to `preset.executors.bottom_split` |
 
 - A source resolver takes no arguments and returns a path string or `nil`.
 - Returned paths are normalized and `~` is expanded.
@@ -388,6 +388,7 @@ end
 | `preset.executors.new_tab` | Opens a terminal in a new tab |
 | `preset.executors.current_buffer` | Opens a terminal in the current buffer |
 | `preset.executors.split` | Opens a terminal in a horizontal split |
+| `preset.executors.bottom_split` | Opens a full-width terminal below all windows |
 | `preset.executors.vsplit` | Opens a terminal in a vertical split |
 | `preset.executors.print` | Runs synchronously and prints stdout |
 | `preset.executors.silent` | Runs synchronously without output |

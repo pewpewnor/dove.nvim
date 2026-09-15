@@ -28,6 +28,21 @@ function M.split(command, args)
 end
 
 ---@type Executor
+function M.bottom_split(command, args)
+    args = args or {}
+    if #args == 0 then
+        common.cmd("rightbelow split | wincmd J | terminal " .. command)
+    else
+        common.cmd(
+            "rightbelow "
+                .. args[1]
+                .. " split | wincmd J | terminal "
+                .. command
+        )
+    end
+end
+
+---@type Executor
 function M.vsplit(command, args)
     args = args or {}
     if #args == 0 then
