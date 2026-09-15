@@ -1,7 +1,8 @@
 ---@diagnostic disable: undefined-field
 
+local common = require("dove.common")
 local dove = require("dove")
-local simulation = require("tests.dove.simulation_helpers")
+local simulation = require("tests.dove.helpers.simulation")
 
 describe("source file execution", function()
     local context
@@ -15,22 +16,22 @@ describe("source file execution", function()
     end)
 
     it("runs named and positional command tables", function()
-        local path = common.path_join(temp_dir, "project.lua")
-        write_source_file(path, {
+        local path = common.path_join(context.temp_dir, "project.lua")
+        context:write_source_file(path, {
             "return {",
             '    { "touch hello" },',
             '    { name = "a", cmd = "echo first" },',
             '    { "echo second", name = "b" },',
             "}",
         })
-        setup(path, { auto_run_single_command = false })
+        context:setup(path, { auto_run_single_command = false })
 
         dove.run_target("project")
 
-        assert.equals("touch hello", executed_commands[1])
+        assert.equals("touch hello", context.executed_commands[1])
 
         local selected
-        picker = function(items)
+        context.picker = function(items)
             selected = items
         end
         dove.run_target("project")
@@ -40,25 +41,25 @@ describe("source file execution", function()
     end)
 
     it("rejects string entries", function()
-        local path = common.path_join(temp_dir, "string-entry.lua")
-        write_source_file(path, {
+        local path = common.path_join(context.temp_dir, "string-entry.lua")
+        context:write_source_file(path, {
             "return {",
             '    { cmd = "echo valid" },',
             '    "echo invalid",',
             "}",
         })
-        setup(path, { auto_run_single_command = false })
+        context:setup(path, { auto_run_single_command = false })
 
         local success, message = pcall(dove.run_target, "project")
 
         assert.is_false(success)
         assert.matches("each entry must be a table", message)
-        assert.same({}, executed_commands)
+        assert.same({}, context.executed_commands)
     end)
 
     it("runs a command list in one shell", function()
-        local path = common.path_join(temp_dir, "command-list.lua")
-        write_source_file(path, {
+        local path = common.path_join(context.temp_dir, "command-list.lua")
+        context:write_source_file(path, {
             "return {",
             "    {",
             '        name = "steps",',
@@ -73,18 +74,18 @@ describe("source file execution", function()
             "    },",
             "}",
         })
-        setup(path, {
+        context:setup(path, {
             auto_run_single_command = false,
             cmd_list_delimiter = "; ",
         })
 
         dove.run_target("project")
 
-        assert.equals(1, #executed_commands)
-        assert.equals("first; second", executed_commands[1])
+        assert.equals(1, #context.executed_commands)
+        assert.equals("first; second", context.executed_commands[1])
 
         local selected
-        picker = function(items)
+        context.picker = function(items)
             selected = items
         end
         dove.run_target("project")
@@ -94,22 +95,24 @@ describe("source file execution", function()
     end)
 
     it("joins a command list with the configured delimiter", function()
-        local path = common.path_join(temp_dir, "command-list-delimiter.lua")
-        write_source_file(path, {
+        local path =
+            common.path_join(context.temp_dir, "command-list-delimiter.lua")
+        context:write_source_file(path, {
             "return {",
             '    { cmd = { "first", "second" } },',
             "}",
         })
-        setup(path, { cmd_list_delimiter = " && " })
+        context:setup(path, { cmd_list_delimiter = " && " })
 
         dove.run_target("project")
 
-        assert.same({ "first && second" }, executed_commands)
+        assert.same({ "first && second" }, context.executed_commands)
     end)
 
     it("uses shell-compatible default delimiters", function()
-        local path = common.path_join(temp_dir, "default-command-list.lua")
-        write_source_file(path, {
+        local path =
+            common.path_join(context.temp_dir, "default-command-list.lua")
+        context:write_source_file(path, {
             "return {",
             '    { cmd = { "first", "second" } },',
             "}",
@@ -128,21 +131,21 @@ describe("source file execution", function()
         }
 
         for _, case in ipairs(cases) do
-            executed_commands = {}
-            set_common("get_shell", function()
+            context.executed_commands = {}
+            context:set_common("get_shell", function()
                 return case.shell
             end)
-            setup(path)
+            context:setup(path)
 
             dove.run_target("project")
 
-            assert.same({ case.command }, executed_commands)
+            assert.same({ case.command }, context.executed_commands)
         end
     end)
 
     it("uses the configured picker", function()
-        local path = common.path_join(temp_dir, "selection-ui.lua")
-        write_source_file(path, {
+        local path = common.path_join(context.temp_dir, "selection-ui.lua")
+        context:write_source_file(path, {
             "return {",
             '    { "echo first" },',
             '    { "echo second" },',
@@ -150,7 +153,7 @@ describe("source file execution", function()
         })
         local received_prompt
         local received_labels
-        setup(path, {
+        context:setup(path, {
             auto_run_single_command = false,
             ui = {
                 picker = function(items, opts, on_choice)
@@ -166,20 +169,21 @@ describe("source file execution", function()
 
         dove.run_target("project")
 
+        assert.equals("Dove: run target = 'project'", received_prompt)
         assert.same({ "1. echo first", "2. echo second" }, received_labels)
-        assert.same({ "echo second" }, executed_commands)
+        assert.same({ "echo second" }, context.executed_commands)
     end)
 
     it("does not enumerate entries when disabled", function()
-        local path = common.path_join(temp_dir, "selection-labels.lua")
-        write_source_file(path, {
+        local path = common.path_join(context.temp_dir, "selection-labels.lua")
+        context:write_source_file(path, {
             "return {",
             '    { "echo first" },',
             '    { "echo second" },',
             "}",
         })
         local received_labels
-        setup(path, {
+        context:setup(path, {
             auto_run_single_command = false,
             ui = {
                 enumerate_entries = false,
@@ -196,35 +200,35 @@ describe("source file execution", function()
         dove.run_target("project")
 
         assert.same({ "echo first", "echo second" }, received_labels)
-        assert.same({ "echo first" }, executed_commands)
+        assert.same({ "echo first" }, context.executed_commands)
     end)
 
     it("rejects one entry without an outer list", function()
-        local path = common.path_join(temp_dir, "single-entry.lua")
-        write_source_file(path, {
+        local path = common.path_join(context.temp_dir, "single-entry.lua")
+        context:write_source_file(path, {
             'return { name = "a", cmd = "touch hello" }',
         })
-        setup(path)
+        context:setup(path)
 
         local success, message = pcall(dove.run_target, "project")
 
         assert.is_false(success)
         assert.matches("must return a list of entries", message)
-        assert.same({}, executed_commands)
+        assert.same({}, context.executed_commands)
     end)
 
     it("accepts an empty source list", function()
-        local path = common.path_join(temp_dir, "empty.lua")
-        write_source_file(path, { "return {}" })
-        setup(path)
+        local path = common.path_join(context.temp_dir, "empty.lua")
+        context:write_source_file(path, { "return {}" })
+        context:setup(path)
 
         assert.is_true(pcall(dove.run_target, "project"))
-        assert.same({}, executed_commands)
+        assert.same({}, context.executed_commands)
     end)
 
     it("exposes the configured environment under dove", function()
-        local path = common.path_join(temp_dir, "environment.lua")
-        write_source_file(path, {
+        local path = common.path_join(context.temp_dir, "environment.lua")
+        context:write_source_file(path, {
             "assert(file_path == nil)",
             "assert(executors == nil)",
             "assert(prefix == nil)",
@@ -234,143 +238,44 @@ describe("source file execution", function()
             "    { dove.prefix .. dove.file_path(), executor = dove.executors.capture },",
             "}",
         })
-        setup(path, {
+        context:setup(path, {
             environment = {
                 prefix = "wc ",
                 file_path = function()
                     return "custom.lua"
                 end,
-                executors = { capture = test_executor },
+                executors = {
+                    capture = function(command)
+                        context:execute(command)
+                    end,
+                },
             },
         })
 
         dove.run_target("project")
 
-        assert.same({ "wc custom.lua" }, executed_commands)
+        assert.same({ "wc custom.lua" }, context.executed_commands)
         assert.is_nil(require("dove.module").config.environment.require)
     end)
 
-    it("flattens source files required from expanded paths", function()
-        local imported_path = common.path_join(temp_dir, "shared.lua")
-        local path = common.path_join(temp_dir, "project.lua")
-        write_source_file(imported_path, { 'return { { "echo imported" } }' })
-        write_source_file(path, {
-            "return {",
-            '    { "echo local" },',
-            '    require("~/template.lua"),',
-            "}",
-        })
-        set_common("expand", function(value)
-            if value == "~/template.lua" then
-                return imported_path
-            end
-            return original_expand(value)
-        end)
-        setup(path, { auto_run_single_command = false })
-
-        local selected
-        picker = function(items)
-            selected = items
-        end
-        dove.run_target("project")
-
-        assert.equals(2, #selected)
-        assert.equals("echo local", selected[1].name)
-        assert.equals("echo imported", selected[2].name)
-    end)
-
-    it("resolves relative required paths from the requiring file", function()
-        local imported_path = common.path_join(temp_dir, "shared.lua")
-        local path = common.path_join(temp_dir, "project.lua")
-        write_source_file(imported_path, { 'return { { "echo relative" } }' })
-        write_source_file(path, { 'return { require("./shared.lua") }' })
-        setup(path)
-
-        dove.run_target("project")
-
-        assert.same({ "echo relative" }, executed_commands)
-    end)
-
-    it("attributes imported entry errors to the imported file", function()
-        local imported_path = common.path_join(temp_dir, "invalid-shared.lua")
-        local path = common.path_join(temp_dir, "project-with-import.lua")
-        write_source_file(imported_path, { 'return { "invalid" }' })
-        write_source_file(
-            path,
-            { 'return { require("./invalid-shared.lua") }' }
-        )
-        setup(path)
-
-        local success, message = pcall(dove.run_target, "project")
-
-        assert.is_false(success)
-        assert.matches("invalid%-shared%.lua", message)
-        assert.is_nil(message:match("project%-with%-import%.lua"))
-    end)
-
-    it("reloads files on every run", function()
-        local path = common.path_join(temp_dir, "reload.lua")
-        write_source_file(path, { 'return { { "echo first" } }' })
-        setup(path)
-        dove.run_target("project")
-        write_source_file(path, { 'return { { "echo second" } }' })
-
-        dove.run_target("project")
-
-        assert.same({ "echo first", "echo second" }, executed_commands)
-    end)
-
-    it("loads source files with the bytecode loader enabled", function()
-        local path = common.path_join(temp_dir, "loader.lua")
-        write_source_file(path, { 'return { { "echo loaded" } }' })
-        setup(path)
-        common.enable_loader()
-        loader_enabled = true
-
-        dove.run_target("project")
-
-        assert.same({ "echo loaded" }, executed_commands)
-    end)
-
     it("runs the previous task again", function()
-        local path = common.path_join(temp_dir, "previous.lua")
-        write_source_file(path, { 'return { { "echo previous" } }' })
-        setup(path)
+        local path = common.path_join(context.temp_dir, "previous.lua")
+        context:write_source_file(path, { 'return { { "echo previous" } }' })
+        context:setup(path)
         dove.run_target("project")
 
         dove.run_prev_task()
 
-        assert.same({ "echo previous", "echo previous" }, executed_commands)
-    end)
-
-    it("creates a template when editing a missing source file", function()
-        local path = common.path_join(temp_dir, "nested", "new.lua")
-        setup(path)
-
-        dove.edit_source_file("project")
-
-        assert.is_true(common.is_file_and_readable(path))
-        local chunk, load_error = loadfile(path)
-        assert.is_nil(load_error)
-        local source = assert(chunk)()
-        assert.equals("greetings", source[1].name)
-        assert.equals("echo Hello, World!", source[1].cmd)
-    end)
-
-    it("deletes a target's source file", function()
-        local path = common.path_join(temp_dir, "delete.lua")
-        write_source_file(path, { "return {}" })
-        setup(path)
-
-        dove.delete_source_file("project")
-
-        assert.is_false(common.is_file_and_readable(path))
+        assert.same(
+            { "echo previous", "echo previous" },
+            context.executed_commands
+        )
     end)
 
     it("rejects files that do not return a table", function()
-        local path = common.path_join(temp_dir, "invalid.lua")
-        write_source_file(path, { 'return "invalid"' })
-        setup(path)
+        local path = common.path_join(context.temp_dir, "invalid.lua")
+        context:write_source_file(path, { 'return "invalid"' })
+        context:setup(path)
 
         local success, message = pcall(dove.run_target, "project")
 
