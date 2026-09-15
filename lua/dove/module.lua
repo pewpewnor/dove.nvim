@@ -39,7 +39,7 @@ function M.run_target(target_name)
     local target = find_target(target_name)
     return runner.select_and_run_entry({
         name = target_name,
-        source = pathfinder.get_true_path(target.source),
+        source_path = pathfinder.get_true_path(target.source_path),
         auto_run_single_command = target.auto_run_single_command,
         default_executor = target.default_executor,
     })
@@ -49,7 +49,7 @@ M.run_prev_task = runner.run_prev_task
 
 ---@param target_name string
 function M.edit_source_file(target_name)
-    local path = pathfinder.get_true_path(find_target(target_name).source)
+    local path = pathfinder.get_true_path(find_target(target_name).source_path)
     common.mkdir_with_parents(common.dirname(path))
     if
         M.config.write_template_to_new_source_file
@@ -69,7 +69,7 @@ end
 
 ---@param target_name string
 function M.delete_source_file(target_name)
-    local path = pathfinder.get_true_path(find_target(target_name).source)
+    local path = pathfinder.get_true_path(find_target(target_name).source_path)
     common.path_remove(path)
 end
 

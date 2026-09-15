@@ -36,7 +36,7 @@ describe("source file execution", function()
             end
         options.targets = {
             project = {
-                source = function()
+                source_path = function()
                     return path
                 end,
                 auto_run_single_command = auto_run_single_command,

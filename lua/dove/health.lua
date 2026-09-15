@@ -41,7 +41,8 @@ end
 
 local function check_target_sources()
     for target_name, target in pairs(module.config.targets) do
-        local success, path = pcall(pathfinder.get_true_path, target.source)
+        local success, path =
+            pcall(pathfinder.get_true_path, target.source_path)
         if not success then
             common.health_error(
                 string.format(

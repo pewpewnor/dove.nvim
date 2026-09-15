@@ -30,6 +30,18 @@ describe("setup", function()
         assert.is_nil(dove.edit_lua_file)
         assert.is_nil(dove.delete_lua_file)
         assert.is_function(default.create)
+        assert.is_function(module.config.targets.project.source_path)
+        assert.is_function(module.config.targets.filetype.source_path)
+        assert.is_nil(module.config.targets.project.source)
+        assert.is_nil(module.config.targets.filetype.source)
+        assert.equals(
+            preset.executors.split,
+            module.config.targets.project.default_executor
+        )
+        assert.equals(
+            preset.executors.split,
+            module.config.targets.filetype.default_executor
+        )
         assert.is_function(module.config.selection.picker)
         assert.is_true(module.config.selection.enumerate_entries)
         assert.is_nil(module.config.display)
@@ -62,14 +74,14 @@ describe("setup", function()
         assert.matches("options.cmd_list_delimiter", message)
     end)
 
-    it("rejects invalid source resolver list entries", function()
+    it("rejects invalid source path resolver list entries", function()
         local success, message = pcall(dove.setup, {
             targets = {
-                invalid = { source = { true } },
+                invalid = { source_path = { true } },
             },
         })
 
         assert.is_false(success)
-        assert.matches("targets.invalid.source.1", message)
+        assert.matches("targets.invalid.source_path.1", message)
     end)
 end)

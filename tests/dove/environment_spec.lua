@@ -56,14 +56,14 @@ describe("environment", function()
         assert.is_function(environment.executors.vsplit)
     end)
 
-    it("calls target source resolvers without arguments", function()
+    it("calls target source path resolvers without arguments", function()
         local argument_count
         local source_path =
             common.path_join(common.get_tempname(), "project.lua")
         dove.setup({
             targets = {
                 project = {
-                    source = function(...)
+                    source_path = function(...)
                         argument_count = select("#", ...)
                         return source_path
                     end,
@@ -71,7 +71,7 @@ describe("environment", function()
             },
         })
 
-        pathfinder.get_true_path(module.config.targets.project.source)
+        pathfinder.get_true_path(module.config.targets.project.source_path)
 
         assert.equals(0, argument_count)
     end)

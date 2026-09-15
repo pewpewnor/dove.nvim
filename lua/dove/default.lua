@@ -6,7 +6,7 @@
 ---@field [string] Executor
 
 ---@class Target
----@field source PathResolver|PathResolver[]
+---@field source_path PathResolver|PathResolver[]
 ---@field auto_run_single_command boolean
 ---@field default_executor Executor
 
@@ -31,7 +31,7 @@
 ---@field selection Selection
 
 ---@class MinimumTarget
----@field source PathResolver|PathResolver[]
+---@field source_path PathResolver|PathResolver[]
 
 local common = require("dove.common")
 local preset = require("dove.preset")
@@ -44,7 +44,7 @@ function M.fill_target(minimum_target)
     common.validate("minimum_target", minimum_target, "table")
     return common.tbl_deep_extend("force", {
         auto_run_single_command = true,
-        default_executor = preset.executors.new_tab,
+        default_executor = preset.executors.split,
     }, minimum_target)
 end
 
@@ -54,7 +54,7 @@ function M.create(options)
     return common.tbl_deep_extend("force", {
         targets = {
             project = M.fill_target({
-                source = function()
+                source_path = function()
                     return common.path_join(
                         preset.dove_data_path(),
                         "projects",
@@ -63,7 +63,7 @@ function M.create(options)
                 end,
             }),
             filetype = M.fill_target({
-                source = function()
+                source_path = function()
                     return common.path_join(
                         preset.dove_data_path(),
                         "filetypes",

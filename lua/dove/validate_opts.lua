@@ -9,24 +9,24 @@ local function fill_and_validate_targets(targets)
         target_config = targets[target_name]
 
         common.validate(
-            "targets." .. target_name .. ".source",
-            target_config.source,
+            "targets." .. target_name .. ".source_path",
+            target_config.source_path,
             { "function", "table" }
         )
-        if type(target_config.source) == "table" then
+        if type(target_config.source_path) == "table" then
             if
-                not common.is_list(target_config.source)
-                or #target_config.source == 0
+                not common.is_list(target_config.source_path)
+                or #target_config.source_path == 0
             then
                 error(
                     "dove.nvim: targets."
                         .. target_name
-                        .. ".source must be a non-empty list of functions"
+                        .. ".source_path must be a non-empty list of functions"
                 )
             end
-            for index, resolver in ipairs(target_config.source) do
+            for index, resolver in ipairs(target_config.source_path) do
                 common.validate(
-                    "targets." .. target_name .. ".source." .. index,
+                    "targets." .. target_name .. ".source_path." .. index,
                     resolver,
                     "function"
                 )

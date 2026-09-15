@@ -1,6 +1,6 @@
 ---@class ProcessedTarget
 ---@field name string
----@field source string
+---@field source_path string
 ---@field auto_run_single_command boolean
 ---@field default_executor Executor
 
@@ -41,7 +41,7 @@ end
 
 ---@param target ProcessedTarget
 function M.select_and_run_entry(target)
-    local entries = parser.parse_source_file(target.source)
+    local entries = parser.parse_source_file(target.source_path)
     if not entries then
         return
     end
