@@ -60,14 +60,11 @@ function M.bg_silent(command)
 end
 
 ---@type dove.Executor
-function M.bg_exit_status(command)
+function M.bg_status(command)
     common.run_shell_async(command, function(result)
         print(
-            result.code == 0 and "dove.nvim: command job success (exit code 0)"
-                or string.format(
-                    "dove.nvim: command job error (exit code %d)",
-                    result.code
-                )
+            result.code == 0 and "command success (exit code = 0)"
+                or string.format("command error (exit code = %d)", result.code)
         )
     end)
 end

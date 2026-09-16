@@ -257,7 +257,7 @@ environment = {
             return "fixed-input.lua"
         end,
         executors = {
-            quick = preset.executors.bg_exit_status,
+            quick = preset.executors.bg_status,
         },
     },
     test_prefix = "env TEST=1 ",
@@ -448,7 +448,7 @@ return {
     {
         name = "test under cursor",
         cmd = "go test -run " .. denv.cword(),
-        executor = denv.executors.bg_exit_status,
+        executor = denv.executors.bg_status,
     },
 }
 ```
@@ -458,34 +458,108 @@ return {
 - `denv` contains the built-in values and any configured overrides.
 - Custom values are covered under the **`environment`** configuration option.
 
-Built-in values:
-
-Path functions escape their results by default. Pass `{ escape = false }`, such
-as `denv.file_path({ escape = false })`, to return an unescaped path. Pass
-`{ relative = true }` to `file_path` or `dir_path` for a path relative to the
-working directory.
-
-| Value                                   | Result                                                |
-| --------------------------------------- | ----------------------------------------------------- |
-| `denv.executors`                        | Built-in and configured executors                     |
-| `denv.file_path(options?)`              | Escaped absolute or relative buffer path              |
-| `denv.file_name(options?)`              | Filename-escaped buffer filename                      |
-| `denv.file_name_no_extension(options?)` | Filename-escaped buffer filename without extension    |
-| `denv.file_type()`                      | Current buffer filetype                               |
-| `denv.file_extension(options?)`         | Filename-escaped buffer filename extension            |
-| `denv.dir_path(options?)`               | Escaped absolute or relative buffer directory path    |
-| `denv.dir_name(options?)`               | Filename-escaped name of the buffer's directory       |
-| `denv.cwd_path(options?)`               | Filename-escaped current working directory            |
-| `denv.cwd_name(options?)`               | Filename-escaped current working-directory name       |
-| `denv.config_path(options?)`            | Filename-escaped Neovim config directory              |
-| `denv.data_path(options?)`              | Filename-escaped Neovim data directory                |
-| `denv.dove_data_path(options?)`         | Filename-escaped dove.nvim data directory; creates it |
-| `denv.cword()`                          | Word under the cursor                                 |
-| `denv.cWORD()`                          | WORD under the cursor                                 |
-| `denv.expand(value)`                    | Expanded string value                                 |
-| `denv.hash_sha256(value)`               | SHA-256 digest of a string                            |
-
 Use the same values in Neovim configuration through `require("dove.preset")`.
+Every path function accepts either no argument or an `options` table. The
+`escape` field must be a boolean when present. Its default is `true`, which
+passes the return value through `fnameescape()`; `escape = false` returns the
+unescaped value. `file_path` and `dir_path` additionally accept a boolean
+`relative` field, which defaults to `false`. Invalid option and field types
+raise an error.
+
+- **`denv.executors`**
+
+    A table containing the built-in executors and any executors added through the
+    `environment` configuration option. Configuration is deeply merged, so a
+    user-defined executor key is added without removing other built-ins. See
+    [Executors](#executors) for the function contract and built-in functions.
+
+- **`denv.file_path(options?)`**
+
+    Expands `%:p` and returns the current buffer's absolute path. With
+    `relative = true`, it expands `%` instead and returns the buffer path relative
+    to the working directory. `options` accepts `escape` and `relative`.
+
+- **`denv.file_name(options?)`**
+
+    Expands `%:t` and returns the tail of the current buffer path, including its
+    extension but excluding its directory. `options` accepts `escape`.
+
+- **`denv.file_name_no_extension(options?)`**
+
+    Expands `%:t:r` and returns the tail of the current buffer path without its
+    final extension. For multiple extensions, only the final one is removed.
+    `options` accepts `escape`.
+
+- **`denv.file_type()`**
+
+    Takes no arguments and returns the string value of the current buffer-local
+    `filetype` option. It returns an empty string when no filetype is set.
+
+- **`denv.file_extension(options?)`**
+
+    Expands `%:e` and returns the current buffer filename's final extension
+    without the leading dot. It returns an empty string when there is no
+    extension. `options` accepts `escape`.
+
+- **`denv.dir_path(options?)`**
+
+    Expands `%:p:h` and returns the absolute path of the directory containing the
+    current buffer. With `relative = true`, it expands `%:h` instead and returns
+    the directory relative to the working directory. `options` accepts `escape`
+    and `relative`.
+
+- **`denv.dir_name(options?)`**
+
+    Expands `%:p:h:t` and returns only the name of the directory containing the
+    current buffer. `options` accepts `escape`.
+
+- **`denv.cwd_path(options?)`**
+
+    Returns the value of `getcwd()`. The result follows Neovim's current
+    window-local, tab-local, or global working directory. `options` accepts
+    `escape`.
+
+- **`denv.cwd_name(options?)`**
+
+    Applies the `:t` filename modifier to `getcwd()` and returns only the final
+    directory name. `options` accepts `escape`.
+
+- **`denv.config_path(options?)`**
+
+    Returns Neovim's configuration directory from `stdpath("config")`.
+    `options` accepts `escape`.
+
+- **`denv.data_path(options?)`**
+
+    Returns Neovim's data directory from `stdpath("data")`. `options` accepts
+    `escape`.
+
+- **`denv.dove_data_path(options?)`**
+
+    Joins `stdpath("data")` with `dove`, recursively creates that directory when
+    it does not exist, and returns its path. An existing directory is left
+    unchanged. `options` accepts `escape`.
+
+- **`denv.cword()`**
+
+    Takes no arguments and returns `expand("<cword>")`. Word boundaries follow
+    the current buffer's `iskeyword` option.
+
+- **`denv.cWORD()`**
+
+    Takes no arguments and returns `expand("<cWORD>")`. A WORD is a sequence of
+    non-blank characters and does not use `iskeyword` boundaries.
+
+- **`denv.expand(value)`**
+
+    Requires a string and returns `expand(value)`. The accepted expressions and
+    modifiers are those supported by Neovim's `expand()` function. A non-string
+    argument raises an error.
+
+- **`denv.hash_sha256(value)`**
+
+    Accepts a string and returns `sha256(value)`, a 64-character lowercase
+    hexadecimal SHA-256 digest.
 
 ## Executors
 
@@ -497,29 +571,73 @@ local function executor(command, args)
 end
 ```
 
-Source entries pass an empty argument list. When a terminal executor is called
-directly, the first argument-list item is inserted as an Ex count before its
-`tabnew`, `split`, or `vsplit` command. For splits, this sets the height or
-width. The second item for `split` is an Ex command run after creating the
-window and before opening the terminal.
+`command` is a string and `args`, when supplied, is a list of strings. dove.nvim
+passes an empty list when it invokes an entry executor; non-empty argument
+lists are available when an executor is called directly or wrapped by another
+function. Built-in executors do not shell-escape `command` or validate the
+items in `args`.
 
 In source files, use `denv.executors`. In Neovim configuration, use
-`require("dove.preset").executors`.
+`require("dove.preset").executors`. Every executor accepts the command string
+as its first argument. Terminal executors use Neovim's shell through
+`:terminal`.
 
-| Executor                   | Behavior                                                           |
-| -------------------------- | ------------------------------------------------------------------ |
-| `executors.new_tab`        | Open a terminal in a new tab                                       |
-| `executors.current_buffer` | Open a terminal in the current buffer                              |
-| `executors.split`          | Open a terminal in a horizontal split                              |
-| `executors.vsplit`         | Open a terminal in a vertical split                                |
-| `executors.print`          | Run synchronously and print stdout                                 |
-| `executors.silent`         | Run synchronously without output                                   |
-| `executors.bg_silent`      | Run asynchronously without output                                  |
-| `executors.bg_exit_status` | Run asynchronously and print success or failure with the exit code |
+- **`executors.new_tab(command, args?)`**
 
-- Terminal executors use Neovim's shell through `:terminal`.
-- `print` and `silent` block until completion.
-- The `bg_*` executors return immediately.
+    Opens `command` in a terminal in a new tab. The optional `args` list accepts
+    an Ex count at `args[1]`, placed immediately before `tabnew`. The count has
+    the semantics of `:{count}tabnew`, specifying where the new tab page is
+    inserted. With no argument, the executed command is
+    `tabnew | terminal {command}`.
+
+- **`executors.current_buffer(command)`**
+
+    Opens `command` in a terminal in the current buffer. It accepts no executor
+    arguments beyond the command and executes `terminal {command}`. The current
+    buffer is replaced according to the normal behavior and restrictions of
+    `:terminal`.
+
+- **`executors.split(command, args?)`**
+
+    Opens `command` in a terminal in a `rightbelow` horizontal split. The
+    optional `args` list accepts the split height at `args[1]` and an Ex command
+    at `args[2]`. The Ex command runs after the split is created and before the
+    terminal opens. The resulting Ex command is `rightbelow [{height}] split`,
+    followed by the optional Ex command and `terminal {command}`.
+
+- **`executors.vsplit(command, args?)`**
+
+    Opens `command` in a terminal in a vertical split. The optional `args` list
+    accepts the split width at `args[1]`. Without a width it executes
+    `botright vsplit | terminal {command}`. With a width it executes
+    `{width} vsplit | terminal {command}`.
+
+- **`executors.print(command)`**
+
+    Runs `command` synchronously and prints its standard output. Neovim is
+    blocked until the command exits. The process is started as
+    `{shell, shellcmdflag, command}` using the current Neovim options. Standard
+    error and the exit status are not printed by this executor.
+
+- **`executors.silent(command)`**
+
+    Runs `command` synchronously without printing its output. Neovim is blocked
+    until the command exits. The process uses the current `shell` and
+    `shellcmdflag`; its standard output, standard error, and exit status are
+    discarded.
+
+- **`executors.bg_silent(command)`**
+
+    Starts `command` asynchronously without printing its output and returns
+    immediately. The process uses the current `shell` and `shellcmdflag`; its
+    standard output, standard error, and exit status are discarded.
+
+- **`executors.bg_status(command)`**
+
+    Starts `command` asynchronously and returns immediately. When the job exits,
+    it prints `dove.nvim: command job success (exit code 0)` for status zero or
+    `dove.nvim: command job error (exit code N)` for a nonzero status. Process
+    output is not printed.
 
 Direct calls can set split size:
 
@@ -533,15 +651,49 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
 
 ## Lua API
 
-`require("dove")` returns:
+`require("dove")` returns the following functions.
 
-| Function                          | Behavior                                           |
-| --------------------------------- | -------------------------------------------------- |
-| `setup(options?)`                 | Configure and initialize the plugin                |
-| `run_target(target_name)`         | Run an entry from a named target                   |
-| `run_prev_task()`                 | Repeat the last executed task                      |
-| `edit_source_file(target_name)`   | Create when needed, then open a target source file |
-| `delete_source_file(target_name)` | Delete a target's resolved source file             |
+- **`setup(options?)`**
+
+    Accepts a table or `nil` and returns no value. The table accepts the fields
+    described under [Configuration options](#configuration-options). The
+    function deep-merges the supplied values into fresh defaults, validates the
+    complete configuration, and initializes the parser and runner with it.
+    Invalid values raise an error. Calling `setup()` again discards the previous
+    user options and repeats this process with fresh defaults.
+
+- **`run_target(target_name)`**
+
+    Requires a target-name string and returns no value. It resolves the target's
+    source path, evaluates and validates the source list, and either executes its
+    only entry when `auto_run_single_command` is enabled or passes all entries to
+    the configured picker. The chosen command and executor become the previous
+    task only when an entry is executed. An unknown target, invalid resolver, or
+    invalid source raises an error. A missing source or empty source list prints
+    a message and does not replace the previous task.
+
+- **`run_prev_task()`**
+
+    Takes no arguments and returns no value. It invokes the stored executor with
+    the last executed command and its stored argument list. It does not resolve
+    a target, reload a source file, rerun the picker, or re-read configuration.
+    If no entry has been executed, it prints
+    `dove.nvim: no previously executed task` and does nothing else.
+
+- **`edit_source_file(target_name)`**
+
+    Requires a target-name string and returns no value. It resolves the target's
+    source path, recursively creates missing parent directories, and opens the
+    escaped path with `:tabedit`. If the path is not a readable file and
+    `write_template_to_new_source_file` is enabled, it first appends the starter
+    source template. An unknown target or invalid resolver raises an error.
+
+- **`delete_source_file(target_name)`**
+
+    Requires a target-name string and returns no value. It resolves the target's
+    source path and calls `vim.fs.rm(path, { force = true })`. No confirmation is
+    requested, and a missing path is ignored. An unknown target or invalid
+    resolver raises an error.
 
 Example of binding keys:
 

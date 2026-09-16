@@ -63,7 +63,7 @@ local function load_source_file(path, loading)
         loading[path] = nil
         error(
             string.format(
-                "dove.nvim: cannot load source file '%s': %s",
+                "dove.nvim: cannot load source file '%s':\n%s",
                 path,
                 load_error
             )
@@ -75,7 +75,7 @@ local function load_source_file(path, loading)
     if not success then
         error(
             string.format(
-                "dove.nvim: error evaluating source file '%s': %s",
+                "dove.nvim: error evaluating source file '%s':\n%s",
                 path,
                 result
             )

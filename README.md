@@ -115,12 +115,16 @@ Every entry must be a table and must have exactly one command field:
 
 > [!NOTE]
 > Source files get built-in values through `denv`. By default, the functions
-> return paths escaped for shell commands. Pass `{ escape = false }`, such as
-> `denv.file_path({ escape = false })`, to return an unescaped path. Pass
-> `{ relative = true }` to `file_path` or `dir_path` for a path relative to the
-> working directory.
+> return paths escaped for shell commands.
+>
+> Pass `{ escape = false }`, such as `denv.file_path({ escape = false })`, to
+> return an unescaped path. Pass `{ relative = true }` to `file_path` or
+> `dir_path` for a path relative to the working directory.
+>
 > You can use the same functions from `require("dove.preset")` in your Neovim
-> configuration.
+> configuration. See the
+> [source environment reference](docs/dove.md#source-environment) for each
+> function's arguments and behavior.
 
 | Value                                   | Result                                              |
 | --------------------------------------- | --------------------------------------------------- |
@@ -146,8 +150,11 @@ Every entry must be a table and must have exactly one command field:
 
 > [!NOTE]
 > In source files, select a built-in or configured executor through
-> `denv.executors`. You can use the same executors from
-> `require("dove.preset").executors` in your Neovim configuration.
+> `denv.executors`.
+>
+> You can use the same executors from `require("dove.preset").executors` in your
+> Neovim configuration. See the [executor reference](docs/dove.md#executors)
+> for each executor's arguments and behavior.
 
 | Executor                   | Behavior                                       |
 | -------------------------- | ---------------------------------------------- |
@@ -158,7 +165,7 @@ Every entry must be a table and must have exactly one command field:
 | `executors.print`          | Runs synchronously and prints stdout           |
 | `executors.silent`         | Runs synchronously without output              |
 | `executors.bg_silent`      | Runs asynchronously without output             |
-| `executors.bg_exit_status` | Runs asynchronously and prints the exit status |
+| `executors.bg_status`      | Runs asynchronously and prints the exit status |
 
 ### Imports
 
@@ -261,15 +268,15 @@ the first returned path when `:Dove edit` creates it.
 
 ## Built-in picker
 
-The built-in picker opens in a centered floating window.
+The built-in picker `require("dove.picker")` opens a centered floating window.
 
 - Type letters to search/filter for entries.
 - Move with arrow keys, or `<C-n>`, `<C-p>`.
 - Confirm selection by pressing `<CR>`.
 - Close picker with `<Esc>`.
 
-Change the picker by setting `ui.picker` to any `vim.ui.select` compatible
-function.
+You may change the picker by setting `ui.picker` to any `vim.ui.select`
+compatible function.
 
 ## Lua API
 
