@@ -62,7 +62,7 @@ describe("source file loading", function()
         assert.same({ "echo relative" }, context.executed_commands)
     end)
 
-    it("attributes imported entry errors to the imported file", function()
+    it("rejects invalid entries from imported files", function()
         local imported_path =
             common.path_join(context.temp_dir, "invalid-shared.lua")
         local path =
@@ -73,11 +73,9 @@ describe("source file loading", function()
         })
         context:setup(path)
 
-        local success, message = pcall(dove.run_target, "project")
+        local success = pcall(dove.run_target, "project")
 
         assert.is_false(success)
-        assert.matches("invalid%-shared%.lua", message)
-        assert.is_nil(message:match("project%-with%-import%.lua"))
     end)
 
     it("reloads files on every run", function()

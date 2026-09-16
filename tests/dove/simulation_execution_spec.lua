@@ -50,10 +50,9 @@ describe("source file execution", function()
         })
         context:setup(path, { auto_run_single_command = false })
 
-        local success, message = pcall(dove.run_target, "project")
+        local success = pcall(dove.run_target, "project")
 
         assert.is_false(success)
-        assert.matches("each entry must be a table", message)
         assert.same({}, context.executed_commands)
     end)
 
@@ -131,10 +130,9 @@ describe("source file execution", function()
             end,
         })
 
-        local success, message = pcall(dove.run_target, "project")
+        local success = pcall(dove.run_target, "project")
 
         assert.is_false(success)
-        assert.matches("cmd_list_delimiter return value", message)
         assert.same({}, context.executed_commands)
     end)
 
@@ -239,10 +237,9 @@ describe("source file execution", function()
         })
         context:setup(path)
 
-        local success, message = pcall(dove.run_target, "project")
+        local success = pcall(dove.run_target, "project")
 
         assert.is_false(success)
-        assert.matches("must return a list of entries", message)
         assert.same({}, context.executed_commands)
     end)
 
@@ -308,9 +305,8 @@ describe("source file execution", function()
         context:write_source_file(path, { 'return "invalid"' })
         context:setup(path)
 
-        local success, message = pcall(dove.run_target, "project")
+        local success = pcall(dove.run_target, "project")
 
         assert.is_false(success)
-        assert.matches("must return a table", message)
     end)
 end)

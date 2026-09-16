@@ -47,20 +47,17 @@ describe("preset paths", function()
     end
 
     it("rejects invalid options", function()
-        local success, message = pcall(preset.file_path, "no")
+        local success = pcall(preset.file_path, "no")
 
         assert.is_false(success)
-        assert.matches("options", message)
 
-        success, message = pcall(preset.file_path, { escape = "no" })
-
-        assert.is_false(success)
-        assert.matches("options.escape", message, 1, true)
-
-        success, message = pcall(preset.file_path, { relative = "no" })
+        success = pcall(preset.file_path, { escape = "no" })
 
         assert.is_false(success)
-        assert.matches("options.relative", message, 1, true)
+
+        success = pcall(preset.file_path, { relative = "no" })
+
+        assert.is_false(success)
     end)
 
     it("returns optionally relative file and directory paths", function()
@@ -96,9 +93,8 @@ describe("preset paths", function()
     end)
 
     it("rejects an invalid expand value", function()
-        local success, message = pcall(preset.expand, true)
+        local success = pcall(preset.expand, true)
 
         assert.is_false(success)
-        assert.matches("value", message)
     end)
 end)

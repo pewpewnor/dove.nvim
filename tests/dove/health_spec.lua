@@ -15,12 +15,12 @@ describe("health check", function()
         rawset(common, "health_ok", function() end)
         rawset(common, "health_start", function() end)
 
-        local success, message = pcall(health.check)
+        local success = pcall(health.check)
         module.config = config
         rawset(common, "health_error", original_health_error)
         rawset(common, "health_ok", original_health_ok)
         rawset(common, "health_start", original_health_start)
 
-        assert.is_true(success, message)
+        assert.is_true(success)
     end)
 end)
