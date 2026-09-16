@@ -465,16 +465,16 @@ window and before opening the terminal.
 Source files use `dove.executors`. Configuration uses
 `require("dove.preset").executors`.
 
-| Executor                          | Behavior                                                           |
-| --------------------------------- | ------------------------------------------------------------------ |
-| `preset.executors.new_tab`        | Open a terminal in a new tab                                       |
-| `preset.executors.current_buffer` | Open a terminal in the current buffer                              |
-| `preset.executors.split`          | Open a terminal in a horizontal split                              |
-| `preset.executors.vsplit`         | Open a terminal in a vertical split                                |
-| `preset.executors.print`          | Run synchronously and print stdout                                 |
-| `preset.executors.silent`         | Run synchronously without output                                   |
-| `preset.executors.bg_silent`      | Run asynchronously without output                                  |
-| `preset.executors.bg_exit_status` | Run asynchronously and print success or failure with the exit code |
+| Executor                   | Behavior                                                           |
+| -------------------------- | ------------------------------------------------------------------ |
+| `executors.new_tab`        | Open a terminal in a new tab                                       |
+| `executors.current_buffer` | Open a terminal in the current buffer                              |
+| `executors.split`          | Open a terminal in a horizontal split                              |
+| `executors.vsplit`         | Open a terminal in a vertical split                                |
+| `executors.print`          | Run synchronously and print stdout                                 |
+| `executors.silent`         | Run synchronously without output                                   |
+| `executors.bg_silent`      | Run asynchronously without output                                  |
+| `executors.bg_exit_status` | Run asynchronously and print success or failure with the exit code |
 
 - Terminal executors use Neovim's shell through `:terminal`.
 - `print` and `silent` block until completion.

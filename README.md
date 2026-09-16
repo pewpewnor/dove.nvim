@@ -78,7 +78,6 @@ return {
     {
         name = "build",
         cmd = "make build",
-        executor = dove.executors.new_tab,
     },
     {
         name = "file stats",
@@ -91,7 +90,7 @@ return {
     {
         name = "run test under cursor",
         cmd = "go test -run " .. dove.cword(),
-        executor = dove.executors.bg_exit_status,
+        executor = dove.executors.new_tab,
     },
 }
 ```
@@ -136,19 +135,19 @@ commands. Use the same functions from `require("dove.preset")` in configuration.
 
 ### Preset executors
 
-Use `dove.executors` in source files and
-`require("dove.preset").executors` in configuration.
+Use `dove.executors` in source files and `require("dove.preset").executors` in
+Neovim configuration to access `executors`.
 
-| Executor                          | Behavior                                       |
-| --------------------------------- | ---------------------------------------------- |
-| `preset.executors.new_tab`        | Opens a terminal in a new tab                  |
-| `preset.executors.current_buffer` | Opens a terminal in the current buffer         |
-| `preset.executors.split`          | Opens a terminal in a horizontal split         |
-| `preset.executors.vsplit`         | Opens a terminal in a vertical split           |
-| `preset.executors.print`          | Runs synchronously and prints stdout           |
-| `preset.executors.silent`         | Runs synchronously without output              |
-| `preset.executors.bg_silent`      | Runs asynchronously without output             |
-| `preset.executors.bg_exit_status` | Runs asynchronously and prints the exit status |
+| Executor                   | Behavior                                       |
+| -------------------------- | ---------------------------------------------- |
+| `executors.new_tab`        | Opens a terminal in a new tab                  |
+| `executors.current_buffer` | Opens a terminal in the current buffer         |
+| `executors.split`          | Opens a terminal in a horizontal split         |
+| `executors.vsplit`         | Opens a terminal in a vertical split           |
+| `executors.print`          | Runs synchronously and prints stdout           |
+| `executors.silent`         | Runs synchronously without output              |
+| `executors.bg_silent`      | Runs asynchronously without output             |
+| `executors.bg_exit_status` | Runs asynchronously and prints the exit status |
 
 ### Imports
 
