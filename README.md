@@ -3,8 +3,9 @@
 ![Neovim](https://img.shields.io/badge/Neovim-57A143?logo=neovim&logoColor=white&style=for-the-badge)
 ![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
 
-Define and execute arbitrary shell commands to run files, projects, and more on
-the fly without reloading Neovim.
+Define and execute arbitrary shell commands with Lua for files, projects, and
+global contexts on the fly without reloading Neovim. I built this to compile
+code + execute the binary, build + test projects, and run anything anywhere.
 
 _Requirement: Neovim v0.12.x_
 
@@ -55,6 +56,13 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 {
     "pewpewnor/dove.nvim",
     opts = {},
+}
+-- or
+{
+    "pewpewnor/dove.nvim",
+    config = function()
+        require("dove").setup()
+    end
 }
 ```
 
@@ -117,10 +125,6 @@ Every entry must be a table and must have exactly one command field:
 > Source files get built-in values through `denv`. By default, the functions
 > return paths escaped for shell commands.
 >
-> Pass `{ escape = false }`, such as `denv.file_path({ escape = false })`, to
-> return an unescaped path. Pass `{ relative = true }` to `file_path` or
-> `dir_path` for a path relative to the working directory.
->
 > You can use the same functions from `require("dove.preset")` in your Neovim
 > configuration. See the
 > [source environment reference](docs/dove.md#source-environment) for each
@@ -145,6 +149,11 @@ Every entry must be a table and must have exactly one command field:
 | `denv.cWORD()`                          | WORD under the cursor                               |
 | `denv.expand(value)`                    | Expanded string value                               |
 | `denv.hash_sha256(value)`               | SHA-256 digest of a string                          |
+
+> [!TIP]
+> Pass `{ escape = false }`, such as `denv.file_path({ escape = false })`, to
+> return an unescaped path. Pass `{ relative = true }` to `file_path` or
+> `dir_path` for a path relative to the working directory.
 
 ### Executors
 
@@ -185,7 +194,7 @@ return {
 > [!NOTE]
 > Passing `opts = {}` to lazy.nvim uses the [default configuration](docs/dove.md#default-configuration).
 
-Example customization:
+Example extensive customization:
 
 ```lua
 local dove = require("dove")
@@ -209,7 +218,6 @@ dove.setup({
             source_path = function()
                 return "~/custom_target_source.lua"
             end,
-            auto_run_single_command = true,
             default_executor = preset.executors.current_buffer,
         },
     },
@@ -230,9 +238,7 @@ dove.setup({
             custom_func = function() end,
         },
     },
-    cmd_list_delimiter = function()
-        return " && "
-    end,
+    cmd_list_delimiter = function() return " && " end,
     write_template_to_new_source_file = false,
     ui = {
         picker = vim.ui.select,
@@ -310,4 +316,6 @@ vim.keymap.set("n", "<Leader>df", "<Cmd>Dove run filetype<CR>",
 Run `:checkhealth dove` for diagnostics.
 
 See [the full documentation](docs/dove.md) for the complete option and
-source-file reference. See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.
+source-file reference.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.

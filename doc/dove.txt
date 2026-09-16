@@ -1,4 +1,4 @@
-*dove.txt*            Define and execute commands to run files, projects, etc.
+*dove.txt*      Define and execute commands with Lua for files, projects, etc.
                             For NVIM v0.12.0    Last change: 2026 September 16
 
 ==============================================================================
@@ -28,6 +28,13 @@ With lazy.nvim <https://github.com/folke/lazy.nvim>:
     {
         "pewpewnor/dove.nvim",
         opts = {},
+    }
+    -- or
+    {
+        "pewpewnor/dove.nvim",
+        config = function()
+            require("dove").setup()
+        end
     }
 <
 
@@ -185,7 +192,6 @@ defaults.
                 source_path = function()
                     return "~/custom_target_source.lua"
                 end,
-                auto_run_single_command = true,
                 default_executor = preset.executors.current_buffer,
             },
         },
@@ -206,9 +212,7 @@ defaults.
                 custom_func = function() end,
             },
         },
-        cmd_list_delimiter = function()
-            return " && "
-        end,
+        cmd_list_delimiter = function() return " && " end,
         write_template_to_new_source_file = false,
         ui = {
             picker = vim.ui.select,

@@ -9,6 +9,13 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
     "pewpewnor/dove.nvim",
     opts = {},
 }
+-- or
+{
+    "pewpewnor/dove.nvim",
+    config = function()
+        require("dove").setup()
+    end
+}
 ```
 
 - `opts = {}` calls `require("dove").setup({})`.
@@ -160,7 +167,6 @@ dove.setup({
             source_path = function()
                 return "~/custom_target_source.lua"
             end,
-            auto_run_single_command = true,
             default_executor = preset.executors.current_buffer,
         },
     },
@@ -181,9 +187,7 @@ dove.setup({
             custom_func = function() end,
         },
     },
-    cmd_list_delimiter = function()
-        return " && "
-    end,
+    cmd_list_delimiter = function() return " && " end,
     write_template_to_new_source_file = false,
     ui = {
         picker = vim.ui.select,
