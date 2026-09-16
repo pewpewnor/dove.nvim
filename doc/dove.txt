@@ -513,49 +513,55 @@ values are grouped under `denv`:
 
 Built-in values:
 
-  ----------------------------------------------------------------------------
-  Value                           Result
-  ------------------------------- --------------------------------------------
-  denv.executors                  Built-in and configured executors
+Path functions escape their results by default. Pass `{ escape = false }`, such
+as `denv.file_path({ escape = false })`, to return an unescaped path. Pass `{
+relative = true }` to `file_path` or `dir_path` for a path relative to the
+working directory.
 
-  denv.file_path()                Filename-escaped absolute buffer path
+  --------------------------------------------------------------------------------
+  Value                                   Result
+  --------------------------------------- ----------------------------------------
+  denv.executors                          Built-in and configured executors
 
-  denv.file_path_relative()       Filename-escaped buffer path relative to the
-                                  cwd
+  denv.file_path(options?)                Escaped absolute or relative buffer path
 
-  denv.file_name()                Filename-escaped buffer filename
+  denv.file_name(options?)                Filename-escaped buffer filename
 
-  denv.file_name_no_extension()   Filename-escaped buffer filename without
-                                  extension
+  denv.file_name_no_extension(options?)   Filename-escaped buffer filename without
+                                          extension
 
-  denv.file_type()                Current buffer filetype
+  denv.file_type()                        Current buffer filetype
 
-  denv.file_extension()           Filename-escaped buffer filename extension
+  denv.file_extension(options?)           Filename-escaped buffer filename
+                                          extension
 
-  denv.dir_path()                 Filename-escaped directory containing the
-                                  buffer
+  denv.dir_path(options?)                 Escaped absolute or relative buffer
+                                          directory path
 
-  denv.dir_name()                 Filename-escaped name of the buffer’s
-                                  directory
+  denv.dir_name(options?)                 Filename-escaped name of the buffer’s
+                                          directory
 
-  denv.cwd_path()                 Filename-escaped current working directory
+  denv.cwd_path(options?)                 Filename-escaped current working
+                                          directory
 
-  denv.cwd_name()                 Filename-escaped current working-directory
-                                  name
+  denv.cwd_name(options?)                 Filename-escaped current
+                                          working-directory name
 
-  denv.config_path()              Filename-escaped Neovim config directory
+  denv.config_path(options?)              Filename-escaped Neovim config directory
 
-  denv.data_path()                Filename-escaped Neovim data directory
+  denv.data_path(options?)                Filename-escaped Neovim data directory
 
-  denv.dove_data_path()           Filename-escaped dove.nvim data directory;
-                                  creates it
+  denv.dove_data_path(options?)           Filename-escaped dove.nvim data
+                                          directory; creates it
 
-  denv.cword()                    Word under the cursor
+  denv.cword()                            Word under the cursor
 
-  denv.cWORD()                    WORD under the cursor
+  denv.cWORD()                            WORD under the cursor
 
-  denv.hash_sha256(value)         SHA-256 digest of a string
-  ----------------------------------------------------------------------------
+  denv.expand(value)                      Expanded string value
+
+  denv.hash_sha256(value)                 SHA-256 digest of a string
+  --------------------------------------------------------------------------------
 Use the same values in Neovim configuration through `require("dove.preset")`.
 
 

@@ -13,7 +13,6 @@ describe("environment", function()
 
         local expected_functions = {
             "file_path",
-            "file_path_relative",
             "file_name",
             "file_name_no_extension",
             "file_type",
@@ -27,6 +26,7 @@ describe("environment", function()
             "dove_data_path",
             "cword",
             "cWORD",
+            "expand",
             "hash_sha256",
         }
         for _, name in ipairs(expected_functions) do
