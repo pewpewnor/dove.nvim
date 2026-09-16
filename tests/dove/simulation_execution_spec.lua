@@ -255,28 +255,30 @@ describe("source file execution", function()
         assert.same({}, context.executed_commands)
     end)
 
-    it("exposes the configured environment under dove", function()
+    it("exposes configured globals and built-ins under denv", function()
         local path = common.path_join(context.temp_dir, "environment.lua")
         context:write_source_file(path, {
             "assert(file_path == nil)",
             "assert(executors == nil)",
-            "assert(prefix == nil)",
-            'assert(type(dove.dir_name) == "function")',
-            'assert(type(dove.executors.bg_silent) == "function")',
+            "assert(dove == nil)",
+            'assert(type(denv.dir_name) == "function")',
+            'assert(type(denv.executors.bg_silent) == "function")',
             "return {",
-            "    { dove.prefix .. dove.file_path(), executor = dove.executors.capture },",
+            "    { prefix .. denv.file_path(), executor = denv.executors.capture },",
             "}",
         })
         context:setup(path, {
             environment = {
                 prefix = "wc ",
-                file_path = function()
-                    return "custom.lua"
-                end,
-                executors = {
-                    capture = function(command)
-                        context:execute(command)
+                denv = {
+                    file_path = function()
+                        return "custom.lua"
                     end,
+                    executors = {
+                        capture = function(command)
+                            context:execute(command)
+                        end,
+                    },
                 },
             },
         })

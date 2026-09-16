@@ -42,9 +42,10 @@ local function load_source_file(path, loading)
     loading[path] = true
 
     ---@type table<string, any>
-    local environment = setmetatable({
-        dove = M.config.environment,
-    }, { __index = _G })
+    local environment = setmetatable(
+        common.tbl_deep_extend("force", {}, M.config.environment),
+        { __index = _G }
+    )
 
     environment.require = function(module_name)
         common.validate("require path", module_name, "string")

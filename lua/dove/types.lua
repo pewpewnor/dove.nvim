@@ -13,8 +13,11 @@
 ---@class dove.Targets
 ---@field [string] dove.Target
 
----@class dove.Environment
+---@class dove.SourceEnvironment
 ---@field executors dove.Executors
+
+---@class dove.Environment
+---@field denv dove.SourceEnvironment
 ---@field [string] any
 
 ---@alias dove.Picker fun(items: any[], opts: table, on_choice: fun(item: any?, index: integer?))

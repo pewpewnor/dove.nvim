@@ -63,8 +63,8 @@ return {
     { name = "build", cmd = "make build" },
     {
         name = "current file stats",
-        cmd = "wc " .. dove.file_path(),
-        executor = dove.executors.print,
+        cmd = "wc " .. denv.file_path(),
+        executor = denv.executors.print,
     },
 }
 ```
@@ -120,7 +120,7 @@ local preset = require("dove.preset")
         },
     },
     environment = {
-        dove = preset,
+        denv = preset,
     },
     cmd_list_delimiter = function()
         return vim.o.shell:match("cmd%.exe$") and " & " or "; "
@@ -139,26 +139,47 @@ Calling `setup()` again discards previous user options and starts from fresh
 defaults.
 
 ```lua
+local dove = require("dove")
 local preset = require("dove.preset")
 
-require("dove").setup({
+dove.setup({
     targets = {
         project = {
-            source_path = function()
-                return preset.cwd_path() .. "/.dove.lua"
-            end,
+            source_path = {
+                function()
+                    return preset.cwd_path() .. "/.dove.lua"
+                end,
+                function()
+                    return preset.config_path() .. "/dove/project.lua"
+                end,
+            },
             auto_run_single_command = false,
             default_executor = preset.executors.split,
         },
-        scripts = {
+        custom_target = {
             source_path = function()
-                return preset.config_path() .. "/dove/scripts.lua"
+                return "~/custom_target_source.lua"
             end,
+            auto_run_single_command = true,
+            default_executor = preset.executors.current_buffer,
         },
     },
     environment = {
-        test_prefix = "env TEST=1 ",
-        executors = { quick = preset.executors.bg_exit_status },
+        custom_var = "my custom variable value",
+        denv = {
+            executors = {
+                custom_notify = function(command)
+                    vim.system(
+                        { vim.o.shell, vim.o.shellcmdflag, command },
+                        { text = true },
+                        function(result)
+                            vim.notify(result.stdout or result.stderr or "")
+                        end
+                    )
+                end,
+            },
+            custom_func = function() end,
+        },
     },
     cmd_list_delimiter = function()
         return " && "
@@ -170,6 +191,9 @@ require("dove").setup({
     },
 })
 ```
+
+With the above example, source files can access `custom_var`,
+`denv.executors.custom_notify`, and `denv.custom_func`.
 
 All options are optional. Custom target names and environment keys are allowed;
 known options are type-checked.
@@ -221,25 +245,27 @@ Built-in paths and settings:
 ### `environment`
 
 - Type: `table`.
-- Default: all values under **Source environment**.
+- Default: the built-in values under `denv`.
 
 Custom values deeply merge with the built-ins. Add values and executors, or
 replace built-ins:
 
 ```lua
 environment = {
-    test_prefix = "env TEST=1 ",
-    file_path = function()
-        return "fixed-input.lua"
-    end,
-    executors = {
-        quick = preset.executors.bg_exit_status,
+    denv = {
+        file_path = function()
+            return "fixed-input.lua"
+        end,
+        executors = {
+            quick = preset.executors.bg_exit_status,
+        },
     },
+    test_prefix = "env TEST=1 ",
 }
 ```
 
-The source can then use `dove.test_prefix`, the replaced `dove.file_path()`, and
-`dove.executors.quick`.
+The source can then use `test_prefix`, the replaced `denv.file_path()`, and
+`denv.executors.quick`.
 
 ### `cmd_list_delimiter`
 
@@ -313,18 +339,29 @@ A custom picker receives `items`, `opts`, and `on_choice`:
 - `edit` creates missing parent directories. See **Source file templates** for
   new files.
 
-## Source files
+## Source file
 
 A source file returns a list of entry tables:
 
 ```lua
 return {
     { "make test" },
-    { name = "lint", cmd = "make lint" },
     {
-        name = "check and build",
-        cmd = { "make check", "make build" },
-        executor = dove.executors.new_tab,
+        name = "build",
+        cmd = "make build",
+    },
+    {
+        name = "file stats",
+        cmd = {
+            "wc -l " .. denv.file_path(),
+            "wc -w " .. denv.file_path(),
+        },
+        executor = denv.executors.print,
+    },
+    {
+        name = "run test under cursor",
+        cmd = "go test -run " .. denv.cword(),
+        executor = denv.executors.new_tab,
     },
 }
 ```
@@ -371,59 +408,16 @@ item, and the last item's status is the combined command's status. Return
 `" && "` from `cmd_list_delimiter` on a compatible shell to stop on failure.
 See the **`cmd_list_delimiter`** configuration option.
 
-### Source environment
-
-Source files receive the configured environment as `dove`:
-
-```lua
-return {
-    {
-        name = "test under cursor",
-        cmd = "go test -run " .. dove.cword(),
-        executor = dove.executors.bg_exit_status,
-    },
-}
-```
-
-- Normal Lua globals remain available.
-- Each source evaluation gets a fresh Lua environment table.
-- `dove` refers to the environment created by `setup()`.
-- Custom values are covered under the **`environment`** configuration option.
-
-Built-in values:
-
-| Value                           | Result                                                |
-| ------------------------------- | ----------------------------------------------------- |
-| `dove.executors`                | Built-in and configured executors                     |
-| `dove.file_path()`              | Filename-escaped absolute buffer path                 |
-| `dove.file_path_relative()`     | Filename-escaped buffer path relative to the cwd      |
-| `dove.file_name()`              | Filename-escaped buffer filename                      |
-| `dove.file_name_no_extension()` | Filename-escaped buffer filename without extension    |
-| `dove.file_type()`              | Current buffer filetype                               |
-| `dove.file_extension()`         | Filename-escaped buffer filename extension            |
-| `dove.dir_path()`               | Filename-escaped directory containing the buffer      |
-| `dove.dir_name()`               | Filename-escaped name of the buffer's directory       |
-| `dove.cwd_path()`               | Filename-escaped current working directory            |
-| `dove.cwd_name()`               | Filename-escaped current working-directory name       |
-| `dove.config_path()`            | Filename-escaped Neovim config directory              |
-| `dove.data_path()`              | Filename-escaped Neovim data directory                |
-| `dove.dove_data_path()`         | Filename-escaped dove.nvim data directory; creates it |
-| `dove.cword()`                  | Word under the cursor                                 |
-| `dove.cWORD()`                  | WORD under the cursor                                 |
-| `dove.hash_sha256(value)`       | SHA-256 digest of a string                            |
-
-Use the same values in Neovim configuration through `require("dove.preset")`.
-
 ### Imports
 
 Import and flatten another source list with `require()`:
 
 ```lua
 return {
-    require("./shared.lua"),
-    require("../team.lua"),
-    require("~/commands/common.lua"),
+    require("./adjacent.lua"),
     { "make test" },
+    require("../parent.lua"),
+    require("~/commands/common.lua"),
 }
 ```
 
@@ -444,6 +438,50 @@ For source-file imports:
 
 Other names use Lua's normal `require()` and are not flattened.
 
+## Source environment
+
+Source files receive each configured environment key as a global. Built-in
+values are grouped under `denv`:
+
+```lua
+return {
+    {
+        name = "test under cursor",
+        cmd = "go test -run " .. denv.cword(),
+        executor = denv.executors.bg_exit_status,
+    },
+}
+```
+
+- Normal Lua globals remain available.
+- Each source evaluation gets a fresh Lua environment table.
+- `denv` contains the built-in values and any configured overrides.
+- Custom values are covered under the **`environment`** configuration option.
+
+Built-in values:
+
+| Value                           | Result                                                |
+| ------------------------------- | ----------------------------------------------------- |
+| `denv.executors`                | Built-in and configured executors                     |
+| `denv.file_path()`              | Filename-escaped absolute buffer path                 |
+| `denv.file_path_relative()`     | Filename-escaped buffer path relative to the cwd      |
+| `denv.file_name()`              | Filename-escaped buffer filename                      |
+| `denv.file_name_no_extension()` | Filename-escaped buffer filename without extension    |
+| `denv.file_type()`              | Current buffer filetype                               |
+| `denv.file_extension()`         | Filename-escaped buffer filename extension            |
+| `denv.dir_path()`               | Filename-escaped directory containing the buffer      |
+| `denv.dir_name()`               | Filename-escaped name of the buffer's directory       |
+| `denv.cwd_path()`               | Filename-escaped current working directory            |
+| `denv.cwd_name()`               | Filename-escaped current working-directory name       |
+| `denv.config_path()`            | Filename-escaped Neovim config directory              |
+| `denv.data_path()`              | Filename-escaped Neovim data directory                |
+| `denv.dove_data_path()`         | Filename-escaped dove.nvim data directory; creates it |
+| `denv.cword()`                  | Word under the cursor                                 |
+| `denv.cWORD()`                  | WORD under the cursor                                 |
+| `denv.hash_sha256(value)`       | SHA-256 digest of a string                            |
+
+Use the same values in Neovim configuration through `require("dove.preset")`.
+
 ## Executors
 
 An executor receives the final command and an optional argument list:
@@ -460,7 +498,7 @@ directly, the first argument-list item is inserted as an Ex count before its
 width. The second item for `split` is an Ex command run after creating the
 window and before opening the terminal.
 
-Source files use `dove.executors`. Configuration uses
+In source files, use `denv.executors`. In Neovim configuration, use
 `require("dove.preset").executors`.
 
 | Executor                   | Behavior                                                           |
@@ -517,7 +555,8 @@ vim.keymap.set("n", "<Leader>df", "<Cmd>Dove run filetype<CR>",
 
 The behavior under [Commands](#commands) also applies to these functions.
 `require("dove.preset")` returns the built-in source environment for use in
-configuration; see **Source environment** and [Executors](#executors).
+configuration; see [Source environment](#source-environment) and
+[Executors](#executors).
 
 ## Health check
 

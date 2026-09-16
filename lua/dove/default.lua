@@ -39,7 +39,9 @@ function M.create(options)
                 end,
             }),
         },
-        environment = common.tbl_deep_extend("force", {}, preset),
+        environment = {
+            denv = common.tbl_deep_extend("force", {}, preset),
+        },
         cmd_list_delimiter = common.get_default_cmd_list_delimiter,
         write_template_to_new_source_file = true,
         ui = {

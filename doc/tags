@@ -9,6 +9,7 @@ dove-links	dove.txt	/*dove-links*
 dove-lua-api	dove.txt	/*dove-lua-api*
 dove-quick-start	dove.txt	/*dove-quick-start*
 dove-setup	dove.txt	/*dove-setup*
-dove-source-files	dove.txt	/*dove-source-files*
+dove-source-environment	dove.txt	/*dove-source-environment*
+dove-source-file	dove.txt	/*dove-source-file*
 dove-table-of-contents	dove.txt	/*dove-table-of-contents*
 dove.txt	dove.txt	/*dove.txt*

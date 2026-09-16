@@ -30,30 +30,35 @@ describe("environment", function()
             "hash_sha256",
         }
         for _, name in ipairs(expected_functions) do
-            assert.is_function(environment[name])
-            assert.equals(preset[name], environment[name])
+            assert.is_function(environment.denv[name])
+            assert.equals(preset[name], environment.denv[name])
         end
-        assert.is_function(environment.executors.vsplit)
-        assert.equals(preset.executors.vsplit, environment.executors.vsplit)
+        assert.is_function(environment.denv.executors.vsplit)
+        assert.equals(
+            preset.executors.vsplit,
+            environment.denv.executors.vsplit
+        )
     end)
 
     it("deeply merges user values and overrides", function()
         local custom_executor = function() end
         dove.setup({
             environment = {
-                file_path = function()
-                    return "overridden"
-                end,
                 my_var = "lol",
-                executors = { custom = custom_executor },
+                denv = {
+                    file_path = function()
+                        return "overridden"
+                    end,
+                    executors = { custom = custom_executor },
+                },
             },
         })
 
         local environment = module.config.environment
-        assert.equals("overridden", environment.file_path())
+        assert.equals("overridden", environment.denv.file_path())
         assert.equals("lol", environment.my_var)
-        assert.equals(custom_executor, environment.executors.custom)
-        assert.is_function(environment.executors.vsplit)
+        assert.equals(custom_executor, environment.denv.executors.custom)
+        assert.is_function(environment.denv.executors.vsplit)
     end)
 
     it("calls target source path resolvers without arguments", function()

@@ -32,10 +32,10 @@ can be selected later.
 
 To help write commands efficiently:
 
-- Use [preset functions](#preset-environment) to refer to the current buffer's
-  file path, parent directory, etc. when defining commands within the source
-  file.
-- Use [preset executors](#preset-executors) to tell dove.nvim where and how to
+- Use [source environment functions](#source-environment) to refer to the
+  current buffer's file path, parent directory, etc. when defining commands
+  within the source file.
+- Use [executors](#executors) to tell dove.nvim where and how to
   execute the command, e.g. run inside a Neovim terminal or in the background.
 
 You may also define/override variables, functions, and executors that the source
@@ -69,8 +69,10 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Writing source files
 
-Run `:Dove edit project` to create the source file for the current project. A
-source file must return a list of entry tables:
+> [!TIP]
+> Run `:Dove edit {target}` to create the source file for the current project.
+
+A source file must return a list of entry tables:
 
 ```lua
 return {
@@ -82,15 +84,15 @@ return {
     {
         name = "file stats",
         cmd = {
-            "wc -l " .. dove.file_path(),
-            "wc -w " .. dove.file_path(),
+            "wc -l " .. denv.file_path(),
+            "wc -w " .. denv.file_path(),
         },
-        executor = dove.executors.print,
+        executor = denv.executors.print,
     },
     {
         name = "run test under cursor",
-        cmd = "go test -run " .. dove.cword(),
-        executor = dove.executors.new_tab,
+        cmd = "go test -run " .. denv.cword(),
+        executor = denv.executors.new_tab,
     },
 }
 ```
@@ -104,39 +106,44 @@ Every entry must be a table and must have exactly one command field:
 | `name`     | Optional picker label. Defaults to the command.                             |
 | `executor` | Optional executor. Overrides the target's default executor.                 |
 
-For a `cmd` list, items are joined with the string returned by
-`cmd_list_delimiter` and sent as a single shell command. The default function
-returns `"; "`, or `" & "` for `cmd.exe`.
+> [!NOTE]
+> For a `cmd` list, items are joined with the string returned by
+> `cmd_list_delimiter` and sent as a single shell command. The default function
+> returns `"; "`, or `" & "` for `cmd.exe`.
 
-### Preset environment
+### Source environment
 
-Source files get these values through `dove`. Path values are escaped for shell
-commands. Use the same functions from `require("dove.preset")` in configuration.
+> [!NOTE]
+> Source files get built-in values through `denv`. By default, the functions
+> will return path that are escaped for shell commands. You can use the same
+> functions from `require("dove.preset")` in your Neovim configuration.
 
 | Value                           | Result                                                |
 | ------------------------------- | ----------------------------------------------------- |
-| `dove.executors`                | Built-in and configured executors                     |
-| `dove.file_path()`              | Escaped absolute buffer path                          |
-| `dove.file_path_relative()`     | Escaped buffer path relative to the working directory |
-| `dove.file_name()`              | Escaped buffer filename                               |
-| `dove.file_name_no_extension()` | Escaped buffer filename without its extension         |
-| `dove.file_type()`              | Current buffer filetype                               |
-| `dove.file_extension()`         | Escaped buffer filename extension                     |
-| `dove.dir_path()`               | Escaped directory containing the buffer               |
-| `dove.dir_name()`               | Escaped name of the directory containing the buffer   |
-| `dove.cwd_path()`               | Escaped working-directory path                        |
-| `dove.cwd_name()`               | Escaped working-directory name                        |
-| `dove.config_path()`            | Escaped Neovim config path                            |
-| `dove.data_path()`              | Escaped Neovim data path                              |
-| `dove.dove_data_path()`         | Escaped dove.nvim data path; creates it if needed     |
-| `dove.cword()`                  | Word under the cursor                                 |
-| `dove.cWORD()`                  | WORD under the cursor                                 |
-| `dove.hash_sha256(value)`       | SHA-256 digest of a string                            |
+| `denv.executors`                | Built-in and configured executors                     |
+| `denv.file_path()`              | Escaped absolute buffer path                          |
+| `denv.file_path_relative()`     | Escaped buffer path relative to the working directory |
+| `denv.file_name()`              | Escaped buffer filename                               |
+| `denv.file_name_no_extension()` | Escaped buffer filename without its extension         |
+| `denv.file_type()`              | Current buffer filetype                               |
+| `denv.file_extension()`         | Escaped buffer filename extension                     |
+| `denv.dir_path()`               | Escaped directory containing the buffer               |
+| `denv.dir_name()`               | Escaped name of the directory containing the buffer   |
+| `denv.cwd_path()`               | Escaped working-directory path                        |
+| `denv.cwd_name()`               | Escaped working-directory name                        |
+| `denv.config_path()`            | Escaped Neovim config path                            |
+| `denv.data_path()`              | Escaped Neovim data path                              |
+| `denv.dove_data_path()`         | Escaped dove.nvim data path; creates it if needed     |
+| `denv.cword()`                  | Word under the cursor                                 |
+| `denv.cWORD()`                  | WORD under the cursor                                 |
+| `denv.hash_sha256(value)`       | SHA-256 digest of a string                            |
 
-### Preset executors
+### Executors
 
-Use `dove.executors` in source files and `require("dove.preset").executors` in
-Neovim configuration to access `executors`.
+> [!NOTE]
+> In source files, select a built-in or configured executor through
+> `denv.executors`. You can use the same executors from
+> `require("dove.preset").executors` in your Neovim configuration.
 
 | Executor                   | Behavior                                       |
 | -------------------------- | ---------------------------------------------- |
@@ -151,20 +158,23 @@ Neovim configuration to access `executors`.
 
 ### Imports
 
-Import another source list with `require()`:
+Importing another source file's commands with `require()`:
 
 ```lua
 return {
-    require("./shared.lua"),
-    require("~/commands/common.lua"),
+    require("./adjacent.lua"),
     { "make test" },
+    require("../parent.lua"),
+    require("~/commands/common.lua"),
 }
 ```
 
 ## Configuration
 
-Passing `opts = {}` to lazy.nvim uses the
-[default configuration](docs/dove.md#default-configuration). To customize it:
+> [!NOTE]
+> Passing `opts = {}` to lazy.nvim uses the [default configuration](docs/dove.md#default-configuration).
+
+Example customization:
 
 ```lua
 local dove = require("dove")
@@ -194,7 +204,7 @@ dove.setup({
     },
     environment = {
         custom_var = "my custom variable value",
-        dove = {
+        denv = {
             executors = {
                 custom_notify = function(command)
                     vim.system(
@@ -220,8 +230,9 @@ dove.setup({
 })
 ```
 
-In the example, source files would be able to access the custom values as
-`custom_var`, `dove.executors.custom_notify`, and `dove.custom_func`.
+> [!NOTE]
+> With the above example, source files can access `custom_var`,
+> `denv.executors.custom_notify`, and `denv.custom_func`.
 
 ### Targets
 
@@ -241,7 +252,7 @@ the first returned path when `:Dove edit` creates it.
 | ----------------------------------- | ------------------------------------------------------------------------------------ |
 | `cmd_list_delimiter`                | Returns the separator for `cmd` lists. Defaults to `"; "` or `" & "` with `cmd.exe`. |
 | `write_template_to_new_source_file` | Write a template when `:Dove edit` opens a missing file. Defaults to `true`.         |
-| `environment`                       | Add or replace values available as `dove.*`.                                         |
+| `environment`                       | Add source globals and customize values under `denv`.                                |
 | `ui`                                | Configure the picker and whether entry labels are numbered.                          |
 
 ## Built-in picker
@@ -282,6 +293,8 @@ end, { desc = "Dove: run target project" })
 vim.keymap.set("n", "<Leader>df", "<Cmd>Dove run filetype<CR>",
     { desc = "Dove: run target filetype" })
 ```
+
+## Other things
 
 Run `:checkhealth dove` for diagnostics.
 
