@@ -3,8 +3,8 @@
 ![Neovim](https://img.shields.io/badge/Neovim-57A143?logo=neovim&logoColor=white&style=for-the-badge)
 ![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
 
-Define and execute arbitrary shell commands to run files and projects without
-reloading Neovim.
+Define and execute arbitrary shell commands to run files, projects, and more on
+the fly without reloading Neovim.
 
 _Requirement: Neovim v0.12.x_
 
@@ -60,12 +60,12 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Commands
 
-| Command                 | Action                                       |
-| ----------------------- | -------------------------------------------- |
-| `:Dove run {target}`    | Load a target's source file and run an entry |
-| `:Dove prev`            | Repeat the last executed entry               |
-| `:Dove edit {target}`   | Open a target's source file                  |
-| `:Dove delete {target}` | Delete a target's source file                |
+| Command                 | Action                                                       |
+| ----------------------- | ------------------------------------------------------------ |
+| `:Dove run {target}`    | Load the target's source file and choose run an entry to run |
+| `:Dove prev`            | Repeat execution of the last executed entry                  |
+| `:Dove edit {target}`   | Open a target's source file                                  |
+| `:Dove delete {target}` | Delete a target's source file                                |
 
 ## Writing source files
 
@@ -164,7 +164,7 @@ return {
 ## Configuration
 
 Passing `opts = {}` to lazy.nvim uses the
-[default configuration](docs/dove.md#defaults). To customize it:
+[default configuration](docs/dove.md#default-configuration). To customize it:
 
 ```lua
 local dove = require("dove")

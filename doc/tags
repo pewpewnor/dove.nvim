@@ -1,7 +1,7 @@
 dove-commands	dove.txt	/*dove-commands*
 dove-concepts	dove.txt	/*dove-concepts*
 dove-configuration-options	dove.txt	/*dove-configuration-options*
-dove-defaults	dove.txt	/*dove-defaults*
+dove-default-configuration	dove.txt	/*dove-default-configuration*
 dove-executors	dove.txt	/*dove-executors*
 dove-health-check	dove.txt	/*dove-health-check*
 dove-installation	dove.txt	/*dove-installation*

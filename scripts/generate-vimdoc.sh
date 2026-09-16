@@ -2,7 +2,7 @@ panvimdoc.sh \
     --project-name 'dove' \
     --input-file 'docs/dove.md' \
     --vim-version 'NVIM v0.12.0' \
-    --description 'Run project and file commands from Lua source files in Neovim.' \
+    --description 'Define and execute commands to run files, projects, etc.' \
     --toc 'true' \
     --treesitter 'true'
 
