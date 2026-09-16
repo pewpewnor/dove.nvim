@@ -5,6 +5,13 @@ local default = require("dove.default")
 local function fill_and_validate_targets(targets)
     for target_name, target_config in pairs(targets) do
         common.validate("targets." .. target_name, target_config, "table")
+        if target_config.source_path == nil then
+            error(
+                "dove.nvim: targets."
+                    .. target_name
+                    .. ".source_path is required"
+            )
+        end
         targets[target_name] = default.fill_target(target_config)
         target_config = targets[target_name]
 
@@ -24,6 +31,7 @@ local function fill_and_validate_targets(targets)
                         .. ".source_path must be a non-empty list of functions"
                 )
             end
+            ---@diagnostic disable-next-line: param-type-mismatch
             for index, resolver in ipairs(target_config.source_path) do
                 common.validate(
                     "targets." .. target_name .. ".source_path." .. index,

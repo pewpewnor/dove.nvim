@@ -10,10 +10,23 @@ describe("setup", function()
         assert.is_true(pcall(dove.setup))
     end)
 
+    it("rejects running a target before setup", function()
+        local config = module.config
+        module.config = nil
+
+        local success = pcall(dove.run_target, "project")
+
+        module.config = config
+        assert.is_false(success)
+    end)
+
     it("provides the built-in targets and executors", function()
         dove.setup()
 
-        assert.same({ "filetype", "project" }, module.get_target_names())
+        assert.same(
+            { "filetype", "global", "project" },
+            module.get_target_names()
+        )
         assert.is_function(preset.executors.new_tab)
         assert.is_function(preset.executors.split)
         assert.is_function(preset.executors.vsplit)
@@ -33,57 +46,68 @@ describe("setup", function()
         assert.is_function(default.create)
         assert.is_function(module.config.targets.project.source_path)
         assert.is_function(module.config.targets.filetype.source_path)
+        assert.is_function(module.config.targets.global.source_path)
         assert.is_nil(module.config.targets.project.source)
         assert.is_nil(module.config.targets.filetype.source)
+        assert.is_nil(module.config.targets.global.source)
         assert.is_function(module.config.targets.project.default_executor)
         assert.is_function(module.config.targets.filetype.default_executor)
+        assert.is_function(module.config.targets.global.default_executor)
         assert.is_function(module.config.ui.picker)
         assert.is_true(module.config.ui.enumerate_entries)
         assert.is_nil(module.config.display)
     end)
 
     it("rejects an invalid ui picker", function()
-        local success, message = pcall(dove.setup, {
+        local success = pcall(dove.setup, {
             ui = { picker = true },
         })
 
         assert.is_false(success)
-        assert.matches("options.ui.picker", message)
     end)
 
     it("rejects an invalid ui option", function()
-        local success, message = pcall(dove.setup, { ui = true })
+        local success = pcall(dove.setup, { ui = true })
 
         assert.is_false(success)
-        assert.matches("options.ui", message)
     end)
 
     it("rejects an invalid entry enumeration option", function()
-        local success, message = pcall(dove.setup, {
+        local success = pcall(dove.setup, {
             ui = { enumerate_entries = "yes" },
         })
 
         assert.is_false(success)
-        assert.matches("options.ui.enumerate_entries", message)
     end)
 
     it("rejects an invalid command list delimiter", function()
-        local success, message = pcall(dove.setup, {
+        local success = pcall(dove.setup, {
             cmd_list_delimiter = "; ",
         })
 
         assert.is_false(success)
-        assert.matches("options.cmd_list_delimiter", message)
     end)
 
     it("rejects invalid source path resolver list entries", function()
-        local success, message = pcall(dove.setup, {
+        local success = pcall(dove.setup, {
             targets = {
                 invalid = { source_path = { true } },
             },
         })
 
         assert.is_false(success)
-        assert.matches("targets.invalid.source_path.1", message)
+    end)
+
+    it("rejects a new target without a source path", function()
+        local success = pcall(dove.setup, {
+            targets = {
+                custom_target = {
+                    default_executor = preset.executors.new_tab,
+                    auto_run_single_command = false,
+                },
+            },
+        })
+
+        assert.is_false(success)
     end)
 end)

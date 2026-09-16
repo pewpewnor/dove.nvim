@@ -38,6 +38,14 @@ function M.create(options)
                     )
                 end,
             }),
+            global = M.fill_target({
+                source_path = function()
+                    return common.path_join(
+                        preset.dove_data_path(),
+                        "global.lua"
+                    )
+                end,
+            }),
         },
         environment = {
             denv = common.tbl_deep_extend("force", {}, preset),

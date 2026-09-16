@@ -37,6 +37,7 @@ The built-in targets are:
 
 - `project`: commands for the current working directory, stored per directory.
 - `filetype`: commands shared by buffers with the current buffer's filetype.
+- `global`: commands shared across all files and projects.
 
 Targets resolve their paths when used. Changing directory, buffer, or filetype
 can therefore change which source file a built-in target uses.
@@ -86,6 +87,7 @@ Run an entry:
 - Multiple entries open the picker.
 - Sources are reloaded on every run; restarting Neovim is unnecessary.
 - Use `:Dove edit filetype` and `:Dove run filetype` for the current filetype.
+- Use `:Dove edit global` and `:Dove run global` for global commands.
 
 ## Default configuration
 
@@ -116,6 +118,18 @@ local preset = require("dove.preset")
                     .. "/filetypes/"
                     .. preset.file_type()
                     .. ".lua"
+            end,
+            auto_run_single_command = true,
+            default_executor = function(command)
+                preset.executors.split(
+                    command,
+                    { nil, "wincmd J | resize -4" }
+                )
+            end,
+        },
+        global = {
+            source_path = function()
+                return preset.dove_data_path() .. "/global.lua"
             end,
             auto_run_single_command = true,
             default_executor = function(command)
@@ -349,16 +363,16 @@ A source file returns a list of entry tables:
 
 ```lua
 return {
-    { "make test" },
+    { "make build" },
     {
-        name = "build",
-        cmd = "make build",
+        name = "run python file",
+        cmd = "python3 " .. denv.file_path(),
     },
     {
-        name = "file stats",
+        "print dir stats",
         cmd = {
-            "wc -l " .. denv.file_path(),
-            "wc -w " .. denv.file_path(),
+            "echo size = $(du -sh " .. denv.dir_path() .. " | cut -f1)",
+            "echo file count = $(ls -1 " .. denv.file_path() .. " | wc -l)",
         },
         executor = denv.executors.print,
     },

@@ -27,6 +27,11 @@ end
 ---@return dove.Target
 local function find_target(target_name)
     common.validate("target_name", target_name, "string")
+    if not M.config then
+        error(
+            "dove.nvim: setup did not complete, check for earlier errors and ensure setup is called"
+        )
+    end
     local target = M.config.targets[target_name]
     if not target then
         error(

@@ -22,6 +22,7 @@ Built-in targets that you can immediately use without extra configuration:
   commands to build the project or run all tests.
 - Target `filetype` to execute commands based on the current buffer's filetype,
   e.g. a command to compile the file and execute the binary.
+- Target `global` to execute commands shared across all files and projects.
 
 You may also add new targets or override any of the above.
 
@@ -84,16 +85,16 @@ A source file must return a list of entry tables:
 
 ```lua
 return {
-    { "make test" },
+    { "make build" },
     {
-        name = "build",
-        cmd = "make build",
+        name = "run python file",
+        cmd = "python3 " .. denv.file_path(),
     },
     {
-        name = "file stats",
+        "print dir stats",
         cmd = {
-            "wc -l " .. denv.file_path(),
-            "wc -w " .. denv.file_path(),
+            "echo size = $(du -sh " .. denv.dir_path() .. " | cut -f1)",
+            "echo file count = $(ls -1 " .. denv.file_path() .. " | wc -l)",
         },
         executor = denv.executors.print,
     },

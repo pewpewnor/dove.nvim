@@ -18,12 +18,12 @@ end
 local function check_setup_called()
     if not module.config then
         common.health_error(
-            "setup() has not been called",
-            "call require('dove').setup({}) in your configuration"
+            "setup() did not complete",
+            "ensure require('dove').setup() is called in your configuration with no validation errors"
         )
         return false
     end
-    common.health_ok("setup() has been called")
+    common.health_ok("setup() completed")
     return true
 end
 
@@ -68,7 +68,7 @@ local function check_target_sources()
                         target_name,
                         directory
                     ),
-                    "the directory is missing or not writable, creating or editing a source file for this target will fail"
+                    "the directory is missing or not writable, creating or editing a source file for this target might fail"
                 )
             end
         end
