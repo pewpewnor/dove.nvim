@@ -500,14 +500,19 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
 | `edit_source_file(target_name)`   | Create when needed, then open a target source file |
 | `delete_source_file(target_name)` | Delete a target's resolved source file             |
 
-For example, map `<leader>dr` to run the `project` target:
+Example of binding keys:
 
 ```lua
 local dove = require("dove")
 
-vim.keymap.set("n", "<leader>dr", function()
+-- map `<leader>dp` to run target 'project':
+vim.keymap.set("n", "<Leader>dp", function()
     dove.run_target("project")
-end, { desc = "Dove: run project target" })
+end, { desc = "Dove: run target project" })
+
+-- map `<leader>df` to run target 'filetype':
+vim.keymap.set("n", "<Leader>df", "<Cmd>Dove run filetype<CR>",
+    { desc = "Dove: run target filetype" })
 ```
 
 The behavior under [Commands](#commands) also applies to these functions.
