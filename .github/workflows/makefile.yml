@@ -1,4 +1,4 @@
-name: Makefile CI
+name: dove.nvim CI
 
 on:
     push:

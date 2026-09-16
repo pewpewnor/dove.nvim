@@ -3,7 +3,12 @@ package.path = "./lua/?.lua;./lua/?/init.lua;" .. package.path
 local common = require("dove.common")
 
 local configured_plenary_dir = os.getenv("PLENARY_DIR")
+local lazy_plenary_dir =
+    common.path_join(common.get_stdpath("data"), "lazy", "plenary.nvim")
+local lazy_plenary_plugin =
+    common.path_join(lazy_plenary_dir, "plugin", "plenary.vim")
 local plenary_dir = configured_plenary_dir
+    or (common.is_file_and_readable(lazy_plenary_plugin) and lazy_plenary_dir)
     or common.path_join(
         common.get_stdpath("cache"),
         "dove.nvim",
