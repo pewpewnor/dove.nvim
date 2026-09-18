@@ -1,6 +1,6 @@
 ## Installation
 
-_Requirement: Neovim v0.12.x or newer._
+Requirement: Neovim v0.12.x or newer.
 
 With [lazy.nvim](https://github.com/folke/lazy.nvim):
 

@@ -1,13 +1,15 @@
 # 🕊️ dove.nvim
 
-![Neovim](https://img.shields.io/badge/Neovim-57A143?logo=neovim&logoColor=white&style=for-the-badge)
+[![Neovim](https://img.shields.io/badge/Neovim-0.12.0%2B-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io)
+[![Platforms](https://img.shields.io/badge/Platforms-Linux_%7C_macOS_%7C_Windows-blue?style=for-the-badge)](#installation)
+[![Documentation](https://img.shields.io/badge/Documentation-guides-blue?style=for-the-badge)](docs/dove.md)
+[![License](https://img.shields.io/github/license/pewpewnor/dove.nvim?style=for-the-badge)](LICENSE)
+[![Tests](https://img.shields.io/github/actions/workflow/status/pewpewnor/dove.nvim/makefile.yml?branch=main&style=for-the-badge&label=tests)](https://github.com/pewpewnor/dove.nvim/actions/workflows/makefile.yml)
 ![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
 
 Define and execute arbitrary shell commands with Lua for files, projects, and
 global contexts on the fly without reloading Neovim. I built this to compile
 code + execute the binary, build + test projects, and run anything anywhere.
-
-_Requirement: Neovim v0.12.x_
 
 ## How it works
 

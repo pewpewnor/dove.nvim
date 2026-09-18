@@ -1,5 +1,5 @@
 *dove.txt*      Define and execute commands with Lua for files, projects, etc.
-                            For NVIM v0.12.0    Last change: 2026 September 16
+                            For NVIM v0.12.0    Last change: 2026 September 18
 
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
@@ -20,7 +20,7 @@ Table of Contents                                     *dove-table-of-contents*
 
 INSTALLATION                                               *dove-installation*
 
-_Requirement: Neovim v0.12.x or newer._
+Requirement: Neovim v0.12.x or newer.
 
 With lazy.nvim <https://github.com/folke/lazy.nvim>:
 
