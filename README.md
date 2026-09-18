@@ -71,12 +71,12 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Commands
 
-| Command                 | Action                                                       |
-| ----------------------- | ------------------------------------------------------------ |
-| `:Dove run [target]`    | Run a target, or `default_target` when omitted               |
-| `:Dove prev`            | Repeat execution of the last executed entry                  |
-| `:Dove edit {target}`   | Open a target's source file                                  |
-| `:Dove delete {target}` | Delete a target's source file                                |
+| Command                 | Action                                         |
+| ----------------------- | ---------------------------------------------- |
+| `:Dove run [target]`    | Run a target, or `default_target` when omitted |
+| `:Dove prev`            | Repeat execution of the last executed entry    |
+| `:Dove edit {target}`   | Open a target's source file                    |
+| `:Dove delete {target}` | Delete a target's source file                  |
 
 ## Writing source files
 
@@ -110,12 +110,12 @@ return {
 
 Every entry must be a table and must have exactly one command field:
 
-| Field      | Details                                                                     |
-| ---------- | --------------------------------------------------------------------------- |
-| `[1]`      | A command string. Use either this or `cmd`.                                 |
-| `cmd`      | A command string or a non-empty list of command strings. Use this or `[1]`. |
-| `name`     | Optional picker label. Defaults to the command.                             |
-| `executor` | Optional executor. Overrides the target's default executor.                 |
+| Field      | Details                                                                             |
+| ---------- | ----------------------------------------------------------------------------------- |
+| `[1]`      | A non-empty command string. Use either this or `cmd`.                               |
+| `cmd`      | A non-empty command string or list of non-empty command strings. Use this or `[1]`. |
+| `name`     | Optional picker label. Defaults to the command.                                     |
+| `executor` | Optional executor. Overrides the target's default executor.                         |
 
 > [!NOTE]
 > For a `cmd` list, items are joined with the string returned by

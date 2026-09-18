@@ -75,6 +75,49 @@ describe("source file execution", function()
         assert.same({}, context.executed_commands)
     end)
 
+    it("rejects empty command strings", function()
+        local path = common.path_join(context.temp_dir, "empty-command.lua")
+        context:write_source_file(path, {
+            "return {",
+            '    { name = "empty", cmd = "  " },',
+            "}",
+        })
+        context:setup(path)
+
+        local success, message = pcall(dove.run_target, "project")
+
+        assert.is_false(success)
+        assert.matches(
+            "dove.nvim: entry command cannot be empty",
+            message,
+            1,
+            true
+        )
+        assert.same({}, context.executed_commands)
+    end)
+
+    it("rejects empty strings in command lists", function()
+        local path =
+            common.path_join(context.temp_dir, "empty-command-list-item.lua")
+        context:write_source_file(path, {
+            "return {",
+            '    { cmd = { "first", "" } },',
+            "}",
+        })
+        context:setup(path)
+
+        local success, message = pcall(dove.run_target, "project")
+
+        assert.is_false(success)
+        assert.matches(
+            "dove.nvim: entry command 2 cannot be empty",
+            message,
+            1,
+            true
+        )
+        assert.same({}, context.executed_commands)
+    end)
+
     it("runs a command list in one shell", function()
         local path = common.path_join(context.temp_dir, "command-list.lua")
         context:write_source_file(path, {

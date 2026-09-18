@@ -99,6 +99,14 @@ local function normalize_command(command, source_file_path)
     common.validate("entry command", command, { "string", "table" })
     ---@cast command string|string[]
     if type(command) == "string" then
+        if command:match("^%s*$") then
+            error(
+                string.format(
+                    "dove.nvim: entry command cannot be empty in '%s'",
+                    source_file_path
+                )
+            )
+        end
         return command
     end
     if not common.is_list(command) then
@@ -121,6 +129,15 @@ local function normalize_command(command, source_file_path)
     local commands = {}
     for index, item in ipairs(command) do
         common.validate("entry command " .. index, item, "string")
+        if item:match("^%s*$") then
+            error(
+                string.format(
+                    "dove.nvim: entry command %d cannot be empty in '%s'",
+                    index,
+                    source_file_path
+                )
+            )
+        end
         commands[index] = item
     end
     local delimiter = M.config.cmd_list_delimiter()

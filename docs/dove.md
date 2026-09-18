@@ -351,12 +351,12 @@ A custom picker receives `items`, `opts`, and `on_choice`:
 
 ## Commands
 
-| Command                 | Action                                                       |
-| ----------------------- | ------------------------------------------------------------ |
-| `:Dove run [target]`    | Run a target, or `default_target` when omitted               |
-| `:Dove prev`            | Repeat execution of the last executed entry                  |
-| `:Dove edit {target}`   | Open a target's source file                                  |
-| `:Dove delete {target}` | Delete a target's source file                                |
+| Command                 | Action                                         |
+| ----------------------- | ---------------------------------------------- |
+| `:Dove run [target]`    | Run a target, or `default_target` when omitted |
+| `:Dove prev`            | Repeat execution of the last executed entry    |
+| `:Dove edit {target}`   | Open a target's source file                    |
+| `:Dove delete {target}` | Delete a target's source file                  |
 
 - Subcommands and target names support completion.
 - Missing, extra, and unknown arguments are rejected, except that `run` may
@@ -411,7 +411,8 @@ Every entry supports:
 | `name`     | string                    | No                | Picker label; defaults to the command   |
 | `executor` | function                  | No                | Overrides the target's default executor |
 
-- Set exactly one of `[1]` or `cmd`.
+- Set exactly one of `[1]` or `cmd`. Every command string must contain a
+  non-whitespace character.
 - A string item is not an entry; wrap it in a table.
 - Commands run through Neovim's configured `shell`.
 - An entry executor takes priority over its target's `default_executor`.
