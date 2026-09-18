@@ -342,6 +342,15 @@ function M.open_window(buffer, enter, config)
     return vim.api.nvim_open_win(buffer, enter, config)
 end
 
+---@param command string
+function M.open_terminal(command)
+    vim.api.nvim_cmd({
+        cmd = "terminal",
+        args = { command },
+        magic = { file = false, bar = false },
+    }, {})
+end
+
 ---@param path string
 ---@return string?
 function M.read_file(path)

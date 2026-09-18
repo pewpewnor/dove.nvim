@@ -8,15 +8,16 @@ local M = {}
 function M.new_tab(command, args)
     args = args or {}
     if #args == 0 then
-        common.cmd("tabnew | terminal " .. command)
+        common.cmd("tabnew")
     else
-        common.cmd(args[1] .. "tabnew | terminal " .. command)
+        common.cmd(args[1] .. "tabnew")
     end
+    common.open_terminal(command)
 end
 
 ---@type dove.Executor
 function M.current_buffer(command)
-    common.cmd("terminal " .. command)
+    common.open_terminal(command)
 end
 
 ---@type dove.Executor
@@ -29,7 +30,8 @@ function M.split(command, args)
     if args[2] then
         split = split .. " | " .. args[2]
     end
-    common.cmd("rightbelow " .. split .. " | terminal " .. command)
+    common.cmd("rightbelow " .. split)
+    common.open_terminal(command)
 end
 
 ---@type dove.Executor
@@ -38,10 +40,11 @@ end
 function M.vsplit(command, args)
     args = args or {}
     if #args == 0 then
-        common.cmd("botright vsplit | terminal " .. command)
+        common.cmd("botright vsplit")
     else
-        common.cmd(args[1] .. " vsplit | terminal " .. command)
+        common.cmd(args[1] .. " vsplit")
     end
+    common.open_terminal(command)
 end
 
 ---@type dove.Executor
