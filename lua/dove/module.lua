@@ -65,10 +65,10 @@ function M.edit_source_file(target_name)
     then
         common.write_file(path, {
             "return {",
-            "   {",
-            '       name = "greetings",',
-            '       cmd = "echo Hello, World!",',
-            "   }",
+            "    {",
+            '        name = "greetings",',
+            '        cmd = "echo Hello, World!",',
+            "    },",
             "}",
         }, "a")
     end
