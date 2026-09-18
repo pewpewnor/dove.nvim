@@ -186,10 +186,16 @@ local function parse_list(list, source_file_path)
 end
 
 ---@param path string
+---@param target_name string
 ---@return dove.ProcessedEntry[]?
-function M.parse_source_file(path)
+function M.parse_source_file(path, target_name)
     if not common.is_file_and_readable(path) then
-        print("dove.nvim: no source file found")
+        print(
+            string.format(
+                "dove.nvim: no source file found for target '%s'",
+                target_name
+            )
+        )
         return nil
     end
     ---@type table<string, boolean>

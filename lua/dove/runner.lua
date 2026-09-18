@@ -32,7 +32,7 @@ end
 
 ---@param target dove.ProcessedTarget
 function M.select_and_run_entry(target)
-    local entries = parser.parse_source_file(target.source_path)
+    local entries = parser.parse_source_file(target.source_path, target.name)
     if not entries then
         return
     end
