@@ -23,15 +23,19 @@ function M.get_target_names()
     return target_names
 end
 
----@param target_name string
----@return dove.Target
-local function find_target(target_name)
-    common.validate("target_name", target_name, "string")
+local function ensure_setup()
     if not M.config then
         error(
             "dove.nvim: setup did not complete, check for earlier errors and ensure setup is called"
         )
     end
+end
+
+---@param target_name string
+---@return dove.Target
+local function find_target(target_name)
+    ensure_setup()
+    common.validate("target_name", target_name, "string")
     local target = M.config.targets[target_name]
     if not target then
         error(
@@ -41,9 +45,16 @@ local function find_target(target_name)
     return target
 end
 
----@param target_name string
+---@param target_name string?
 ---@return any
 function M.run_target(target_name)
+    ensure_setup()
+    if target_name == nil then
+        target_name = M.config.default_target
+        if target_name == nil then
+            error("dove.nvim: no default target is configured")
+        end
+    end
     local target = find_target(target_name)
     return runner.select_and_run_entry({
         name = target_name,

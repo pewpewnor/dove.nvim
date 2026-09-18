@@ -27,6 +27,7 @@
 ---@field enumerate_entries boolean
 
 ---@class dove.Config
+---@field default_target string?
 ---@field targets dove.Targets
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
@@ -61,6 +62,7 @@
 ---@class dove.Subcommand
 ---@field func fun(target_name: string?)
 ---@field takes_target boolean
+---@field target_optional? boolean
 
 ---@class dove.PickerEntry
 ---@field index integer

@@ -56,6 +56,11 @@ end
 ---@param options dove.Config
 local function validate_opts(options)
     common.validate("options", options, "table")
+    common.validate(
+        "options.default_target",
+        options.default_target,
+        { "string", "nil" }
+    )
     common.validate("options.environment", options.environment, "table")
     common.validate(
         "options.cmd_list_delimiter",

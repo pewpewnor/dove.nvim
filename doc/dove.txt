@@ -167,6 +167,7 @@ Default plugin configuration opts is equivalent to:
         environment = {
             denv = preset,
         },
+        default_target = nil,
         cmd_list_delimiter = function()
             return vim.o.shell:match("cmd%.exe$") and " & " or "; "
         end,
@@ -226,6 +227,7 @@ defaults.
                 custom_func = function() end,
             },
         },
+        default_target = "project",
         cmd_list_delimiter = function() return " && " end,
         write_template_to_new_source_file = false,
         ui = {
@@ -240,6 +242,16 @@ With the above example, source files can access `custom_var`,
 
 All options are optional. Custom target names and environment keys are allowed;
 known options are type-checked.
+
+
+DEFAULT_TARGET ~
+
+- Type: `string` or `nil`.
+- Default: `nil`.
+
+Names the target used by `:Dove run` and `run_target()` when no target is
+provided. The configured name is resolved when the command or function runs,
+and must match a configured target then.
 
 
 TARGETS ~
@@ -379,8 +391,7 @@ COMMANDS                                                       *dove-commands*
   ---------------------------------------------------------------------------
   Command                 Action
   ----------------------- ---------------------------------------------------
-  :Dove run {target}      Load the target’s source file and choose run an
-                          entry to run
+  :Dove run [target]      Run a target, or default_target when omitted
 
   :Dove prev              Repeat execution of the last executed entry
 
@@ -389,7 +400,8 @@ COMMANDS                                                       *dove-commands*
   :Dove delete {target}   Delete a target’s source file
   ---------------------------------------------------------------------------
 - Subcommands and target names support completion.
-- Missing, extra, and unknown arguments are rejected.
+- Missing, extra, and unknown arguments are rejected, except that `run` may
+    omit its target when `default_target` is configured.
 - `run` stops with a message when no readable source exists or it has no
     entries.
 - Selecting an entry stores its final command and executor. Cancelling the
@@ -684,14 +696,15 @@ LUA API                                                         *dove-lua-api*
     initializes the parser and runner with it. Invalid values raise an error.
     Calling `setup()` again discards the previous user options and repeats this
     process with fresh defaults.
-- **run_target(target_name)**
-    Requires a target-name string and returns no value. It resolves the target’s
-    source path, evaluates and validates the source list, and either executes its
-    only entry when `auto_run_single_command` is enabled or passes all entries to
-    the configured picker. The chosen command and executor become the previous task
-    only when an entry is executed. An unknown target, invalid resolver, or invalid
-    source raises an error. A missing source or empty source list prints a message
-    and does not replace the previous task.
+- **run_target(target_name?)**
+    Accepts an optional target-name string and returns no value. When omitted, it
+    uses `default_target`; an error is raised if no default is configured. It
+    resolves the target’s source path, evaluates and validates the source list,
+    and either executes its only entry when `auto_run_single_command` is enabled or
+    passes all entries to the configured picker. The chosen command and executor
+    become the previous task only when an entry is executed. An unknown target,
+    invalid resolver, or invalid source raises an error. A missing source or empty
+    source list prints a message and does not replace the previous task.
 - **run_prev_task()**
     Takes no arguments and returns no value. It invokes the stored executor with
     the last executed command and its stored argument list. It does not resolve a

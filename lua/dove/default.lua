@@ -50,6 +50,7 @@ function M.create(options)
         environment = {
             denv = common.tbl_deep_extend("force", {}, preset),
         },
+        default_target = nil,
         cmd_list_delimiter = common.get_default_cmd_list_delimiter,
         write_template_to_new_source_file = true,
         ui = {

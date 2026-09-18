@@ -15,6 +15,25 @@ describe("source file execution", function()
         context:cleanup()
     end)
 
+    it("runs the default target from the API and command", function()
+        local path = common.path_join(context.temp_dir, "default-target.lua")
+        context:write_source_file(path, {
+            "return {",
+            '    { "echo default" },',
+            "}",
+        })
+        context:setup(path, { default_target = "project" })
+
+        dove.run_target()
+        context.original_cmd("source " .. common.fnameescape("plugin/dove.lua"))
+        context.original_cmd("Dove run")
+
+        assert.same(
+            { "echo default", "echo default" },
+            context.executed_commands
+        )
+    end)
+
     it("runs named and positional command tables", function()
         local path = common.path_join(context.temp_dir, "project.lua")
         context:write_source_file(path, {

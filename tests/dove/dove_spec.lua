@@ -53,6 +53,7 @@ describe("setup", function()
         assert.is_function(module.config.targets.project.default_executor)
         assert.is_function(module.config.targets.filetype.default_executor)
         assert.is_function(module.config.targets.global.default_executor)
+        assert.is_nil(module.config.default_target)
         assert.is_function(module.config.ui.picker)
         assert.is_true(module.config.ui.enumerate_entries)
         assert.is_nil(module.config.display)
@@ -84,6 +85,22 @@ describe("setup", function()
         local success = pcall(dove.setup, {
             cmd_list_delimiter = "; ",
         })
+
+        assert.is_false(success)
+    end)
+
+    it("rejects an invalid default target", function()
+        local success = pcall(dove.setup, {
+            default_target = true,
+        })
+
+        assert.is_false(success)
+    end)
+
+    it("rejects an omitted target when no default is configured", function()
+        dove.setup()
+
+        local success = pcall(dove.run_target)
 
         assert.is_false(success)
     end)

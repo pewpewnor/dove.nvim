@@ -73,7 +73,7 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 | Command                 | Action                                                       |
 | ----------------------- | ------------------------------------------------------------ |
-| `:Dove run {target}`    | Load the target's source file and choose run an entry to run |
+| `:Dove run [target]`    | Run a target, or `default_target` when omitted               |
 | `:Dove prev`            | Repeat execution of the last executed entry                  |
 | `:Dove edit {target}`   | Open a target's source file                                  |
 | `:Dove delete {target}` | Delete a target's source file                                |
@@ -241,6 +241,7 @@ dove.setup({
             custom_func = function() end,
         },
     },
+    default_target = "project",
     cmd_list_delimiter = function() return " && " end,
     write_template_to_new_source_file = false,
     ui = {
@@ -270,6 +271,7 @@ the first returned path when `:Dove edit` creates it.
 
 | Option                              | Details                                                                              |
 | ----------------------------------- | ------------------------------------------------------------------------------------ |
+| `default_target`                    | Target used when `run` omits its target. Defaults to `nil`.                          |
 | `cmd_list_delimiter`                | Returns the separator for `cmd` lists. Defaults to `"; "` or `" & "` with `cmd.exe`. |
 | `write_template_to_new_source_file` | Write a template when `:Dove edit` opens a missing file. Defaults to `true`.         |
 | `environment`                       | Add source globals and customize values under `denv`.                                |
@@ -294,7 +296,7 @@ compatible function.
 | Function                          | Meaning                             |
 | --------------------------------- | ----------------------------------- |
 | `setup(options?)`                 | Configure and initialize the plugin |
-| `run_target(target_name)`         | Run an entry from a target          |
+| `run_target(target_name?)`        | Run an entry from a target          |
 | `run_prev_task()`                 | Repeat the last executed task       |
 | `edit_source_file(target_name)`   | Open a target source file           |
 | `delete_source_file(target_name)` | Delete a target source file         |

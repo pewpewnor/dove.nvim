@@ -4,7 +4,11 @@ local dove = require("dove")
 
 ---@type table<string, dove.Subcommand>
 local subcommands = {
-    run = { func = dove.run_target, takes_target = true },
+    run = {
+        func = dove.run_target,
+        takes_target = true,
+        target_optional = true,
+    },
     prev = { func = dove.run_prev_task, takes_target = false },
     edit = { func = dove.edit_source_file, takes_target = true },
     delete = { func = dove.delete_source_file, takes_target = true },
@@ -85,11 +89,12 @@ common.create_user_command("Dove", function(opts)
         return
     end
 
-    if #args ~= 2 then
+    if #args ~= 2 and not (#args == 1 and subcommand.target_optional) then
         error(
             string.format(
-                "dove.nvim: subcommand '%s' requires exactly one target name",
-                subcommand_name
+                "dove.nvim: subcommand '%s' requires %s target name",
+                subcommand_name,
+                subcommand.target_optional and "at most one" or "exactly one"
             )
         )
     end
