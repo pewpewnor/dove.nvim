@@ -75,9 +75,9 @@ local function validate_opts(options)
     common.validate("options.ui", options.ui, "table")
     common.validate("options.ui.picker", options.ui.picker, "function")
     common.validate(
-        "options.ui.enumerate_entries",
-        options.ui.enumerate_entries,
-        "boolean"
+        "options.ui.format_selection_item",
+        options.ui.format_selection_item,
+        "function"
     )
     common.validate("options.targets", options.targets, "table")
     fill_and_validate_targets(options.targets)

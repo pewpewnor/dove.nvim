@@ -24,7 +24,7 @@
 
 ---@class dove.Ui
 ---@field picker dove.Picker
----@field enumerate_entries boolean
+---@field format_selection_item fun(name: string, i: integer): string
 
 ---@class dove.Config
 ---@field default_target string?

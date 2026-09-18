@@ -47,15 +47,17 @@ function M.create(options)
                 end,
             }),
         },
+        default_target = nil,
         environment = {
             denv = common.tbl_deep_extend("force", {}, preset),
         },
-        default_target = nil,
         cmd_list_delimiter = common.get_default_cmd_list_delimiter,
         write_template_to_new_source_file = true,
         ui = {
             picker = require("dove.picker"),
-            enumerate_entries = true,
+            format_selection_item = function(name, i)
+                return i .. ". " .. name
+            end,
         },
     }, options or {})
 end

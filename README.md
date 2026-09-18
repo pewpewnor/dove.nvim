@@ -224,6 +224,7 @@ dove.setup({
             default_executor = preset.executors.current_buffer,
         },
     },
+    default_target = "project",
     environment = {
         custom_var = "my custom variable value",
         denv = {
@@ -241,12 +242,13 @@ dove.setup({
             custom_func = function() end,
         },
     },
-    default_target = "project",
     cmd_list_delimiter = function() return " && " end,
     write_template_to_new_source_file = false,
     ui = {
         picker = vim.ui.select,
-        enumerate_entries = false,
+        format_selection_item = function(name, i)
+            return name .. " (" .. i .. ")"
+        end,
     },
 })
 ```
@@ -275,7 +277,7 @@ the first returned path when `:Dove edit` creates it.
 | `cmd_list_delimiter`                | Returns the separator for `cmd` lists. Defaults to `"; "` or `" & "` with `cmd.exe`. |
 | `write_template_to_new_source_file` | Write a template when `:Dove edit` opens a missing file. Defaults to `true`.         |
 | `environment`                       | Add source globals and customize values under `denv`.                                |
-| `ui`                                | Configure the picker and whether entry labels are numbered.                          |
+| `ui`                                | Configure the picker and selection item labels.                                      |
 
 ## Built-in picker
 

@@ -140,17 +140,19 @@ local preset = require("dove.preset")
             end,
         },
     },
+    default_target = nil,
     environment = {
         denv = preset,
     },
-    default_target = nil,
     cmd_list_delimiter = function()
         return vim.o.shell:match("cmd%.exe$") and " & " or "; "
     end,
     write_template_to_new_source_file = true,
     ui = {
         picker = require("dove.picker"), -- see Built-in picker.
-        enumerate_entries = true,
+        format_selection_item = function(name, i)
+            return i .. ". " .. name
+        end,
     },
 }
 ```
@@ -185,6 +187,7 @@ dove.setup({
             default_executor = preset.executors.current_buffer,
         },
     },
+    default_target = "project",
     environment = {
         custom_var = "my custom variable value",
         denv = {
@@ -202,12 +205,13 @@ dove.setup({
             custom_func = function() end,
         },
     },
-    default_target = "project",
     cmd_list_delimiter = function() return " && " end,
     write_template_to_new_source_file = false,
     ui = {
         picker = vim.ui.select,
-        enumerate_entries = false,
+        format_selection_item = function(name, i)
+            return name .. " (" .. i .. ")"
+        end,
     },
 })
 ```
@@ -320,13 +324,16 @@ See **Command lists** for execution behavior.
 ```lua
 ui = {
     picker = vim.ui.select,
-    enumerate_entries = false,
+    format_selection_item = function(name, i)
+        return name .. " (" .. i .. ")"
+    end,
 }
 ```
 
 - `picker`: a `vim.ui.select`-compatible function. Defaults to the built-in
   picker.
-- `enumerate_entries`: prefixes labels with `"<number>. "`. Defaults to `true`.
+- `format_selection_item`: receives an entry name and its index and returns its
+  picker label. Defaults to `function(name, i) return i .. ". " .. name end`.
 
 A custom picker receives `items`, `opts`, and `on_choice`:
 

@@ -263,7 +263,7 @@ describe("source file execution", function()
         assert.same({ "echo second" }, context.executed_commands)
     end)
 
-    it("does not enumerate entries when disabled", function()
+    it("formats selection items with the configured function", function()
         local path = common.path_join(context.temp_dir, "selection-labels.lua")
         context:write_source_file(path, {
             "return {",
@@ -275,7 +275,9 @@ describe("source file execution", function()
         context:setup(path, {
             auto_run_single_command = false,
             ui = {
-                enumerate_entries = false,
+                format_selection_item = function(name, i)
+                    return name .. " (" .. i .. ")"
+                end,
                 picker = function(items, opts, on_choice)
                     received_labels = {
                         opts.format_item(items[1]),
@@ -288,7 +290,7 @@ describe("source file execution", function()
 
         dove.run_target("project")
 
-        assert.same({ "echo first", "echo second" }, received_labels)
+        assert.same({ "echo first (1)", "echo second (2)" }, received_labels)
         assert.same({ "echo first" }, context.executed_commands)
     end)
 

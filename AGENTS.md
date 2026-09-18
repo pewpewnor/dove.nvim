@@ -26,9 +26,9 @@ Use current Neovim APIs. Do not restore legacy compatibility unless requested.
 
 ## Documentation rules
 
-Everything in `doc/` is generated with panvimdoc. Update the source
-documentation and regenerate the generated files instead of editing `doc/`
-directly.
+Everything in `doc/` is generated with panvimdoc, do not edit it directly.
+Update the source documentation in `docs/` and ask the user to regenerate the
+generated files.
 
 ## Tests
 

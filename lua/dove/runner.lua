@@ -59,10 +59,10 @@ function M.select_and_run_entry(target)
     M.config.ui.picker(entries, {
         prompt = string.format("Dove: run target = '%s'", target.name),
         format_item = function(entry)
-            if M.config.ui.enumerate_entries then
-                return entry_indices[entry] .. ". " .. entry.name
-            end
-            return entry.name
+            return M.config.ui.format_selection_item(
+                entry.name,
+                entry_indices[entry]
+            )
         end,
     }, function(chosen_entry)
         if chosen_entry then

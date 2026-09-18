@@ -55,7 +55,10 @@ describe("setup", function()
         assert.is_function(module.config.targets.global.default_executor)
         assert.is_nil(module.config.default_target)
         assert.is_function(module.config.ui.picker)
-        assert.is_true(module.config.ui.enumerate_entries)
+        assert.equals(
+            "1. build",
+            module.config.ui.format_selection_item("build", 1)
+        )
         assert.is_nil(module.config.display)
     end)
 
@@ -73,9 +76,9 @@ describe("setup", function()
         assert.is_false(success)
     end)
 
-    it("rejects an invalid entry enumeration option", function()
+    it("rejects an invalid selection item formatter", function()
         local success = pcall(dove.setup, {
-            ui = { enumerate_entries = "yes" },
+            ui = { format_selection_item = "name" },
         })
 
         assert.is_false(success)
