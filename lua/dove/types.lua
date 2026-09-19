@@ -27,7 +27,7 @@
 ---@field format_selection_item fun(name: string, i: integer): string
 
 ---@class dove.Config
----@field default_target string?
+---@field default_run_target string?
 ---@field targets dove.Targets
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string

@@ -140,10 +140,10 @@ local preset = require("dove.preset")
             end,
         },
     },
-    default_target = nil,
     environment = {
         denv = preset,
     },
+    default_run_target = nil,
     cmd_list_delimiter = function()
         return vim.o.shell:match("cmd%.exe$") and " & " or "; "
     end,
@@ -187,7 +187,6 @@ dove.setup({
             default_executor = preset.executors.current_buffer,
         },
     },
-    default_target = "project",
     environment = {
         custom_var = "my custom variable value",
         denv = {
@@ -205,6 +204,7 @@ dove.setup({
             custom_func = function() end,
         },
     },
+    default_run_target = "project",
     cmd_list_delimiter = function() return " && " end,
     write_template_to_new_source_file = false,
     ui = {
@@ -221,15 +221,6 @@ With the above example, source files can access `custom_var`,
 
 All options are optional. Custom target names and environment keys are allowed;
 known options are type-checked.
-
-### `default_target`
-
-- Type: `string` or `nil`.
-- Default: `nil`.
-
-Names the target used by `:Dove run` and `run_target()` when no target is
-provided. The configured name is resolved when the command or function runs,
-and must match a configured target then.
 
 ### `targets`
 
@@ -300,6 +291,15 @@ environment = {
 The source can then use `test_prefix`, the replaced `denv.file_path()`, and
 `denv.executors.quick`.
 
+### `default_run_target`
+
+- Type: `string` or `nil`.
+- Default: `nil`.
+
+Names the target used by `:Dove run` and `run_target()` when no target is
+provided. The configured name is resolved when the command or function runs,
+and must match a configured target then.
+
 ### `cmd_list_delimiter`
 
 - Type: function returning a string.
@@ -358,16 +358,16 @@ A custom picker receives `items`, `opts`, and `on_choice`:
 
 ## Commands
 
-| Command                 | Action                                         |
-| ----------------------- | ---------------------------------------------- |
-| `:Dove run [target]`    | Run a target, or `default_target` when omitted |
-| `:Dove prev`            | Repeat execution of the last executed entry    |
-| `:Dove edit {target}`   | Open a target's source file                    |
-| `:Dove delete {target}` | Delete a target's source file                  |
+| Command                 | Action                                             |
+| ----------------------- | -------------------------------------------------- |
+| `:Dove run [target]`    | Run a target, or `default_run_target` when omitted |
+| `:Dove prev`            | Repeat execution of the last executed entry        |
+| `:Dove edit {target}`   | Open a target's source file                        |
+| `:Dove delete {target}` | Delete a target's source file                      |
 
 - Subcommands and target names support completion.
 - Missing, extra, and unknown arguments are rejected, except that `run` may
-  omit its target when `default_target` is configured.
+  omit its target when `default_run_target` is configured.
 - `run` stops with a message when no readable source exists or it has no
   entries.
 - Selecting an entry stores its final command and executor. Cancelling the
@@ -703,7 +703,7 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
 - **`run_target(target_name?)`**
 
     Accepts an optional target-name string and returns no value. When omitted,
-    it uses `default_target`; an error is raised if no default is configured. It
+    it uses `default_run_target`; an error is raised if no default is configured. It
     resolves the target's source path, evaluates and validates the source list,
     and either executes its only entry when `auto_run_single_command` is enabled
     or passes all entries to the configured picker. The chosen command and

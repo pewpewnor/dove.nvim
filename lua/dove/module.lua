@@ -50,7 +50,7 @@ end
 function M.run_target(target_name)
     ensure_setup()
     if target_name == nil then
-        target_name = M.config.default_target
+        target_name = M.config.default_run_target
         if target_name == nil then
             error("dove.nvim: no default target is configured")
         end

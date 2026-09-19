@@ -47,7 +47,7 @@ function M.create(options)
                 end,
             }),
         },
-        default_target = nil,
+        default_run_target = nil,
         environment = {
             denv = common.tbl_deep_extend("force", {}, preset),
         },

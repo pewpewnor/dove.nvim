@@ -71,12 +71,12 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Commands
 
-| Command                 | Action                                         |
-| ----------------------- | ---------------------------------------------- |
-| `:Dove run [target]`    | Run a target, or `default_target` when omitted |
-| `:Dove prev`            | Repeat execution of the last executed entry    |
-| `:Dove edit {target}`   | Open a target's source file                    |
-| `:Dove delete {target}` | Delete a target's source file                  |
+| Command                 | Action                                             |
+| ----------------------- | -------------------------------------------------- |
+| `:Dove run [target]`    | Run a target, or `default_run_target` when omitted |
+| `:Dove prev`            | Repeat execution of the last executed entry        |
+| `:Dove edit {target}`   | Open a target's source file                        |
+| `:Dove delete {target}` | Delete a target's source file                      |
 
 ## Writing source files
 
@@ -224,7 +224,6 @@ dove.setup({
             default_executor = preset.executors.current_buffer,
         },
     },
-    default_target = "project",
     environment = {
         custom_var = "my custom variable value",
         denv = {
@@ -242,6 +241,7 @@ dove.setup({
             custom_func = function() end,
         },
     },
+    default_run_target = "project",
     cmd_list_delimiter = function() return " && " end,
     write_template_to_new_source_file = false,
     ui = {
@@ -273,10 +273,10 @@ the first returned path when `:Dove edit` creates it.
 
 | Option                              | Details                                                                              |
 | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| `default_target`                    | Target used when `run` omits its target. Defaults to `nil`.                          |
+| `environment`                       | Add source globals and customize values under `denv`.                                |
+| `default_run_target`                | Target used when `run` omits its target. Defaults to `nil`.                          |
 | `cmd_list_delimiter`                | Returns the separator for `cmd` lists. Defaults to `"; "` or `" & "` with `cmd.exe`. |
 | `write_template_to_new_source_file` | Write a template when `:Dove edit` opens a missing file. Defaults to `true`.         |
-| `environment`                       | Add source globals and customize values under `denv`.                                |
 | `ui`                                | Configure the picker and selection item labels.                                      |
 
 ## Built-in picker

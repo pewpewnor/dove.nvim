@@ -53,7 +53,7 @@ describe("setup", function()
         assert.is_function(module.config.targets.project.default_executor)
         assert.is_function(module.config.targets.filetype.default_executor)
         assert.is_function(module.config.targets.global.default_executor)
-        assert.is_nil(module.config.default_target)
+        assert.is_nil(module.config.default_run_target)
         assert.is_function(module.config.ui.picker)
         assert.equals(
             "1. build",
@@ -94,7 +94,7 @@ describe("setup", function()
 
     it("rejects an invalid default target", function()
         local success = pcall(dove.setup, {
-            default_target = true,
+            default_run_target = true,
         })
 
         assert.is_false(success)
