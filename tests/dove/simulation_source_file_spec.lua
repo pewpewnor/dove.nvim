@@ -26,7 +26,7 @@ describe("source file management", function()
         assert.is_nil(load_error)
         local source = assert(chunk)()
         assert.equals("greetings", source[1].name)
-        assert.equals("echo Hello, World!", source[1].cmd)
+        assert.equals("echo 'Hello from dove.nvim!'", source[1].cmd)
     end)
 
     it("deletes a target's source file", function()

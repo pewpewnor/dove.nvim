@@ -14,7 +14,6 @@ describe("environment", function()
         local expected_functions = {
             "file_path",
             "file_name",
-            "file_name_no_extension",
             "file_type",
             "file_extension",
             "dir_path",

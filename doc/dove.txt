@@ -1,5 +1,5 @@
 *dove.txt*      Define and execute commands with Lua for files, projects, etc.
-                            For NVIM v0.12.0    Last change: 2026 September 18
+                            For NVIM v0.12.0    Last change: 2026 September 19
 
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
@@ -554,8 +554,9 @@ Every path function accepts either no argument or an `options` table. The
 `escape` field must be a boolean when present. Its default is `true`, which
 passes the return value through `fnameescape()`; `escape = false` returns the
 unescaped value. `file_path` and `dir_path` additionally accept a boolean
-`relative` field, which defaults to `false`. Invalid option and field types
-raise an error.
+`relative` field, which defaults to `false`. `file_name` additionally accepts a
+boolean `extension` field, which defaults to `true`. Invalid option and field
+types raise an error.
 
 - **denv.executors**
     A table containing the built-in executors and any executors added through the
@@ -568,11 +569,9 @@ raise an error.
     working directory. `options` accepts `escape` and `relative`.
 - **denv.file_name(options?)**
     Expands `%:t` and returns the tail of the current buffer path, including its
-    extension but excluding its directory. `options` accepts `escape`.
-- **denv.file_name_no_extension(options?)**
-    Expands `%:t:r` and returns the tail of the current buffer path without its
-    final extension. For multiple extensions, only the final one is removed.
-    `options` accepts `escape`.
+    extension but excluding its directory. With `extension = false`, it expands
+    `%:t:r` instead and removes the final extension. `options` accepts `escape` and
+    `extension`.
 - **denv.file_type()**
     Takes no arguments and returns the string value of the current buffer-local
     `filetype` option. It returns an empty string when no filetype is set.

@@ -9,7 +9,6 @@ describe("preset paths", function()
     local path_functions = {
         "file_path",
         "file_name",
-        "file_name_no_extension",
         "file_extension",
         "dir_path",
         "dir_name",
@@ -79,6 +78,22 @@ describe("preset paths", function()
             "%:h",
             preset.dir_path({ escape = false, relative = true })
         )
+    end)
+
+    it("returns a file name optionally without its extension", function()
+        rawset(common, "expand", function(value)
+            return value
+        end)
+
+        assert.equals("escaped:%:t", preset.file_name())
+        assert.equals("escaped:%:t", preset.file_name({ extension = true }))
+        assert.equals("escaped:%:t:r", preset.file_name({ extension = false }))
+    end)
+
+    it("rejects an invalid file name extension option", function()
+        local success = pcall(preset.file_name, { extension = "no" })
+
+        assert.is_false(success)
     end)
 
     it("expands a value", function()

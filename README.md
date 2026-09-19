@@ -133,30 +133,30 @@ Every entry must be a table and must have exactly one command field:
 > [source environment reference](docs/dove.md#source-environment) for each
 > function's arguments and behavior.
 
-| Value                                   | Result                                              |
-| --------------------------------------- | --------------------------------------------------- |
-| `denv.executors`                        | Built-in and configured executors                   |
-| `denv.file_path(options?)`              | Escaped absolute or relative buffer path            |
-| `denv.file_name(options?)`              | Escaped buffer filename                             |
-| `denv.file_name_no_extension(options?)` | Escaped buffer filename without its extension       |
-| `denv.file_type()`                      | Current buffer filetype                             |
-| `denv.file_extension(options?)`         | Escaped buffer filename extension                   |
-| `denv.dir_path(options?)`               | Escaped absolute or relative buffer directory path  |
-| `denv.dir_name(options?)`               | Escaped name of the directory containing the buffer |
-| `denv.cwd_path(options?)`               | Escaped working-directory path                      |
-| `denv.cwd_name(options?)`               | Escaped working-directory name                      |
-| `denv.config_path(options?)`            | Escaped Neovim config path                          |
-| `denv.data_path(options?)`              | Escaped Neovim data path                            |
-| `denv.dove_data_path(options?)`         | Escaped dove.nvim data path; creates it if needed   |
-| `denv.cword()`                          | Word under the cursor                               |
-| `denv.cWORD()`                          | WORD under the cursor                               |
-| `denv.expand(value)`                    | Expanded string value                               |
-| `denv.hash_sha256(value)`               | SHA-256 digest of a string                          |
+| Value                           | Result                                              |
+| ------------------------------- | --------------------------------------------------- |
+| `denv.executors`                | Built-in and configured executors                   |
+| `denv.file_path(options?)`      | Escaped absolute or relative buffer path            |
+| `denv.file_name(options?)`      | Escaped buffer filename                             |
+| `denv.file_type()`              | Current buffer filetype                             |
+| `denv.file_extension(options?)` | Escaped buffer filename extension                   |
+| `denv.dir_path(options?)`       | Escaped absolute or relative buffer directory path  |
+| `denv.dir_name(options?)`       | Escaped name of the directory containing the buffer |
+| `denv.cwd_path(options?)`       | Escaped working-directory path                      |
+| `denv.cwd_name(options?)`       | Escaped working-directory name                      |
+| `denv.config_path(options?)`    | Escaped Neovim config path                          |
+| `denv.data_path(options?)`      | Escaped Neovim data path                            |
+| `denv.dove_data_path(options?)` | Escaped dove.nvim data path; creates it if needed   |
+| `denv.cword()`                  | Word under the cursor                               |
+| `denv.cWORD()`                  | WORD under the cursor                               |
+| `denv.expand(value)`            | Expanded string value                               |
+| `denv.hash_sha256(value)`       | SHA-256 digest of a string                          |
 
 > [!TIP]
 > Pass `{ escape = false }`, such as `denv.file_path({ escape = false })`, to
 > return an unescaped path. Pass `{ relative = true }` to `file_path` or
-> `dir_path` for a path relative to the working directory.
+> `dir_path` for a path relative to the working directory. Pass
+> `{ extension = false }` to `file_name` to omit the final extension.
 
 ### Executors
 

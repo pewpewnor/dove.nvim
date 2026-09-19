@@ -21,6 +21,7 @@ Use current Neovim APIs. Do not restore legacy compatibility unless requested.
 - Add Lua type comments everytime we define a new function/method. If the
   function takes no argument and doesn't explicitly return anything, then do not
   add Lua type comment for it.
+- When creating custom Lua types, always namespace it under `dove`.
 - Keep every `vim.*` call in `lua/dove/common.lua`, including calls needed by
   tests. Add a wrapper when one is missing.
 - Use `common.validate` for configuration and argument type checks.
