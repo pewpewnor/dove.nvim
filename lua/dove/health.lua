@@ -1,6 +1,6 @@
 local common = require("dove.common")
 local module = require("dove.module")
-local pathfinder = require("dove.pathfinder")
+local validate_opts = require("dove.validate_opts")
 
 local M = {}
 
@@ -15,6 +15,20 @@ local function check_neovim_version()
     end
 end
 
+---@param config any
+---@return nil
+local function validate_config(config)
+    validate_opts(common.tbl_deep_extend("force", {}, config))
+end
+
+---@param validation_error any
+---@return string
+local function get_validation_error_message(validation_error)
+    local message = tostring(validation_error)
+    return message:match("dove%.nvim: (.+)") or message
+end
+
+---@return boolean
 local function check_setup_called()
     if not module.config then
         common.health_error(
@@ -23,6 +37,16 @@ local function check_setup_called()
         )
         return false
     end
+
+    local success, validation_error = pcall(validate_config, module.config)
+    if not success then
+        common.health_error(
+            "setup() options are invalid: "
+                .. get_validation_error_message(validation_error)
+        )
+        return false
+    end
+
     common.health_ok("setup() completed")
     return true
 end
@@ -39,51 +63,12 @@ local function check_shell()
     end
 end
 
-local function check_target_sources()
-    for target_name, target in pairs(module.config.targets) do
-        local success, path =
-            pcall(pathfinder.get_true_path, target.source_path)
-        if not success then
-            common.health_error(
-                string.format(
-                    "target '%s' cannot resolve a source file path: %s",
-                    target_name,
-                    path
-                )
-            )
-        else
-            local directory = common.dirname(path)
-            if common.is_directory_writable(directory) then
-                common.health_ok(
-                    string.format(
-                        "target '%s' can write source files into '%s'",
-                        target_name,
-                        directory
-                    )
-                )
-            else
-                common.health_warn(
-                    string.format(
-                        "target '%s' cannot write source files into '%s'",
-                        target_name,
-                        directory
-                    ),
-                    "the directory is missing or not writable, creating or editing a source file for this target might fail"
-                )
-            end
-        end
-    end
-end
-
 function M.check()
     common.health_start("dove.nvim")
 
     check_neovim_version()
-    local setup_called = check_setup_called()
+    check_setup_called()
     check_shell()
-    if setup_called then
-        check_target_sources()
-    end
 end
 
 return M

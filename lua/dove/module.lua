@@ -78,7 +78,7 @@ function M.edit_source_file(target_name)
             "return {",
             "    {",
             '        name = "greetings",',
-            '        cmd = "echo Hello, World!",',
+            "        cmd = \"echo 'Hello from dove.nvim!'\",",
             "    },",
             "}",
         }, "a")
