@@ -295,13 +295,13 @@ compatible function.
 
 `require("dove")` returns:
 
-| Function                          | Meaning                             |
-| --------------------------------- | ----------------------------------- |
-| `setup(options?)`                 | Configure and initialize the plugin |
-| `run_target(target_name?)`        | Run an entry from a target          |
-| `run_prev_task()`                 | Repeat the last executed task       |
-| `edit_source_file(target_name)`   | Open a target source file           |
-| `delete_source_file(target_name)` | Delete a target source file         |
+| Function                               | Meaning                             |
+| -------------------------------------- | ----------------------------------- |
+| `dove.setup(options?)`                 | Configure and initialize the plugin |
+| `dove.run_target(target_name?)`        | Run an entry from a target          |
+| `dove.run_prev_task()`                 | Repeat the last executed task       |
+| `dove.edit_source_file(target_name)`   | Open a target source file           |
+| `dove.delete_source_file(target_name)` | Delete a target source file         |
 
 Example of binding keys:
 
@@ -314,7 +314,7 @@ vim.keymap.set("n", "<Leader>dp", function()
 end, { desc = "Dove: run target project" })
 
 -- map `<leader>df` to run target 'filetype':
-vim.keymap.set("n", "<Leader>df", "<Cmd>Dove run filetype<CR>",
+vim.keymap.set("n", "<Leader>df", "<CMD>Dove run filetype<CR>",
     { desc = "Dove: run target filetype" })
 ```
 
