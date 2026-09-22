@@ -402,9 +402,10 @@ return {
         executor = denv.executors.new_tab,
     },
     {
-        name = "run Lua code",
+        name = "run some Lua code",
         cmd = function()
-            require("my_module").run()
+            print("calling my module")
+            require("my_module")
         end,
     },
 }

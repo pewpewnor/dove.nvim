@@ -108,9 +108,10 @@ return {
         executor = denv.executors.new_tab,
     },
     {
-        name = "run Lua code",
+        name = "run some Lua code",
         cmd = function()
-            require("my_module").run()
+            print("calling my module")
+            require("my_module")
         end,
     },
 }
@@ -118,9 +119,9 @@ return {
 
 Every entry must be a table and must have exactly one command field:
 
-| Field      | Details                                                                                       |
-| ---------- | --------------------------------------------------------------------------------------------- |
-| `[1]`      | A function or non-empty command string. Use either this or `cmd`.                             |
+| Field      | Details                                                                                        |
+| ---------- | ---------------------------------------------------------------------------------------------- |
+| `[1]`      | A function or non-empty command string. Use either this or `cmd`.                              |
 | `cmd`      | A function, non-empty command string, or list of non-empty command strings. Use this or `[1]`. |
 | `name`     | Optional picker label. Defaults to the command, using `tostring()` for a function.             |
 | `executor` | Optional shell-command executor. Overrides the target's default executor.                      |
