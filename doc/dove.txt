@@ -1,5 +1,5 @@
-*dove.txt*      Define and execute commands with Lua for files, projects, etc.
-                            For NVIM v0.12.0    Last change: 2026 September 19
+*dove.txt*      Use Lua to define and run shell commands or Lua code anywhere.
+                            For NVIM v0.12.0    Last change: 2026 September 22
 
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
@@ -51,7 +51,8 @@ CONCEPTS                                                       *dove-concepts*
 
 - A **target** names a command collection and resolves its source file.
 - A **source file** returns the entries available for a target.
-- An **entry** defines a shell command, picker label, and optional executor.
+- An **entry** defines a shell command or Lua function, picker label, and
+    optional executor.
 - An **executor** decides how and where to run the command.
 
 The built-in targets are:
@@ -411,8 +412,8 @@ COMMANDS                                                       *dove-commands*
     omit its target when `default_run_target` is configured.
 - `run` stops with a message when no readable source exists or it has no
     entries.
-- Selecting an entry stores its final command and executor. Cancelling the
-    picker does not replace the previous task.
+- Selecting an entry stores its final command or function and executor.
+    Cancelling the picker does not replace the previous task.
 - `prev` uses that stored task without reloading the source.
 - `edit` creates missing parent directories. See **Source file templates** for
     new files.
@@ -442,6 +443,12 @@ A source file returns a list of entry tables:
             cmd = "go test -run " .. denv.cword(),
             executor = denv.executors.new_tab,
         },
+        {
+            name = "run Lua code",
+            cmd = function()
+                require("my_module").run()
+            end,
+        },
     }
 <
 
@@ -453,26 +460,33 @@ The outer list is required even for one entry. An empty list is also valid:
 
 Every entry supports:
 
-  ---------------------------------------------------------------------------
-  Field      Type                Required      Meaning
-  ---------- ------------------- ------------- ------------------------------
-  [1]        string              One command   Positional command
-                                 field         
+  ----------------------------------------------------------------------------
+  Field      Type                    Required    Meaning
+  ---------- ----------------------- ----------- -----------------------------
+  [1]        string or function      One command Positional shell command or
+                                     field       Lua function
 
-  cmd        string or list of   One command   Named command
-             strings             field         
+  cmd        string, list of         One command Named shell command or Lua
+             strings, or function    field       function
 
-  name       string              No            Picker label; defaults to the
-                                               command
+  name       string                  No          Picker label; defaults to the
+                                                 command
 
-  executor   function            No            Overrides the target’s default
-                                               executor
-  ---------------------------------------------------------------------------
+  executor   function                No          Overrides the target’s
+                                                 default shell executor
+  ----------------------------------------------------------------------------
 - Set exactly one of `[1]` or `cmd`. Every command string must contain a
     non-whitespace character.
 - A string item is not an entry; wrap it in a table.
-- Commands run through Neovim’s configured `shell`.
-- An entry executor takes priority over its target’s `default_executor`.
+- String commands run through Neovim’s configured `shell`.
+- For string commands, an entry executor takes priority over its target’s
+    `default_executor`.
+
+When `[1]` or `cmd` is a function, dove.nvim calls it directly without
+arguments. Both the entry’s executor and the target’s `default_executor`
+are ignored, and the processed entry’s executor is `nil`. Its picker label
+defaults to `tostring()` of the function when `name` is omitted. The same
+function is called again by `:Dove prev`.
 
 
 COMMAND LISTS ~
@@ -708,16 +722,16 @@ LUA API                                                         *dove-lua-api*
     uses `default_run_target`; an error is raised if no default is configured. It
     resolves the target’s source path, evaluates and validates the source list,
     and either executes its only entry when `auto_run_single_command` is enabled or
-    passes all entries to the configured picker. The chosen command and executor
-    become the previous task only when an entry is executed. An unknown target,
-    invalid resolver, or invalid source raises an error. A missing source or empty
-    source list prints a message and does not replace the previous task.
+    passes all entries to the configured picker. The chosen command or function and
+    executor become the previous task only when an entry is executed. An unknown
+    target, invalid resolver, or invalid source raises an error. A missing source
+    or empty source list prints a message and does not replace the previous task.
 - **run_prev_task()**
-    Takes no arguments and returns no value. It invokes the stored executor with
-    the last executed command and its stored argument list. It does not resolve a
-    target, reload a source file, rerun the picker, or re-read configuration. If no
-    entry has been executed, it prints `dove.nvim: no previously executed task` and
-    does nothing else.
+    Takes no arguments and returns no value. It repeats the stored command or Lua
+    function. Shell commands use the stored executor and argument list. It does not
+    resolve a target, reload a source file, rerun the picker, or re-read
+    configuration. If no entry has been executed, it prints `dove.nvim: no
+    previously executed task` and does nothing else.
 - **edit_source_file(target_name)**
     Requires a target-name string and returns no value. It resolves the target’s
     source path, recursively creates missing parent directories, and opens the

@@ -30,7 +30,8 @@ Otherwise, add dove.nvim to `runtimepath`, then configure it as described in
 
 - A **target** names a command collection and resolves its source file.
 - A **source file** returns the entries available for a target.
-- An **entry** defines a shell command, picker label, and optional executor.
+- An **entry** defines a shell command or Lua function, picker label, and
+  optional executor.
 - An **executor** decides how and where to run the command.
 
 The built-in targets are:
@@ -370,8 +371,8 @@ A custom picker receives `items`, `opts`, and `on_choice`:
   omit its target when `default_run_target` is configured.
 - `run` stops with a message when no readable source exists or it has no
   entries.
-- Selecting an entry stores its final command and executor. Cancelling the
-  picker does not replace the previous task.
+- Selecting an entry stores its final command or function and executor.
+  Cancelling the picker does not replace the previous task.
 - `prev` uses that stored task without reloading the source.
 - `edit` creates missing parent directories. See **Source file templates** for
   new files.
@@ -400,6 +401,12 @@ return {
         cmd = "go test -run " .. denv.cword(),
         executor = denv.executors.new_tab,
     },
+    {
+        name = "run Lua code",
+        cmd = function()
+            require("my_module").run()
+        end,
+    },
 }
 ```
 
@@ -411,18 +418,22 @@ return {}
 
 Every entry supports:
 
-| Field      | Type                      | Required          | Meaning                                 |
-| ---------- | ------------------------- | ----------------- | --------------------------------------- |
-| `[1]`      | string                    | One command field | Positional command                      |
-| `cmd`      | string or list of strings | One command field | Named command                           |
-| `name`     | string                    | No                | Picker label; defaults to the command   |
-| `executor` | function                  | No                | Overrides the target's default executor |
+| Field      | Type                                 | Required          | Meaning                                       |
+| ---------- | ------------------------------------ | ----------------- | --------------------------------------------- |
+| `[1]`      | string                               | One command field | Positional shell command                      |
+| `cmd`      | string, list of strings, or function | One command field | Named shell command or Lua function           |
+| `name`     | string                               | No                | Picker label; defaults to the command         |
+| `executor` | function                             | No                | Overrides the target's default shell executor |
 
 - Set exactly one of `[1]` or `cmd`. Every command string must contain a
   non-whitespace character.
 - A string item is not an entry; wrap it in a table.
-- Commands run through Neovim's configured `shell`.
+- String commands run through Neovim's configured `shell`.
 - An entry executor takes priority over its target's `default_executor`.
+
+When `cmd` is a function, dove.nvim calls it directly without arguments instead
+of using an executor. Its picker label defaults to `tostring(cmd)` when `name`
+is omitted. The same function is called again by `:Dove prev`.
 
 ### Command lists
 
@@ -703,17 +714,18 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
     it uses `default_run_target`; an error is raised if no default is configured. It
     resolves the target's source path, evaluates and validates the source list,
     and either executes its only entry when `auto_run_single_command` is enabled
-    or passes all entries to the configured picker. The chosen command and
-    executor become the previous task only when an entry is executed. An unknown
-    target, invalid resolver, or invalid source raises an error. A missing source
-    or empty source list prints a message and does not replace the previous task.
+    or passes all entries to the configured picker. The chosen command or
+    function and executor become the previous task only when an entry is
+    executed. An unknown target, invalid resolver, or invalid source raises an
+    error. A missing source or empty source list prints a message and does not
+    replace the previous task.
 
 - **`run_prev_task()`**
 
-    Takes no arguments and returns no value. It invokes the stored executor with
-    the last executed command and its stored argument list. It does not resolve
-    a target, reload a source file, rerun the picker, or re-read configuration.
-    If no entry has been executed, it prints
+    Takes no arguments and returns no value. It repeats the stored command or Lua
+    function. Shell commands use the stored executor and argument list. It does
+    not resolve a target, reload a source file, rerun the picker, or re-read
+    configuration. If no entry has been executed, it prints
     `dove.nvim: no previously executed task` and does nothing else.
 
 - **`edit_source_file(target_name)`**

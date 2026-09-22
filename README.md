@@ -7,9 +7,11 @@
 [![Tests](https://img.shields.io/github/actions/workflow/status/pewpewnor/dove.nvim/makefile.yml?branch=main&style=for-the-badge&label=tests)](https://github.com/pewpewnor/dove.nvim/actions/workflows/makefile.yml)
 ![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
 
-Define and execute arbitrary shell commands with Lua for files, projects, and
-global contexts on the fly without reloading Neovim. I built this to compile
-code + execute the binary, build + test projects, and run anything anywhere.
+Use Lua to define and execute arbitrary shell commands or Lua code for file,
+project, or global contexts without reloading Neovim.
+
+I built this plugin to compile my code and execute the resulting binary, build
+projects, run specific unit tests, and execute predefined global commands.
 
 ## How it works
 
@@ -105,22 +107,31 @@ return {
         cmd = "go test -run " .. denv.cword(),
         executor = denv.executors.new_tab,
     },
+    {
+        name = "run Lua code",
+        cmd = function()
+            require("my_module").run()
+        end,
+    },
 }
 ```
 
 Every entry must be a table and must have exactly one command field:
 
-| Field      | Details                                                                             |
-| ---------- | ----------------------------------------------------------------------------------- |
-| `[1]`      | A non-empty command string. Use either this or `cmd`.                               |
-| `cmd`      | A non-empty command string or list of non-empty command strings. Use this or `[1]`. |
-| `name`     | Optional picker label. Defaults to the command.                                     |
-| `executor` | Optional executor. Overrides the target's default executor.                         |
+| Field      | Details                                                                                       |
+| ---------- | --------------------------------------------------------------------------------------------- |
+| `[1]`      | A non-empty command string. Use either this or `cmd`.                                         |
+| `cmd`      | A function, non-empty command string, or list of non-empty command strings. Use this or `[1]`. |
+| `name`     | Optional picker label. Defaults to the command, using `tostring()` for a function.             |
+| `executor` | Optional shell-command executor. Overrides the target's default executor.                      |
 
 > [!NOTE]
 > For a `cmd` list, items are joined with the string returned by
 > `cmd_list_delimiter` and sent as a single shell command. The default function
 > returns `"; "`, or `" & "` for `cmd.exe`.
+
+When `cmd` is a function, dove.nvim calls it directly instead of using an
+executor.
 
 ### Source environment
 
