@@ -59,6 +59,88 @@ describe("source file execution", function()
         assert.equals("echo second", selected[3].command)
     end)
 
+    it(
+        "runs Lua function commands and uses tostring for their default names",
+        function()
+            local path =
+                common.path_join(context.temp_dir, "function-command.lua")
+            context:write_source_file(path, {
+                "return {",
+                "    { cmd = function() record('first') end },",
+                "    { function() record('positional') end },",
+                "    {",
+                '        name = "named Lua command",',
+                "        cmd = function() record('second') end,",
+                "        executor = function() error('executor called') end,",
+                "    },",
+                "}",
+            })
+            local recorded = {}
+            local selected
+            local selected_index = 1
+            context.picker = function(items, _, on_choice)
+                selected = items
+                on_choice(items[selected_index], selected_index)
+            end
+            context:setup(path, {
+                auto_run_single_command = false,
+                environment = {
+                    record = function(value)
+                        recorded[#recorded + 1] = value
+                    end,
+                },
+            })
+
+            dove.run_target("project")
+            assert.equals(tostring(selected[1].command), selected[1].name)
+            assert.equals(tostring(selected[2].command), selected[2].name)
+            assert.is_nil(selected[1].executor)
+            assert.is_nil(selected[2].executor)
+            assert.is_nil(selected[3].executor)
+
+            selected_index = 2
+            dove.run_target("project")
+            selected_index = 3
+            dove.run_target("project")
+            dove.run_prev_task()
+
+            assert.same({ "first", "positional", "second", "second" }, recorded)
+            assert.same({}, context.executed_commands)
+        end
+    )
+
+    it("rejects functions in command lists", function()
+        local path =
+            common.path_join(context.temp_dir, "function-command-list.lua")
+        context:write_source_file(path, {
+            "return {",
+            "    { cmd = { 'first', function() end } },",
+            "}",
+        })
+        context:setup(path)
+
+        local success = pcall(dove.run_target, "project")
+
+        assert.is_false(success)
+        assert.same({}, context.executed_commands)
+    end)
+
+    it("rejects positional command lists", function()
+        local path =
+            common.path_join(context.temp_dir, "positional-command-list.lua")
+        context:write_source_file(path, {
+            "return {",
+            "    { { 'first', 'second' } },",
+            "}",
+        })
+        context:setup(path)
+
+        local success = pcall(dove.run_target, "project")
+
+        assert.is_false(success)
+        assert.same({}, context.executed_commands)
+    end)
+
     it("rejects string entries", function()
         local path = common.path_join(context.temp_dir, "string-entry.lua")
         context:write_source_file(path, {

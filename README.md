@@ -120,7 +120,7 @@ Every entry must be a table and must have exactly one command field:
 
 | Field      | Details                                                                                       |
 | ---------- | --------------------------------------------------------------------------------------------- |
-| `[1]`      | A non-empty command string. Use either this or `cmd`.                                         |
+| `[1]`      | A function or non-empty command string. Use either this or `cmd`.                             |
 | `cmd`      | A function, non-empty command string, or list of non-empty command strings. Use this or `[1]`. |
 | `name`     | Optional picker label. Defaults to the command, using `tostring()` for a function.             |
 | `executor` | Optional shell-command executor. Overrides the target's default executor.                      |
@@ -130,8 +130,8 @@ Every entry must be a table and must have exactly one command field:
 > `cmd_list_delimiter` and sent as a single shell command. The default function
 > returns `"; "`, or `" & "` for `cmd.exe`.
 
-When `cmd` is a function, dove.nvim calls it directly instead of using an
-executor.
+When `[1]` or `cmd` is a function, dove.nvim calls it directly. Both the entry's
+executor and the target's default executor are ignored.
 
 ### Source environment
 

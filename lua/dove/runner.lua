@@ -13,13 +13,22 @@ M.last_executed_task = nil
 
 ---@param task dove.Task
 local function execute_task(task)
-    task.executor(task.command, task.args)
+    local command = task.command
+    if type(command) == "function" then
+        command()
+        return
+    end
+    local executor = assert(task.executor)
+    executor(command, task.args)
 end
 
 ---@param entry dove.ProcessedEntry
 ---@param default_executor dove.Executor
 local function run_entry(entry, default_executor)
-    local executor = entry.executor or default_executor
+    local executor = entry.executor
+    if type(entry.command) == "string" then
+        executor = executor or default_executor
+    end
 
     ---@type dove.Task
     M.last_executed_task = {

@@ -92,12 +92,15 @@ local function load_source_file(path, loading)
     return result
 end
 
----@param command string|string[]?
+---@param command string|string[]|fun()?
 ---@param source_file_path string
----@return string
+---@return dove.EntryCommand
 local function normalize_command(command, source_file_path)
-    common.validate("entry command", command, { "string", "table" })
-    ---@cast command string|string[]
+    common.validate("entry command", command, { "string", "table", "function" })
+    ---@cast command string|string[]|fun()
+    if type(command) == "function" then
+        return command
+    end
     if type(command) == "string" then
         if command:match("^%s*$") then
             error(
@@ -157,13 +160,16 @@ local function parse_entry(item, source_file_path)
             )
         )
     end
+    if item[1] ~= nil then
+        common.validate("entry command", item[1], { "string", "function" })
+    end
     local command = normalize_command(item[1] or item.cmd, source_file_path)
     common.validate("entry name", item.name, { "string", "nil" })
     common.validate("entry executor", item.executor, { "function", "nil" })
     return {
-        name = item.name or command,
+        name = item.name or tostring(command),
         command = command,
-        executor = item.executor,
+        executor = type(command) == "string" and item.executor or nil,
     }
 end
 

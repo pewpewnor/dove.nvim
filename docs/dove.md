@@ -420,7 +420,7 @@ Every entry supports:
 
 | Field      | Type                                 | Required          | Meaning                                       |
 | ---------- | ------------------------------------ | ----------------- | --------------------------------------------- |
-| `[1]`      | string                               | One command field | Positional shell command                      |
+| `[1]`      | string or function                   | One command field | Positional shell command or Lua function      |
 | `cmd`      | string, list of strings, or function | One command field | Named shell command or Lua function           |
 | `name`     | string                               | No                | Picker label; defaults to the command         |
 | `executor` | function                             | No                | Overrides the target's default shell executor |
@@ -429,11 +429,14 @@ Every entry supports:
   non-whitespace character.
 - A string item is not an entry; wrap it in a table.
 - String commands run through Neovim's configured `shell`.
-- An entry executor takes priority over its target's `default_executor`.
+- For string commands, an entry executor takes priority over its target's
+  `default_executor`.
 
-When `cmd` is a function, dove.nvim calls it directly without arguments instead
-of using an executor. Its picker label defaults to `tostring(cmd)` when `name`
-is omitted. The same function is called again by `:Dove prev`.
+When `[1]` or `cmd` is a function, dove.nvim calls it directly without
+arguments. Both the entry's executor and the target's `default_executor` are
+ignored, and the processed entry's executor is `nil`. Its picker label defaults
+to `tostring()` of the function when `name` is omitted. The same function is
+called again by `:Dove prev`.
 
 ### Command lists
 

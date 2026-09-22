@@ -2,6 +2,8 @@
 
 ---@alias dove.Executor fun(command: string, args: string[]?)
 
+---@alias dove.EntryCommand string|fun()
+
 ---@class dove.Executors
 ---@field [string] dove.Executor
 
@@ -38,14 +40,14 @@
 ---@field source_path dove.PathResolver|dove.PathResolver[]
 
 ---@class dove.RawEntry
----@field [1] string?
----@field cmd string|string[]?
+---@field [1] string|fun()?
+---@field cmd string|string[]|fun()?
 ---@field name string?
 ---@field executor dove.Executor?
 
 ---@class dove.ProcessedEntry
 ---@field name string
----@field command string
+---@field command dove.EntryCommand
 ---@field executor dove.Executor?
 
 ---@class dove.ProcessedTarget
@@ -55,8 +57,8 @@
 ---@field default_executor dove.Executor
 
 ---@class dove.Task
----@field command string
----@field executor dove.Executor
+---@field command dove.EntryCommand
+---@field executor dove.Executor?
 ---@field args string[]
 
 ---@class dove.Subcommand
