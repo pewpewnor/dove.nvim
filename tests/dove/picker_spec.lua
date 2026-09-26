@@ -37,7 +37,7 @@ describe("built-in picker", function()
             config.height
         )
         assert.equals(
-            math.min(70, math.max(1, common.get_columns() - 4)),
+            math.min(60, math.max(1, common.get_columns() - 4)),
             config.width
         )
         assert.equals(
