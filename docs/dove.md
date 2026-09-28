@@ -148,7 +148,13 @@ local preset = require("dove.preset")
     cmd_list_delimiter = function()
         return vim.o.shell:match("cmd%.exe$") and " & " or "; "
     end,
-    write_template_to_new_source_file = true,
+    new_source_file_template_code = [[return {
+    {
+        name = "placeholder greeting",
+        cmd = "echo 'Hello from dove.nvim!'",
+    },
+}
+]],
     ui = {
         picker = require("dove.picker"), -- see Built-in picker.
         format_selection_item = function(name, i)
@@ -230,7 +236,7 @@ The source can then use `test_prefix`, the replaced `denv.file_path()`, and
 ### `default_run_target`
 
 - Type: `string` or `nil`.
-- Default: `nil`.
+- Default: the starter source code shown in the default configuration.
 
 Names the target used by `:Dove run` and `run_target()` when no target is
 provided. The configured name is resolved when the command or function runs,
@@ -247,12 +253,12 @@ See **Command lists** for execution behavior.
 
 ### Source file templates
 
-`write_template_to_new_source_file` controls `:Dove edit` for a missing file:
+`new_source_file_template_code` controls `:Dove edit` for a missing file:
 
-- Type: `boolean`.
-- Default: `true`.
-- `true`: write a valid starter source before opening it.
-- `false`: open an empty buffer at the resolved path.
+- Type: `string|nil`.
+- Default: the starter source code shown in the default configuration.
+- Omitting the option or assigning `nil` uses the default.
+- A string is written to the new source file before it is opened.
 - Existing files are never replaced.
 
 ### `ui`
@@ -672,8 +678,8 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
     Requires a target-name string and returns no value. It resolves the target's
     source path, recursively creates missing parent directories, and opens the
     escaped path with `:tabedit`. If the path is not a readable file and
-    `write_template_to_new_source_file` is enabled, it first appends the starter
-    source template. An unknown target or invalid resolver raises an error.
+    `new_source_file_template_code` is a string, it first writes that string to
+    the new source file. An unknown target or invalid resolver raises an error.
 
 - **`delete_source_file(target_name)`**
 

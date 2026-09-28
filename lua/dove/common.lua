@@ -380,4 +380,15 @@ function M.write_file(path, lines, mode)
     return vim.fn.writefile(lines, path, mode or "") == 0
 end
 
+---@param path string
+---@param content string
+---@return boolean
+function M.write_text_file(path, content)
+    return vim.fn.writefile(
+        vim.split(content, "\n", { plain = true }),
+        path,
+        "b"
+    ) == 0
+end
+
 return M

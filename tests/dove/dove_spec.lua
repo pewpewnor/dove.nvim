@@ -54,6 +54,18 @@ describe("setup", function()
         assert.is_function(module.config.targets.filetype.default_executor)
         assert.is_function(module.config.targets.global.default_executor)
         assert.is_nil(module.config.default_run_target)
+        assert.equals(
+            table.concat({
+                "return {",
+                "    {",
+                '        name = "placeholder greeting",',
+                "        cmd = \"echo 'Hello from dove.nvim!'\",",
+                "    },",
+                "}",
+                "",
+            }, "\n"),
+            module.config.new_source_file_template_code
+        )
         assert.is_function(module.config.ui.picker)
         assert.equals(
             "1. build",
@@ -87,6 +99,14 @@ describe("setup", function()
     it("rejects an invalid command list delimiter", function()
         local success = pcall(dove.setup, {
             cmd_list_delimiter = "; ",
+        })
+
+        assert.is_false(success)
+    end)
+
+    it("rejects invalid new source file template code", function()
+        local success = pcall(dove.setup, {
+            new_source_file_template_code = true,
         })
 
         assert.is_false(success)

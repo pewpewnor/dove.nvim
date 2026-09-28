@@ -68,9 +68,9 @@ local function validate_opts(options)
         "function"
     )
     common.validate(
-        "options.write_template_to_new_source_file",
-        options.write_template_to_new_source_file,
-        "boolean"
+        "options.new_source_file_template_code",
+        options.new_source_file_template_code,
+        { "string", "nil" }
     )
     common.validate("options.ui", options.ui, "table")
     common.validate("options.ui.picker", options.ui.picker, "function")

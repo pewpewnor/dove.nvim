@@ -33,7 +33,7 @@
 ---@field targets dove.Targets
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
----@field write_template_to_new_source_file boolean
+---@field new_source_file_template_code string?
 ---@field ui dove.Ui
 
 ---@class dove.MinimumTarget

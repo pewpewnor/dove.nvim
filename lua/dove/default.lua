@@ -52,7 +52,15 @@ function M.create(options)
             denv = common.tbl_deep_extend("force", {}, preset),
         },
         cmd_list_delimiter = common.get_default_cmd_list_delimiter,
-        write_template_to_new_source_file = true,
+        new_source_file_template_code = table.concat({
+            "return {",
+            "    {",
+            '        name = "placeholder greeting",',
+            "        cmd = \"echo 'Hello from dove.nvim!'\",",
+            "    },",
+            "}",
+            "",
+        }, "\n"),
         ui = {
             picker = require("dove.picker"),
             format_selection_item = function(name, i)

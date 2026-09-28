@@ -71,17 +71,10 @@ function M.edit_source_file(target_name)
     local path = pathfinder.get_true_path(find_target(target_name).source_path)
     common.mkdir_with_parents(common.dirname(path))
     if
-        M.config.write_template_to_new_source_file
+        M.config.new_source_file_template_code ~= nil
         and not common.is_file_and_readable(path)
     then
-        common.write_file(path, {
-            "return {",
-            "    {",
-            '        name = "greetings",',
-            "        cmd = \"echo 'Hello from dove.nvim!'\",",
-            "    },",
-            "}",
-        }, "a")
+        common.write_text_file(path, M.config.new_source_file_template_code)
     end
     common.cmd("tabedit " .. common.fnameescape(path))
 end

@@ -92,12 +92,10 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 | `project`  | Execute commands for the current working directory, e.g. commands to build the project or run all tests.            |
 | `global`   | Execute commands shared across all files and projects.                                                              |
 
-## Configuration
+## Customization Example
 
 > [!NOTE]
 > Passing `opts = {}` to lazy.nvim uses the [default configuration](docs/dove.md#default-configuration).
-
-Example extensive customization:
 
 ```lua
 local dove = require("dove")
@@ -158,7 +156,7 @@ dove.setup({
     -- override join delimeter for `cmd` defined as lists in source files
     cmd_list_delimiter = function() return " && " end,
     -- don't write template/placeholder code when editing a new source file
-    write_template_to_new_source_file = false,
+    new_source_file_template_code = nil,
     ui = {
         -- override picker to any vim.ui.select compatible picker
         picker = vim.ui.select,
@@ -170,14 +168,14 @@ dove.setup({
 })
 ```
 
-> [!NOTE]
+> [!TIP]
 > With the above example, source files can access `custom_var`,
 > `denv.executors.custom_notify`, and `denv.custom_func`.
 
 ## Writing source files
 
 > [!TIP]
-> Run `:Dove edit {target}` to create the source file for the current project.
+> Run `:Dove edit {target}` to edit the target's source file.
 
 A source file must return a list of entry tables:
 
@@ -197,7 +195,7 @@ return {
         executor = denv.executors.print,
     },
     {
-        name = "run test under cursor",
+        name = "run hovered test function under cursor",
         cmd = "go test -run " .. denv.cword(),
         executor = denv.executors.new_tab,
     },
