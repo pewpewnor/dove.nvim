@@ -17,21 +17,22 @@ https://github.com/user-attachments/assets/12a4a5fd-18c2-4d5f-84a2-c15132cd8bae
 dove.nvim organizes where to retrieve your custom commands into **targets**.
 A target tells dove.nvim where to look for Lua files defined by you.
 
+Think of targets as contexts: whether to define/run commands associated with the
+current project, file type, or something else.
+
+See [commands](#commands) for all available user commands.
+
 ### Step 1: Define targets (optional)
 
-Built-in targets that you can immediately use without extra configuration:
+Use `Dove edit {target}` to start defining commands you can later pick and
+execute.
 
-- Target `project` to execute commands for the current working directory, e.g.
-  commands to build the project or run all tests.
-- Target `filetype` to execute commands based on the current buffer's filetype,
-  e.g. a command to compile the file and execute the binary.
-- Target `global` to execute commands shared across all files and projects.
-
-You may also add new targets or override any of the above.
+See [built-in targets](#built-in-targets) for targets you can use without any
+extra configuration. You may also add new or override any targets.
 
 ### Step 2: Write Lua code to define your commands
 
-You may edit the Lua file that the target will load (which we refer to as the
+You may edit the Lua file associated with the target (which we refer to as the
 **source file**). Edit the source file to define your own list of commands that
 can be selected later.
 
@@ -48,9 +49,13 @@ file can access. By default, all commands will be executed in a new pane.
 
 ### Step 3: Run the target and select a command to run
 
-When you run a target, dove.nvim loads the source file found within the target's
-path and retrieves its list of commands. Then it will ask you to choose one
-command you would like to execute.
+Use `Dove run {target}` to run the target.
+
+This loads the source file associated with the target (based on configured
+target's source path) and retrieves the list of commands returned by the source
+file.
+
+Then choose the command you would like to execute.
 
 ## Installation
 
@@ -74,10 +79,83 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 | Command                 | Action                                             |
 | ----------------------- | -------------------------------------------------- |
-| `:Dove run [target]`    | Run a target, or `default_run_target` when omitted |
+| `:Dove run {target}`    | Run a target, or `default_run_target` when omitted |
 | `:Dove prev`            | Repeat execution of the last executed entry        |
 | `:Dove edit {target}`   | Open a target's source file                        |
 | `:Dove delete {target}` | Delete a target's source file                      |
+
+## Built-in Targets
+
+| Target     | Default behaviour                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- |
+| `filetype` | Execute commands based on the current buffer's filetype, e.g. a command to compile the file and execute the binary. |
+| `project`  | Execute commands for the current working directory, e.g. commands to build the project or run all tests.            |
+| `global`   | Execute commands shared across all files and projects.                                                              |
+
+## Configuration
+
+> [!NOTE]
+> Passing `opts = {}` to lazy.nvim uses the [default configuration](docs/dove.md#default-configuration).
+
+Example extensive customization:
+
+```lua
+local dove = require("dove")
+local preset = require("dove.preset")
+
+dove.setup({
+    targets = {
+        project = {
+            source_path = {
+                function()
+                    return preset.cwd_path() .. "/.dove.lua"
+                end,
+                function()
+                    return preset.config_path() .. "/dove/project.lua"
+                end,
+            },
+            auto_run_single_command = false,
+            default_executor = preset.executors.split,
+        },
+        custom_target = {
+            source_path = function()
+                return "~/custom_target_source.lua"
+            end,
+            default_executor = preset.executors.current_buffer,
+        },
+    },
+    environment = {
+        custom_var = "my custom variable value",
+        denv = {
+            executors = {
+                custom_notify = function(command)
+                    vim.system(
+                        { vim.o.shell, vim.o.shellcmdflag, command },
+                        { text = true },
+                        function(result)
+                            vim.notify(result.stdout or result.stderr or "")
+                        end
+                    )
+                end,
+            },
+            custom_func = function() end,
+        },
+    },
+    default_run_target = "project",
+    cmd_list_delimiter = function() return " && " end,
+    write_template_to_new_source_file = false,
+    ui = {
+        picker = vim.ui.select,
+        format_selection_item = function(name, i)
+            return name .. " (" .. i .. ")"
+        end,
+    },
+})
+```
+
+> [!NOTE]
+> With the above example, source files can access `custom_var`,
+> `denv.executors.custom_notify`, and `denv.custom_func`.
 
 ## Writing source files
 
@@ -202,93 +280,6 @@ return {
     require("~/commands/common.lua"),
 }
 ```
-
-## Configuration
-
-> [!NOTE]
-> Passing `opts = {}` to lazy.nvim uses the [default configuration](docs/dove.md#default-configuration).
-
-Example extensive customization:
-
-```lua
-local dove = require("dove")
-local preset = require("dove.preset")
-
-dove.setup({
-    targets = {
-        project = {
-            source_path = {
-                function()
-                    return preset.cwd_path() .. "/.dove.lua"
-                end,
-                function()
-                    return preset.config_path() .. "/dove/project.lua"
-                end,
-            },
-            auto_run_single_command = false,
-            default_executor = preset.executors.split,
-        },
-        custom_target = {
-            source_path = function()
-                return "~/custom_target_source.lua"
-            end,
-            default_executor = preset.executors.current_buffer,
-        },
-    },
-    environment = {
-        custom_var = "my custom variable value",
-        denv = {
-            executors = {
-                custom_notify = function(command)
-                    vim.system(
-                        { vim.o.shell, vim.o.shellcmdflag, command },
-                        { text = true },
-                        function(result)
-                            vim.notify(result.stdout or result.stderr or "")
-                        end
-                    )
-                end,
-            },
-            custom_func = function() end,
-        },
-    },
-    default_run_target = "project",
-    cmd_list_delimiter = function() return " && " end,
-    write_template_to_new_source_file = false,
-    ui = {
-        picker = vim.ui.select,
-        format_selection_item = function(name, i)
-            return name .. " (" .. i .. ")"
-        end,
-    },
-})
-```
-
-> [!NOTE]
-> With the above example, source files can access `custom_var`,
-> `denv.executors.custom_notify`, and `denv.custom_func`.
-
-### Targets
-
-| Option                    | Details                                                                                                 |
-| ------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `source_path`             | A resolver function or a non-empty list of resolver functions.                                          |
-| `auto_run_single_command` | Run one entry without opening the picker. Defaults to `true`.                                           |
-| `default_executor`        | Executor used when an entry does not set one. Defaults to a short, full-width `preset.executors.split`. |
-
-Resolver functions must returns a string path. Use `require("dove.preset")` for
-built-in path values. With a list, dove.nvim uses the first readable path, or
-the first returned path when `:Dove edit` creates it.
-
-### Other options
-
-| Option                              | Details                                                                              |
-| ----------------------------------- | ------------------------------------------------------------------------------------ |
-| `environment`                       | Add source globals and customize values under `denv`.                                |
-| `default_run_target`                | Target used when `run` omits its target. Defaults to `nil`.                          |
-| `cmd_list_delimiter`                | Returns the separator for `cmd` lists. Defaults to `"; "` or `" & "` with `cmd.exe`. |
-| `write_template_to_new_source_file` | Write a template when `:Dove edit` opens a missing file. Defaults to `true`.         |
-| `ui`                                | Configure the picker and selection item labels.                                      |
 
 ## Built-in picker
 
