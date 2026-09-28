@@ -306,13 +306,13 @@ compatible function.
 
 `require("dove")` returns:
 
-| Function                               | Meaning                             |
-| -------------------------------------- | ----------------------------------- |
-| `dove.setup(options?)`                 | Configure and initialize the plugin |
-| `dove.run_target(target_name?)`        | Run an entry from a target          |
-| `dove.run_prev_task()`                 | Repeat the last executed task       |
-| `dove.edit_source_file(target_name)`   | Open a target source file           |
-| `dove.delete_source_file(target_name)` | Delete a target source file         |
+| Function                          | Meaning                              |
+| --------------------------------- | ------------------------------------ |
+| `setup(options?)`                 | Configure and initialize the plugin. |
+| `run_target(target_name?)`        | Run an entry from a target.          |
+| `run_prev_task()`                 | Repeat the last executed task.       |
+| `edit_source_file(target_name)`   | Open a target source file.           |
+| `delete_source_file(target_name)` | Delete a target source file.         |
 
 Example of binding keys:
 
