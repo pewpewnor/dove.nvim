@@ -54,7 +54,7 @@ require("dove").setup()
 - `setup()` accepts an optional options table.
 - It merges options into the defaults, validates the result, and initializes
   the plugin.
-- See [default configuration](#default-configuration) for every option.
+- See [configuration](#configuration) for every option.
 
 ## Quick start
 
@@ -90,12 +90,19 @@ Run an entry:
 - Use `:Dove edit filetype` and `:Dove run filetype` for the current filetype.
 - Use `:Dove edit global` and `:Dove run global` for global commands.
 
-## Default configuration
+## Configuration
 
-Default plugin configuration opts is equivalent to:
+### Default configuration
+
+Assuming we define:
 
 ```lua
 local preset = require("dove.preset")
+```
+
+The default plugin configuration opts is equivalent to:
+
+```lua
 {
     targets = {
         project = {
@@ -156,7 +163,7 @@ local preset = require("dove.preset")
 }
 ]],
     ui = {
-        picker = require("dove.picker"), -- see Built-in picker.
+        picker = require("dove.picker"),
         format_selection_item = function(name, i)
             return i .. ". " .. name
         end,
@@ -338,7 +345,7 @@ return {
         executor = denv.executors.print,
     },
     {
-        name = "run test under cursor",
+        name = "run hovered test function under cursor",
         cmd = "go test -run " .. denv.cword(),
         executor = denv.executors.new_tab,
     },
@@ -647,11 +654,11 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
 - **`setup(options?)`**
 
     Accepts a table or `nil` and returns no value. The table accepts the fields
-    described under [default configuration](#default-configuration). The
-    function deep-merges the supplied values into fresh defaults, validates the
-    complete configuration, and initializes the parser and runner with it.
-    Invalid values raise an error. Calling `setup()` again discards the previous
-    user options and repeats this process with fresh defaults.
+    described under [configuration](#configuration). The function deep-merges
+    the supplied values into fresh defaults, validates the complete
+    configuration, and initializes the parser and runner with it. Invalid values
+    raise an error. Calling `setup()` again discards the previous user options
+    and repeats this process with fresh defaults.
 
 - **`run_target(target_name?)`**
 

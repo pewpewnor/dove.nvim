@@ -8,7 +8,7 @@ Table of Contents                                     *dove-table-of-contents*
   - Concepts                                                   |dove-concepts|
   - Setup                                                         |dove-setup|
   - Quick start                                             |dove-quick-start|
-  - Default configuration                         |dove-default-configuration|
+  - Configuration                                         |dove-configuration|
   - Commands                                                   |dove-commands|
   - Source file                                             |dove-source-file|
   - Source environment                               |dove-source-environment|
@@ -75,7 +75,7 @@ Call before using commands or Lua API:
 - `setup()` accepts an optional options table.
 - It merges options into the defaults, validates the result, and initializes
     the plugin.
-- See |dove-default-configuration| for every option.
+- See |dove-configuration| for every option.
 
 
 QUICK START                                                 *dove-quick-start*
@@ -113,12 +113,20 @@ Run an entry:
 - Use `:Dove edit global` and `:Dove run global` for global commands.
 
 
-DEFAULT CONFIGURATION                             *dove-default-configuration*
+CONFIGURATION                                             *dove-configuration*
 
-Default plugin configuration opts is equivalent to:
+
+DEFAULT CONFIGURATION ~
+
+Assuming we define:
 
 >lua
     local preset = require("dove.preset")
+<
+
+The default plugin configuration opts is equivalent to:
+
+>lua
     {
         targets = {
             project = {
@@ -179,7 +187,7 @@ Default plugin configuration opts is equivalent to:
     }
     ]],
         ui = {
-            picker = require("dove.picker"), -- see Built-in picker.
+            picker = require("dove.picker"),
             format_selection_item = function(name, i)
                 return i .. ". " .. name
             end,
@@ -378,7 +386,7 @@ A source file returns a list of entry tables:
             executor = denv.executors.print,
         },
         {
-            name = "run test under cursor",
+            name = "run hovered test function under cursor",
             cmd = "go test -run " .. denv.cword(),
             executor = denv.executors.new_tab,
         },
@@ -652,8 +660,8 @@ LUA API                                                         *dove-lua-api*
 
 - **setup(options?)**
     Accepts a table or `nil` and returns no value. The table accepts the fields
-    described under |dove-default-configuration|. The function deep-merges the
-    supplied values into fresh defaults, validates the complete configuration, and
+    described under |dove-configuration|. The function deep-merges the supplied
+    values into fresh defaults, validates the complete configuration, and
     initializes the parser and runner with it. Invalid values raise an error.
     Calling `setup()` again discards the previous user options and repeats this
     process with fresh defaults.
