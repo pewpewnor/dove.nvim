@@ -105,29 +105,40 @@ local preset = require("dove.preset")
 
 dove.setup({
     targets = {
+        -- adding our own custom target
+        custom_target = {
+            source_path = function()
+                return "~/custom_target_source.lua"
+            end,
+            default_executor = preset.executors.new_tab,
+        },
+        -- override built-in target `project` settings
         project = {
+            -- change to search these paths to find target's source file
             source_path = {
                 function()
                     return preset.cwd_path() .. "/.dove.lua"
                 end,
                 function()
-                    return preset.config_path() .. "/dove/project.lua"
+                    return preset.dove_data_path()
+                        .. "/projects/"
+                        .. preset.hash_sha256(preset.cwd_path())
+                        .. ".lua"
                 end,
             },
+            -- spawn picker even when there is only 1 defined command possible
             auto_run_single_command = false,
+            -- override default executor to execute in a new side buffer
             default_executor = preset.executors.split,
         },
-        custom_target = {
-            source_path = function()
-                return "~/custom_target_source.lua"
-            end,
-            default_executor = preset.executors.current_buffer,
-        },
     },
+    -- everything in this table can be referenced by any target's source file
     environment = {
+        -- adding our own custom variable
         custom_var = "my custom variable value",
         denv = {
             executors = {
+                -- adding our own custom executors
                 custom_notify = function(command)
                     vim.system(
                         { vim.o.shell, vim.o.shellcmdflag, command },
@@ -138,14 +149,20 @@ dove.setup({
                     )
                 end,
             },
+            -- adding our own custom function
             custom_func = function() end,
         },
     },
+    -- make `Dove run` without any specified target to run target `project`
     default_run_target = "project",
+    -- override join delimeter for `cmd` defined as lists in source files
     cmd_list_delimiter = function() return " && " end,
+    -- don't write template/placeholder code when editing a new source file
     write_template_to_new_source_file = false,
     ui = {
+        -- override picker to any vim.ui.select compatible picker
         picker = vim.ui.select,
+        -- override how entry names and displayed on picker
         format_selection_item = function(name, i)
             return name .. " (" .. i .. ")"
         end,

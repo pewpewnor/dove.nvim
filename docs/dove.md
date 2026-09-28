@@ -54,7 +54,7 @@ require("dove").setup()
 - `setup()` accepts an optional options table.
 - It merges options into the defaults, validates the result, and initializes
   the plugin.
-- See [Configuration options](#configuration-options) for every option.
+- See [default configuration](#default-configuration) for every option.
 
 ## Quick start
 
@@ -157,71 +157,6 @@ local preset = require("dove.preset")
     },
 }
 ```
-
-## Configuration options
-
-Calling `setup()` again discards previous user options and starts from fresh
-defaults.
-
-```lua
-local dove = require("dove")
-local preset = require("dove.preset")
-
-dove.setup({
-    targets = {
-        project = {
-            source_path = {
-                function()
-                    return preset.cwd_path() .. "/.dove.lua"
-                end,
-                function()
-                    return preset.config_path() .. "/dove/project.lua"
-                end,
-            },
-            auto_run_single_command = false,
-            default_executor = preset.executors.split,
-        },
-        custom_target = {
-            source_path = function()
-                return "~/custom_target_source.lua"
-            end,
-            default_executor = preset.executors.current_buffer,
-        },
-    },
-    environment = {
-        custom_var = "my custom variable value",
-        denv = {
-            executors = {
-                custom_notify = function(command)
-                    vim.system(
-                        { vim.o.shell, vim.o.shellcmdflag, command },
-                        { text = true },
-                        function(result)
-                            vim.notify(result.stdout or result.stderr or "")
-                        end
-                    )
-                end,
-            },
-            custom_func = function() end,
-        },
-    },
-    default_run_target = "project",
-    cmd_list_delimiter = function() return " && " end,
-    write_template_to_new_source_file = false,
-    ui = {
-        picker = vim.ui.select,
-        format_selection_item = function(name, i)
-            return name .. " (" .. i .. ")"
-        end,
-    },
-})
-```
-
-With the above example, source files can access `custom_var`,
-`denv.executors.custom_notify`, and `denv.custom_func`.
-
-All options are optional. Custom target names and environment keys are allowed;
-known options are type-checked.
 
 ### `targets`
 
@@ -706,7 +641,7 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
 - **`setup(options?)`**
 
     Accepts a table or `nil` and returns no value. The table accepts the fields
-    described under [Configuration options](#configuration-options). The
+    described under [default configuration](#default-configuration). The
     function deep-merges the supplied values into fresh defaults, validates the
     complete configuration, and initializes the parser and runner with it.
     Invalid values raise an error. Calling `setup()` again discards the previous
