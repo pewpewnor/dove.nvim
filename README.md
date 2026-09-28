@@ -10,8 +10,7 @@
 Use Lua to define and execute arbitrary shell commands or Lua code for file,
 project, or global contexts without reloading Neovim.
 
-I built this plugin to compile my code and execute the resulting binary, build
-projects, run specific unit tests, and execute predefined global commands.
+https://github.com/user-attachments/assets/12a4a5fd-18c2-4d5f-84a2-c15132cd8bae
 
 ## How it works
 
