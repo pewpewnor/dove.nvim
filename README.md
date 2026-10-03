@@ -152,7 +152,7 @@ dove.setup({
         },
     },
     -- make `Dove run` without any specified target to run target `project`
-    default_run_target = "project",
+    default_run_target = function() return "project" end,
     -- override join delimeter for `cmd` defined as lists in source files
     cmd_list_delimiter = function() return " && " end,
     -- don't write template/placeholder code when editing a new source file

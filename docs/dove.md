@@ -242,16 +242,16 @@ The source can then use `test_prefix`, the replaced `denv.file_path()`, and
 
 ### `default_run_target`
 
-- Type: `string` or `nil`.
-- Default: the starter source code shown in the default configuration.
+- Type: `(fun(): string)|nil`.
+- Default: returns nil.
 
-Names the target used by `:Dove run` and `run_target()` when no target is
-provided. The configured name is resolved when the command or function runs,
-and must match a configured target then.
+Resolves the target name used by `:Dove run` and `run_target()` when no target
+is provided. The specified target name must match the name of a configured
+target. If `nil`, then it would error instead.
 
 ### `cmd_list_delimiter`
 
-- Type: function returning a string.
+- Type: `fun(): string`.
 - Default: returns `"; "`, or `" & "` when `shell` is `cmd.exe`.
 - Its return value joins list-valued entry commands and is passed directly to
   the shell.

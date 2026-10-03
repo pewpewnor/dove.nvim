@@ -22,7 +22,11 @@ describe("source file execution", function()
             '    { "echo default" },',
             "}",
         })
-        context:setup(path, { default_run_target = "project" })
+        context:setup(path, {
+            default_run_target = function()
+                return "project"
+            end,
+        })
 
         dove.run_target()
         context.original_cmd("source " .. common.fnameescape("plugin/dove.lua"))

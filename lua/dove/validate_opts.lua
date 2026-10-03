@@ -59,7 +59,7 @@ local function validate_opts(options)
     common.validate(
         "options.default_run_target",
         options.default_run_target,
-        { "string", "nil" }
+        { "function", "nil" }
     )
     common.validate("options.environment", options.environment, "table")
     common.validate(

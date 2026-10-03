@@ -35,6 +35,7 @@ end
 ---@return dove.Target
 local function find_target(target_name)
     ensure_setup()
+
     common.validate("target_name", target_name, "string")
     local target = M.config.targets[target_name]
     if not target then
@@ -49,15 +50,18 @@ end
 ---@return any
 function M.run_target(target_name)
     ensure_setup()
-    if target_name == nil then
-        target_name = M.config.default_run_target
-        if target_name == nil then
+
+    local resolved_target_name = target_name
+    if resolved_target_name == nil then
+        if M.config.default_run_target == nil then
             error("dove.nvim: no default target is configured")
         end
+        resolved_target_name = M.config.default_run_target()
+        common.validate("default_run_target", resolved_target_name, "string")
     end
-    local target = find_target(target_name)
+    local target = find_target(resolved_target_name)
     return runner.select_and_run_entry({
-        name = target_name,
+        name = resolved_target_name,
         source_path = pathfinder.get_true_path(target.source_path),
         auto_run_single_command = target.auto_run_single_command,
         default_executor = target.default_executor,
