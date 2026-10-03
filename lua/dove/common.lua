@@ -1,5 +1,8 @@
 local M = {}
 
+---@type fun(path: string): string
+M.basename = vim.fs.basename
+
 ---@type fun(buffer: integer, namespace: integer, line_start: integer, line_end: integer)
 M.clear_buffer_namespace = vim.api.nvim_buf_clear_namespace
 
@@ -102,16 +105,6 @@ end
 ---@return string
 function M.get_shell()
     return vim.o.shell
-end
-
----@return string
-function M.get_default_cmd_list_delimiter()
-    local shell_name = M.get_shell():gsub("\\", "/"):match("([^/]+)$") or ""
-    shell_name = shell_name:lower()
-    if shell_name == "cmd" or shell_name == "cmd.exe" then
-        return " & "
-    end
-    return "; "
 end
 
 ---@type fun(what: string): string

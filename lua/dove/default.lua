@@ -51,7 +51,11 @@ function M.create(options)
         environment = {
             denv = common.tbl_deep_extend("force", {}, preset),
         },
-        cmd_list_delimiter = common.get_default_cmd_list_delimiter,
+        cmd_list_delimiter = function()
+            local shell =
+                common.basename(common.get_shell():gsub("\\", "/")):lower()
+            return (shell == "cmd" or shell == "cmd.exe") and " & " or "; "
+        end,
         new_source_file_template_code = table.concat({
             "return {",
             "    {",
