@@ -9,7 +9,7 @@ local preset = require("dove.preset")
 describe("environment", function()
     it("contains all default values", function()
         dove.setup()
-        local environment = module.config.environment
+        local environment = module.config.targets.project.environment
 
         local expected_functions = {
             "file_path",
@@ -42,18 +42,20 @@ describe("environment", function()
     it("deeply merges user values and overrides", function()
         local custom_executor = function() end
         dove.setup({
-            environment = {
-                my_var = "lol",
-                denv = {
-                    file_path = function()
-                        return "overridden"
-                    end,
-                    executors = { custom = custom_executor },
+            fill_each_target = {
+                environment = {
+                    my_var = "lol",
+                    denv = {
+                        file_path = function()
+                            return "overridden"
+                        end,
+                        executors = { custom = custom_executor },
+                    },
                 },
             },
         })
 
-        local environment = module.config.environment
+        local environment = module.config.targets.project.environment
         assert.equals("overridden", environment.denv.file_path())
         assert.equals("lol", environment.my_var)
         assert.equals(custom_executor, environment.denv.executors.custom)
@@ -75,17 +77,17 @@ describe("environment", function()
             },
         })
 
-        pathfinder.get_true_path(module.config.targets.project.source_path)
+        pathfinder(module.config.targets.project.source_path)
 
         assert.equals(0, argument_count)
     end)
 
     it("creates a fresh environment for every setup", function()
-        dove.setup({ environment = { marker = "first" } })
-        assert.equals("first", module.config.environment.marker)
+        dove.setup({ fill_each_target = { environment = { marker = "first" } } })
+        assert.equals("first", module.config.targets.project.environment.marker)
 
         dove.setup()
 
-        assert.is_nil(module.config.environment.marker)
+        assert.is_nil(module.config.targets.project.environment.marker)
     end)
 end)

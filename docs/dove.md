@@ -112,13 +112,6 @@ The default plugin configuration opts is equivalent to:
                     .. preset.hash_sha256(preset.cwd_path())
                     .. ".lua"
             end,
-            auto_run_single_command = false,
-            default_executor = function(command)
-                preset.executors.split(
-                    command,
-                    { nil, "wincmd J | resize -4" }
-                )
-            end,
         },
         filetype = {
             source_path = function()
@@ -127,42 +120,34 @@ The default plugin configuration opts is equivalent to:
                     .. preset.file_type()
                     .. ".lua"
             end,
-            auto_run_single_command = false,
-            default_executor = function(command)
-                preset.executors.split(
-                    command,
-                    { nil, "wincmd J | resize -4" }
-                )
-            end,
         },
         global = {
             source_path = function()
                 return preset.dove_data_path() .. "/global.lua"
             end,
-            auto_run_single_command = false,
-            default_executor = function(command)
-                preset.executors.split(
-                    command,
-                    { nil, "wincmd J | resize -4" }
-                )
-            end,
         },
     },
-    environment = {
-        denv = preset,
-    },
-    default_run_target = nil,
-    cmd_list_delimiter = function()
-        local shell = vim.fs.basename(M.get_shell():gsub("\\", "/")):lower()
-        return (shell == "cmd" or shell == "cmd.exe") and " & " or "; "
-    end,
-    new_source_file_template_code = [[return {
+    fill_each_target = {
+        auto_run_single_command = false,
+        default_executor = function(command)
+            preset.executors.split(command, { nil, "wincmd J | resize -4" })
+        end,
+        environment = {
+            denv = preset,
+        },
+        cmd_list_delimiter = function()
+            local shell = vim.fs.basename(vim.o.shell:gsub("\\", "/")):lower()
+            return (shell == "cmd" or shell == "cmd.exe") and " & " or "; "
+        end,
+        new_source_file_template_code = [[return {
     {
         name = "placeholder greeting",
         cmd = "echo 'Hello from dove.nvim!'",
     },
 }
 ]],
+    },
+    default_run_target = nil,
     ui = {
         picker = require("dove.picker"),
         format_selection_item = function(name, i)
@@ -175,16 +160,20 @@ The default plugin configuration opts is equivalent to:
 ### `targets`
 
 - Type: `table<string, Target>`.
-- Defaults: `project` and `filetype`.
+- Defaults: `project`, `filetype`, and `global`.
 - User targets merge by name with built-in targets.
+- Every target inherits `fill_each_target` before its own options are applied.
 
 Each target supports:
 
-| Option                    | Type                          | Default                                      |
-| ------------------------- | ----------------------------- | -------------------------------------------- |
-| `source_path`             | function or list of functions | Required for a new target                    |
-| `auto_run_single_command` | boolean                       | `false`                                      |
-| `default_executor`        | function                      | A short, full-width `preset.executors.split` |
+| Option                          | Type                          | Default                                      |
+| ------------------------------- | ----------------------------- | -------------------------------------------- |
+| `source_path`                   | function or list of functions | Required for a new target                    |
+| `auto_run_single_command`       | boolean                       | `false`                                      |
+| `default_executor`              | function                      | A short, full-width `preset.executors.split` |
+| `environment`                   | table                         | Built-in `denv` values                       |
+| `cmd_list_delimiter`            | function                      | Shell-compatible list separator              |
+| `new_source_file_template_code` | string or nil                 | Starter source code                          |
 
 A source resolver takes no arguments and returns a path string or `nil`.
 Returned paths are normalized and `~` is expanded.
@@ -216,7 +205,14 @@ Built-in paths and settings:
 - `filetype`: `stdpath("data")/dove/filetypes/<filetype>.lua`.
 - Both show the picker for one entry and use a short, full-width `preset.executors.split`.
 
-### `environment`
+### `fill_each_target`
+
+The options in `fill_each_target` are deeply merged into every built-in and custom
+target. A target can override any inherited value. Its `environment` table
+merges with the built-in `denv` values and with the target's own environment.
+`source_path` is still required for each new target.
+
+### `targets.<name>.environment`
 
 - Type: `table`.
 - Default: the built-in values under `denv`.
@@ -225,16 +221,18 @@ Custom values deeply merge with the built-ins. Add values and executors, or
 replace built-ins:
 
 ```lua
-environment = {
-    denv = {
-        file_path = function()
-            return "fixed-input.lua"
-        end,
-        executors = {
-            quick = preset.executors.bg_status,
+targets = {
+    project = {
+        environment = {
+            denv = {
+                file_path = function()
+                    return "fixed-input.lua"
+                end,
+                executors = { quick = preset.executors.bg_status },
+            },
+            test_prefix = "env TEST=1 ",
         },
     },
-    test_prefix = "env TEST=1 ",
 }
 ```
 
@@ -244,13 +242,13 @@ The source can then use `test_prefix`, the replaced `denv.file_path()`, and
 ### `default_run_target`
 
 - Type: `(fun(): string)|nil`.
-- Default: returns nil.
+- Default: `nil`.
 
 Resolves the target name used by `:Dove run` and `run_target()` when no target
 is provided. The specified target name must match the name of a configured
-target. If `nil`, then it would error instead.
+target. If `nil`, the bare command raises an error.
 
-### `cmd_list_delimiter`
+### `targets.<name>.cmd_list_delimiter`
 
 - Type: `fun(): string`.
 - Default: returns `"; "`, or `" & "` when `shell` is `cmd.exe`.
@@ -261,7 +259,8 @@ See **Command lists** for execution behavior.
 
 ### Source file templates
 
-`new_source_file_template_code` controls `:Dove edit` for a missing file:
+`targets.<name>.new_source_file_template_code` controls `:Dove edit` for a
+missing file:
 
 - Type: `string|nil`.
 - Default: the starter source code shown in the default configuration.
@@ -308,12 +307,12 @@ A custom picker receives `items`, `opts`, and `on_choice`:
 
 ## Commands
 
-| Command                 | Action                                             |
-| ----------------------- | -------------------------------------------------- |
-| `:Dove run [target]`    | Run a target, or `default_run_target` when omitted |
-| `:Dove prev`            | Repeat execution of the last executed entry        |
-| `:Dove edit {target}`   | Open a target's source file                        |
-| `:Dove delete {target}` | Delete a target's source file                      |
+| Command                 | Action                                                            |
+| ----------------------- | ----------------------------------------------------------------- |
+| `:Dove run [target]`    | Run a target, or `default_run_target` when omitted                |
+| `:Dove prev`            | Repeat execution of the last executed entry                       |
+| `:Dove edit {target}`   | Open a target's source file                                       |
+| `:Dove delete {target}` | Delete a target's source file                                     |
 
 - Subcommands and target names support completion.
 - Missing, extra, and unknown arguments are rejected, except that `run` may
@@ -401,7 +400,7 @@ return {
 }
 ```
 
-dove.nvim calls `cmd_list_delimiter`, joins the items with its return value, and
+dove.nvim calls the target's `cmd_list_delimiter`, joins the items with its return value, and
 calls the executor once. They run in one shell session, so directory changes and
 variables carry between items.
 
@@ -472,7 +471,7 @@ types raise an error.
 - **`denv.executors`**
 
     A table containing the built-in executors and any executors added through the
-    `environment` configuration option. Configuration is deeply merged, so a
+    target's `environment` option. Configuration is deeply merged, so a
     user-defined executor key is added without removing other built-ins. See
     [Executors](#executors) for the function contract and built-in functions.
 
@@ -686,7 +685,7 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
     Requires a target-name string and returns no value. It resolves the target's
     source path, recursively creates missing parent directories, and opens the
     escaped path with `:tabedit`. If the path is not a readable file and
-    `new_source_file_template_code` is a string, it first writes that string to
+    the target's `new_source_file_template_code` is a string, it first writes that string to
     the new source file. An unknown target or invalid resolver raises an error.
 
 - **`delete_source_file(target_name)`**

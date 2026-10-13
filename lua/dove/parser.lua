@@ -33,8 +33,9 @@ end
 
 ---@param path string
 ---@param loading table<string, boolean>
+---@param target dove.Target
 ---@return table
-local function load_source_file(path, loading)
+local function load_source_file(path, loading, target)
     path = common.path_normalize(common.expand(path))
     if loading[path] then
         error(string.format("dove.nvim: circular require of '%s'", path))
@@ -43,7 +44,7 @@ local function load_source_file(path, loading)
 
     ---@type table<string, any>
     local environment = setmetatable(
-        common.tbl_deep_extend("force", {}, M.config.environment),
+        common.tbl_deep_extend("force", {}, target.environment),
         { __index = _G }
     )
 
@@ -53,7 +54,7 @@ local function load_source_file(path, loading)
             return require(module_name)
         end
         local imported_path = resolve_import_path(module_name, path)
-        local imported = load_source_file(imported_path, loading)
+        local imported = load_source_file(imported_path, loading, target)
         imported_lists[imported] = imported_path
         return imported
     end
@@ -94,8 +95,9 @@ end
 
 ---@param command string|string[]|fun()?
 ---@param source_file_path string
+---@param target dove.Target
 ---@return dove.EntryCommand
-local function normalize_command(command, source_file_path)
+local function normalize_command(command, source_file_path, target)
     common.validate("entry command", command, { "string", "table", "function" })
     ---@cast command string|string[]|fun()
     if type(command) == "function" then
@@ -143,15 +145,16 @@ local function normalize_command(command, source_file_path)
         end
         commands[index] = item
     end
-    local delimiter = M.config.cmd_list_delimiter()
+    local delimiter = target.cmd_list_delimiter()
     common.validate("cmd_list_delimiter return value", delimiter, "string")
     return table.concat(commands, delimiter)
 end
 
 ---@param item dove.RawEntry
 ---@param source_file_path string
+---@param target dove.Target
 ---@return dove.ProcessedEntry
-local function parse_entry(item, source_file_path)
+local function parse_entry(item, source_file_path, target)
     if item[1] ~= nil and item.cmd ~= nil then
         error(
             string.format(
@@ -163,7 +166,8 @@ local function parse_entry(item, source_file_path)
     if item[1] ~= nil then
         common.validate("entry command", item[1], { "string", "function" })
     end
-    local command = normalize_command(item[1] or item.cmd, source_file_path)
+    local command =
+        normalize_command(item[1] or item.cmd, source_file_path, target)
     common.validate("entry name", item.name, { "string", "nil" })
     common.validate("entry executor", item.executor, { "function", "nil" })
     return {
@@ -175,8 +179,9 @@ end
 
 ---@param list table
 ---@param source_file_path string
+---@param target dove.Target
 ---@return dove.ProcessedEntry[]
-local function parse_list(list, source_file_path)
+local function parse_list(list, source_file_path, target)
     if not common.is_list(list) then
         error(
             string.format(
@@ -190,12 +195,12 @@ local function parse_list(list, source_file_path)
     for _, item in ipairs(list) do
         local imported_path = imported_lists[item]
         if imported_path then
-            local imported_entries = parse_list(item, imported_path)
+            local imported_entries = parse_list(item, imported_path, target)
             for _, entry in ipairs(imported_entries) do
                 entries[#entries + 1] = entry
             end
         elseif type(item) == "table" then
-            entries[#entries + 1] = parse_entry(item, source_file_path)
+            entries[#entries + 1] = parse_entry(item, source_file_path, target)
         else
             error(
                 string.format(
@@ -223,8 +228,9 @@ function M.parse_source_file(path, target_name)
     end
     ---@type table<string, boolean>
     local loading = {}
-    local source = load_source_file(path, loading)
-    return parse_list(source, path)
+    local target = M.config.targets[target_name]
+    local source = load_source_file(path, loading, target)
+    return parse_list(source, path, target)
 end
 
 return M

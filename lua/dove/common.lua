@@ -28,6 +28,7 @@ M.cmd = vim.cmd
 
 ---@type fun(name: string, func: fun(opts: table?), opts: table)
 M.create_user_command = vim.api.nvim_create_user_command
+M.deepcopy = vim.deepcopy
 
 ---@type fun(path: string): string
 M.dirname = vim.fs.dirname

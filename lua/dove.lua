@@ -1,14 +1,14 @@
 local common = require("dove.common")
-local default = require("dove.default")
+local create_opts = require("dove.opts.create")
 local module = require("dove.module")
-local validate_opts = require("dove.validate_opts")
+local validate_opts = require("dove.opts.validate")
 
 local M = {}
 
 ---@param options table?
 function M.setup(options)
     common.validate("options", options, { "table", "nil" })
-    local config = default.create(options)
+    local config = create_opts(options)
     validate_opts(config)
     module.init(config)
 end

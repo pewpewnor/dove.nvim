@@ -58,8 +58,14 @@ function M:setup(path, options)
             default_executor = function(command)
                 self:execute(command)
             end,
+            environment = options.environment,
+            cmd_list_delimiter = options.cmd_list_delimiter,
+            new_source_file_template_code = options.new_source_file_template_code,
         },
     }
+    options.environment = nil
+    options.cmd_list_delimiter = nil
+    options.new_source_file_template_code = nil
     dove.setup(options)
 end
 

@@ -77,12 +77,12 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Commands
 
-| Command                 | Action                                             |
-| ----------------------- | -------------------------------------------------- |
-| `:Dove run {target}`    | Run a target, or `default_run_target` when omitted |
-| `:Dove prev`            | Repeat execution of the last executed entry        |
-| `:Dove edit {target}`   | Open a target's source file                        |
-| `:Dove delete {target}` | Delete a target's source file                      |
+| Command                 | Action                                                            |
+| ----------------------- | ----------------------------------------------------------------- |
+| `:Dove run {target}`    | Run a target, or `default_run_target` when omitted                |
+| `:Dove prev`            | Repeat execution of the last executed entry                       |
+| `:Dove edit {target}`   | Open a target's source file                                       |
+| `:Dove delete {target}` | Delete a target's source file                                     |
 
 ## Built-in Targets
 
@@ -130,33 +130,29 @@ dove.setup({
             default_executor = preset.executors.split,
         },
     },
-    -- everything in this table can be referenced by any target's source file
-    environment = {
-        -- adding our own custom variable
-        custom_var = "my custom variable value",
-        denv = {
-            executors = {
-                -- adding our own custom executors
-                custom_notify = function(command)
-                    vim.system(
-                        { vim.o.shell, vim.o.shellcmdflag, command },
-                        { text = true },
-                        function(result)
-                            vim.notify(result.stdout or result.stderr or "")
-                        end
-                    )
-                end,
+    -- options inherited by every target unless overridden there
+    fill_each_target = {
+        environment = {
+            custom_var = "my custom variable value",
+            denv = {
+                executors = {
+                    custom_notify = function(command)
+                        vim.system(
+                            { vim.o.shell, vim.o.shellcmdflag, command },
+                            { text = true },
+                            function(result)
+                                vim.notify(result.stdout or result.stderr or "")
+                            end
+                        )
+                    end,
+                },
+                custom_func = function() end,
             },
-            -- adding our own custom function
-            custom_func = function() end,
         },
+        cmd_list_delimiter = function() return " && " end,
     },
-    -- make `Dove run` without any specified target to run target `project`
+    -- use `project` for `Dove run` without a target name
     default_run_target = function() return "project" end,
-    -- override join delimeter for `cmd` defined as lists in source files
-    cmd_list_delimiter = function() return " && " end,
-    -- don't write template/placeholder code when editing a new source file
-    new_source_file_template_code = nil,
     ui = {
         -- override picker to any vim.ui.select compatible picker
         picker = vim.ui.select,
@@ -220,7 +216,7 @@ Every entry must be a table and must have exactly one command field:
 
 > [!NOTE]
 > For a `cmd` list, items are joined with the string returned by
-> `cmd_list_delimiter` and sent as a single shell command. The default function
+> the target's `cmd_list_delimiter` and sent as a single shell command. The default function
 > returns `"; "`, or `" & "` for `cmd.exe`.
 
 When `[1]` or `cmd` is a function, dove.nvim calls it directly. Both the entry's

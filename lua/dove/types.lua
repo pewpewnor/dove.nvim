@@ -11,6 +11,16 @@
 ---@field source_path dove.PathResolver|dove.PathResolver[]
 ---@field auto_run_single_command boolean
 ---@field default_executor dove.Executor
+---@field environment dove.Environment
+---@field cmd_list_delimiter fun(): string
+---@field new_source_file_template_code string?
+
+---@class dove.FillEachTarget
+---@field auto_run_single_command boolean
+---@field default_executor dove.Executor
+---@field environment dove.Environment
+---@field cmd_list_delimiter fun(): string
+---@field new_source_file_template_code string?
 
 ---@class dove.Targets
 ---@field [string] dove.Target
@@ -29,15 +39,10 @@
 ---@field format_selection_item fun(name: string, i: integer): string
 
 ---@class dove.Config
----@field default_run_target (fun(): string)?
 ---@field targets dove.Targets
----@field environment dove.Environment
----@field cmd_list_delimiter fun(): string
----@field new_source_file_template_code string?
+---@field fill_each_target dove.FillEachTarget
+---@field default_run_target (fun(): string)?
 ---@field ui dove.Ui
-
----@class dove.MinimumTarget
----@field source_path dove.PathResolver|dove.PathResolver[]
 
 ---@class dove.RawEntry
 ---@field [1] string|fun()?

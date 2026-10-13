@@ -39,6 +39,35 @@ describe("source file management", function()
         assert.equals(template, content)
     end)
 
+    it("uses the selected target's template code", function()
+        local project_path = common.path_join(context.temp_dir, "project.lua")
+        local custom_path = common.path_join(context.temp_dir, "custom.lua")
+        dove.setup({
+            fill_each_target = {
+                new_source_file_template_code = "return { { 'shared' } }",
+            },
+            targets = {
+                project = {
+                    source_path = function()
+                        return project_path
+                    end,
+                },
+                custom = {
+                    source_path = function()
+                        return custom_path
+                    end,
+                    new_source_file_template_code = "return { { 'custom' } }",
+                },
+            },
+        })
+
+        dove.edit_source_file("project")
+        dove.edit_source_file("custom")
+
+        assert.equals("shared", assert(loadfile(project_path))()[1][1])
+        assert.equals("custom", assert(loadfile(custom_path))()[1][1])
+    end)
+
     it("does not replace an existing source file with template code", function()
         local path = common.path_join(context.temp_dir, "existing.lua")
         context:write_source_file(path, { "return {}" })

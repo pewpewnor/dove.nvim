@@ -1,7 +1,8 @@
 ---@diagnostic disable: undefined-field
 
 local dove = require("dove")
-local default = require("dove.default")
+local create_opts = require("dove.opts.create")
+local default_opts = require("dove.opts.default")
 local module = require("dove.module")
 local preset = require("dove.preset")
 
@@ -43,7 +44,8 @@ describe("setup", function()
         assert.is_nil(dove.run_previous_task)
         assert.is_nil(dove.edit_lua_file)
         assert.is_nil(dove.delete_lua_file)
-        assert.is_function(default.create)
+        assert.is_function(create_opts)
+        assert.is_table(default_opts.fill_each_target)
         assert.is_function(module.config.targets.project.source_path)
         assert.is_function(module.config.targets.filetype.source_path)
         assert.is_function(module.config.targets.global.source_path)
@@ -56,7 +58,11 @@ describe("setup", function()
         assert.is_function(module.config.targets.project.default_executor)
         assert.is_function(module.config.targets.filetype.default_executor)
         assert.is_function(module.config.targets.global.default_executor)
+        assert.is_nil(module.config.targets.project.default_run_target)
+        assert.is_nil(module.config.environment)
         assert.is_nil(module.config.default_run_target)
+        assert.is_nil(module.config.cmd_list_delimiter)
+        assert.is_nil(module.config.new_source_file_template_code)
         assert.equals(
             table.concat({
                 "return {",
@@ -67,7 +73,7 @@ describe("setup", function()
                 "}",
                 "",
             }, "\n"),
-            module.config.new_source_file_template_code
+            module.config.targets.project.new_source_file_template_code
         )
         assert.is_function(module.config.ui.picker)
         assert.equals(
@@ -101,7 +107,7 @@ describe("setup", function()
 
     it("rejects an invalid command list delimiter", function()
         local success = pcall(dove.setup, {
-            cmd_list_delimiter = "; ",
+            fill_each_target = { cmd_list_delimiter = "; " },
         })
 
         assert.is_false(success)
@@ -109,13 +115,13 @@ describe("setup", function()
 
     it("rejects invalid new source file template code", function()
         local success = pcall(dove.setup, {
-            new_source_file_template_code = true,
+            targets = { project = { new_source_file_template_code = true } },
         })
 
         assert.is_false(success)
     end)
 
-    it("rejects an invalid default target", function()
+    it("rejects an invalid default run target", function()
         local success = pcall(dove.setup, {
             default_run_target = true,
         })
@@ -152,5 +158,41 @@ describe("setup", function()
         })
 
         assert.is_false(success)
+    end)
+
+    it("inherits default target options and keeps target overrides", function()
+        local inherited_executor = function() end
+        local custom_executor = function() end
+        dove.setup({
+            fill_each_target = {
+                auto_run_single_command = true,
+                default_executor = inherited_executor,
+                environment = { marker = "shared" },
+                cmd_list_delimiter = function()
+                    return " && "
+                end,
+            },
+            targets = {
+                custom = {
+                    source_path = function()
+                        return "custom.lua"
+                    end,
+                    default_executor = custom_executor,
+                    environment = { custom = true },
+                },
+            },
+        })
+
+        local project = module.config.targets.project
+        local custom = module.config.targets.custom
+        assert.is_true(project.auto_run_single_command)
+        assert.equals(inherited_executor, project.default_executor)
+        assert.equals("shared", project.environment.marker)
+        assert.equals(" && ", project.cmd_list_delimiter())
+        assert.equals(custom_executor, custom.default_executor)
+        assert.equals("shared", custom.environment.marker)
+        assert.is_true(custom.environment.custom)
+        assert.is_function(custom.environment.denv.file_path)
+        assert.is_nil(project.environment.custom)
     end)
 end)

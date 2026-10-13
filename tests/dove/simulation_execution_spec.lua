@@ -294,6 +294,52 @@ describe("source file execution", function()
         assert.same({ "first && second" }, context.executed_commands)
     end)
 
+    it("uses each target's environment and command delimiter", function()
+        local path = common.path_join(context.temp_dir, "per-target.lua")
+        context:write_source_file(path, {
+            'return { { cmd = { prefix .. "first", "second" } } }',
+        })
+        dove.setup({
+            fill_each_target = {
+                auto_run_single_command = true,
+                environment = { prefix = "shared-" },
+            },
+            targets = {
+                project = {
+                    source_path = function()
+                        return path
+                    end,
+                    default_executor = function(command)
+                        context:execute(command)
+                    end,
+                    cmd_list_delimiter = function()
+                        return " && "
+                    end,
+                },
+                custom = {
+                    source_path = function()
+                        return path
+                    end,
+                    default_executor = function(command)
+                        context:execute(command)
+                    end,
+                    environment = { prefix = "custom-" },
+                    cmd_list_delimiter = function()
+                        return " | "
+                    end,
+                },
+            },
+        })
+
+        dove.run_target("project")
+        dove.run_target("custom")
+
+        assert.same(
+            { "shared-first && second", "custom-first | second" },
+            context.executed_commands
+        )
+    end)
+
     it("rejects an invalid command list delimiter return value", function()
         local path = common.path_join(
             context.temp_dir,
@@ -465,7 +511,9 @@ describe("source file execution", function()
         dove.run_target("project")
 
         assert.same({ "wc custom.lua" }, context.executed_commands)
-        assert.is_nil(require("dove.module").config.environment.require)
+        assert.is_nil(
+            require("dove.module").config.targets.project.environment.require
+        )
     end)
 
     it("runs the previous task again", function()

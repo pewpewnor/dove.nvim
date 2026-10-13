@@ -1,8 +1,6 @@
 local common = require("dove.common")
 local module = require("dove.module")
-local validate_opts = require("dove.validate_opts")
-
-local M = {}
+local validate_opts = require("dove.opts.validate")
 
 local function check_neovim_version()
     if common.has("nvim-0.12") then
@@ -63,12 +61,12 @@ local function check_shell()
     end
 end
 
-function M.check()
-    common.health_start("dove.nvim")
+return {
+    check = function()
+        common.health_start("dove.nvim")
 
-    check_neovim_version()
-    check_setup_called()
-    check_shell()
-end
-
-return M
+        check_neovim_version()
+        check_setup_called()
+        check_shell()
+    end,
+}
