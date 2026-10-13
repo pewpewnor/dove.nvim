@@ -29,7 +29,12 @@ describe("source file management", function()
     it("writes configured template code to a missing source file", function()
         local path = common.path_join(context.temp_dir, "nested", "new.lua")
         local template = "return {\n    { 'make test' },\n}\n"
-        context:setup(path, { new_source_file_template_code = template })
+        context:setup(path, {
+            ---@return string
+            new_source_file_placeholder_text = function()
+                return template
+            end,
+        })
 
         dove.edit_source_file("project")
 
@@ -39,12 +44,59 @@ describe("source file management", function()
         assert.equals(template, content)
     end)
 
+    it(
+        "does not write a template when the target function returns nil",
+        function()
+            local path = common.path_join(context.temp_dir, "nested", "new.lua")
+            context:setup(path, {
+                ---@return string?
+                new_source_file_placeholder_text = function()
+                    return nil
+                end,
+            })
+
+            dove.edit_source_file("project")
+
+            assert.is_false(common.is_file_and_readable(path))
+        end
+    )
+
+    it(
+        "does not write a template when the inherited function returns nil",
+        function()
+            local path = common.path_join(context.temp_dir, "nested", "new.lua")
+            dove.setup({
+                parent_target = {
+                    ---@return string?
+                    new_source_file_placeholder_text = function()
+                        return nil
+                    end,
+                },
+                targets = {
+                    project = {
+                        ---@return string
+                        source_path = function()
+                            return path
+                        end,
+                    },
+                },
+            })
+
+            dove.edit_source_file("project")
+
+            assert.is_false(common.is_file_and_readable(path))
+        end
+    )
+
     it("uses the selected target's template code", function()
         local project_path = common.path_join(context.temp_dir, "project.lua")
         local custom_path = common.path_join(context.temp_dir, "custom.lua")
         dove.setup({
             parent_target = {
-                new_source_file_template_code = "return { { 'shared' } }",
+                ---@return string
+                new_source_file_placeholder_text = function()
+                    return "return { { 'shared' } }"
+                end,
             },
             targets = {
                 project = {
@@ -56,7 +108,10 @@ describe("source file management", function()
                     source_path = function()
                         return custom_path
                     end,
-                    new_source_file_template_code = "return { { 'custom' } }",
+                    ---@return string
+                    new_source_file_placeholder_text = function()
+                        return "return { { 'custom' } }"
+                    end,
                 },
             },
         })
@@ -72,7 +127,10 @@ describe("source file management", function()
         local path = common.path_join(context.temp_dir, "existing.lua")
         context:write_source_file(path, { "return {}" })
         context:setup(path, {
-            new_source_file_template_code = "return { { 'make test' } }",
+            ---@return string
+            new_source_file_placeholder_text = function()
+                return "return { { 'make test' } }"
+            end,
         })
 
         dove.edit_source_file("project")

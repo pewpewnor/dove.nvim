@@ -40,15 +40,18 @@ return {
                 common.basename(common.get_shell():gsub("\\", "/")):lower()
             return (shell == "cmd" or shell == "cmd.exe") and " & " or "; "
         end,
-        new_source_file_template_code = table.concat({
-            "return {",
-            "    {",
-            '        name = "placeholder greeting",',
-            "        cmd = \"echo 'Hello from dove.nvim!'\",",
-            "    },",
-            "}",
-            "",
-        }, "\n"),
+        ---@return string
+        new_source_file_placeholder_text = function()
+            return table.concat({
+                "return {",
+                "    {",
+                '        name = "placeholder greeting",',
+                "        cmd = \"echo 'Hello from dove.nvim!'\",",
+                "    },",
+                "}",
+                "",
+            }, "\n")
+        end,
     },
     default_run_target = nil,
     ui = {

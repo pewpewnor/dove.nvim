@@ -55,9 +55,9 @@ local function validate_target(target_config, prefix, source_required)
         "function"
     )
     common.validate(
-        prefix .. ".new_source_file_template_code",
-        target_config.new_source_file_template_code,
-        { "string", "nil" }
+        prefix .. ".new_source_file_placeholder_text",
+        target_config.new_source_file_placeholder_text,
+        "function"
     )
 end
 

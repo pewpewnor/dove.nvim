@@ -77,12 +77,12 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Commands
 
-| Command                 | Action                                                            |
-| ----------------------- | ----------------------------------------------------------------- |
-| `:Dove run {target}`    | Run a target, or `default_run_target` when omitted                |
-| `:Dove prev`            | Repeat execution of the last executed entry                       |
-| `:Dove edit {target}`   | Open a target's source file                                       |
-| `:Dove delete {target}` | Delete a target's source file                                     |
+| Command                 | Action                                             |
+| ----------------------- | -------------------------------------------------- |
+| `:Dove run {target}`    | Run a target, or `default_run_target` when omitted |
+| `:Dove prev`            | Repeat execution of the last executed entry        |
+| `:Dove edit {target}`   | Open a target's source file                        |
+| `:Dove delete {target}` | Delete a target's source file                      |
 
 ## Built-in Targets
 
@@ -132,10 +132,13 @@ dove.setup({
     },
     -- options inherited by every target unless overridden there
     parent_target = {
+        -- adding values that can be accessed by the target's source file
         environment = {
+            -- adding custom variable to source file
             custom_var = "my custom variable value",
             denv = {
                 executors = {
+                    -- adding custom executor to source file
                     custom_notify = function(command)
                         vim.system(
                             { vim.o.shell, vim.o.shellcmdflag, command },
@@ -146,10 +149,14 @@ dove.setup({
                         )
                     end,
                 },
+                -- adding custom function to source file
                 custom_func = function() end,
             },
         },
+        -- change delimiter used when `cmd` on a source file's entry is a list
         cmd_list_delimiter = function() return " && " end,
+        -- stop writing placeholder text when editing a new source file
+        new_source_file_template_code = function() return nil end,
     },
     -- use `project` for `Dove run` without a target name
     default_run_target = function() return "project" end,

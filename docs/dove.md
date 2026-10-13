@@ -139,13 +139,15 @@ The default plugin configuration opts is equivalent to:
             local shell = vim.fs.basename(vim.o.shell:gsub("\\", "/")):lower()
             return (shell == "cmd" or shell == "cmd.exe") and " & " or "; "
         end,
-        new_source_file_template_code = [[return {
+        new_source_file_placeholder_text = function()
+            return [[return {
     {
         name = "placeholder greeting",
         cmd = "echo 'Hello from dove.nvim!'",
     },
 }
-]],
+]]
+        end,
     },
     default_run_target = nil,
     ui = {
@@ -166,14 +168,14 @@ The default plugin configuration opts is equivalent to:
 
 Each target supports:
 
-| Option                          | Type                          | Default                                      |
-| ------------------------------- | ----------------------------- | -------------------------------------------- |
-| `source_path`                   | function or list of functions | Required for a new target                    |
-| `auto_run_single_command`       | boolean                       | `false`                                      |
-| `default_executor`              | function                      | A short, full-width `preset.executors.split` |
-| `environment`                   | table                         | Built-in `denv` values                       |
-| `cmd_list_delimiter`            | function                      | Shell-compatible list separator              |
-| `new_source_file_template_code` | string or nil                 | Starter source code                          |
+| Option                             | Type                          | Default                                      |
+| ---------------------------------- | ----------------------------- | -------------------------------------------- |
+| `source_path`                      | function or list of functions | Required for a new target                    |
+| `auto_run_single_command`          | boolean                       | `false`                                      |
+| `default_executor`                 | function                      | A short, full-width `preset.executors.split` |
+| `environment`                      | table                         | Built-in `denv` values                       |
+| `cmd_list_delimiter`               | function                      | Shell-compatible list separator              |
+| `new_source_file_placeholder_text` | function                      | Starter source code                          |
 
 A source resolver takes no arguments and returns a path string or `nil`.
 Returned paths are normalized and `~` is expanded.
@@ -259,13 +261,14 @@ See **Command lists** for execution behavior.
 
 ### Source file templates
 
-`targets.<name>.new_source_file_template_code` controls `:Dove edit` for a
+`targets.<name>.new_source_file_placeholder_text` controls `:Dove edit` for a
 missing file:
 
-- Type: `string|nil`.
+- Type: `fun(): string?`.
 - Default: the starter source code shown in the default configuration.
 - Omitting the option or assigning `nil` uses the default.
-- A string is written to the new source file before it is opened.
+- Return `nil` to open a new source file without writing a template.
+- A returned string is written to the new source file before it is opened.
 - Existing files are never replaced.
 
 ### `ui`
@@ -685,8 +688,9 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
     Requires a target-name string and returns no value. It resolves the target's
     source path, recursively creates missing parent directories, and opens the
     escaped path with `:tabedit`. If the path is not a readable file and
-    the target's `new_source_file_template_code` is a string, it first writes that string to
-    the new source file. An unknown target or invalid resolver raises an error.
+    the target's `new_source_file_placeholder_text` returns a string, it first writes
+    that string to the new source file. An unknown target, invalid resolver, or
+    invalid template return value raises an error.
 
 - **`delete_source_file(target_name)`**
 

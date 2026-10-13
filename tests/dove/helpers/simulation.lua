@@ -60,12 +60,12 @@ function M:setup(path, options)
             end,
             environment = options.environment,
             cmd_list_delimiter = options.cmd_list_delimiter,
-            new_source_file_template_code = options.new_source_file_template_code,
+            new_source_file_placeholder_text = options.new_source_file_placeholder_text,
         },
     }
     options.environment = nil
     options.cmd_list_delimiter = nil
-    options.new_source_file_template_code = nil
+    options.new_source_file_placeholder_text = nil
     dove.setup(options)
 end
 

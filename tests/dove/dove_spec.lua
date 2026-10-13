@@ -62,7 +62,7 @@ describe("setup", function()
         assert.is_nil(module.config.environment)
         assert.is_nil(module.config.default_run_target)
         assert.is_nil(module.config.cmd_list_delimiter)
-        assert.is_nil(module.config.new_source_file_template_code)
+        assert.is_nil(module.config.new_source_file_placeholder_text)
         assert.equals(
             table.concat({
                 "return {",
@@ -73,7 +73,7 @@ describe("setup", function()
                 "}",
                 "",
             }, "\n"),
-            module.config.targets.project.new_source_file_template_code
+            module.config.targets.project.new_source_file_placeholder_text()
         )
         assert.is_function(module.config.ui.picker)
         assert.equals(
@@ -115,7 +115,7 @@ describe("setup", function()
 
     it("rejects invalid new source file template code", function()
         local success = pcall(dove.setup, {
-            targets = { project = { new_source_file_template_code = true } },
+            targets = { project = { new_source_file_placeholder_text = true } },
         })
 
         assert.is_false(success)

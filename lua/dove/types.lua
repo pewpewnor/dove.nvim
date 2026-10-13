@@ -13,14 +13,14 @@
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
----@field new_source_file_template_code string?
+---@field new_source_file_placeholder_text fun(): string?
 
 ---@class dove.ParentTarget
 ---@field auto_run_single_command boolean
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
----@field new_source_file_template_code string?
+---@field new_source_file_placeholder_text fun(): string?
 
 ---@class dove.Targets
 ---@field [string] dove.Target

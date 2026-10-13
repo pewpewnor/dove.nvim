@@ -75,11 +75,16 @@ function M.edit_source_file(target_name)
     local target = find_target(target_name)
     local path = pathfinder(target.source_path)
     common.mkdir_with_parents(common.dirname(path))
-    if
-        target.new_source_file_template_code ~= nil
-        and not common.is_file_and_readable(path)
-    then
-        common.write_text_file(path, target.new_source_file_template_code)
+    if not common.is_file_and_readable(path) then
+        local template = target.new_source_file_placeholder_text()
+        common.validate(
+            "new_source_file_placeholder_text return value",
+            template,
+            { "string", "nil" }
+        )
+        if template ~= nil then
+            common.write_text_file(path, template)
+        end
     end
     common.cmd("tabedit " .. common.fnameescape(path))
 end
