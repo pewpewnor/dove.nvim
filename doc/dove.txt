@@ -1,5 +1,5 @@
 *dove.txt*      Use Lua to define and run shell commands or Lua code anywhere.
-                              For NVIM v0.12.0    Last change: 2026 October 03
+                              For NVIM v0.12.0    Last change: 2026 October 13
 
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
@@ -106,7 +106,7 @@ Run an entry:
     :Dove run project
 <
 
-- One entry runs immediately by default.
+- One entry opens the picker by default.
 - Multiple entries open the picker.
 - Sources are reloaded on every run; restarting Neovim is unnecessary.
 - Use `:Dove edit filetype` and `:Dove run filetype` for the current filetype.
@@ -136,7 +136,7 @@ The default plugin configuration opts is equivalent to:
                         .. preset.hash_sha256(preset.cwd_path())
                         .. ".lua"
                 end,
-                auto_run_single_command = true,
+                auto_run_single_command = false,
                 default_executor = function(command)
                     preset.executors.split(
                         command,
@@ -151,7 +151,7 @@ The default plugin configuration opts is equivalent to:
                         .. preset.file_type()
                         .. ".lua"
                 end,
-                auto_run_single_command = true,
+                auto_run_single_command = false,
                 default_executor = function(command)
                     preset.executors.split(
                         command,
@@ -163,7 +163,7 @@ The default plugin configuration opts is equivalent to:
                 source_path = function()
                     return preset.dove_data_path() .. "/global.lua"
                 end,
-                auto_run_single_command = true,
+                auto_run_single_command = false,
                 default_executor = function(command)
                     preset.executors.split(
                         command,
@@ -211,7 +211,7 @@ Each target supports:
   source_path               function or list of   Required for a new target
                             functions             
 
-  auto_run_single_command   boolean               true
+  auto_run_single_command   boolean               false
 
   default_executor          function              A short, full-width
                                                   preset.executors.split
@@ -244,7 +244,7 @@ Built-in paths and settings:
 
 - `project`: `stdpath("data")/dove/projects/<sha256-of-cwd>.lua`.
 - `filetype`: `stdpath("data")/dove/filetypes/<filetype>.lua`.
-- Both auto-run one entry and use a short, full-width `preset.executors.split`.
+- Both show the picker for one entry and use a short, full-width `preset.executors.split`.
 
 
 ENVIRONMENT ~

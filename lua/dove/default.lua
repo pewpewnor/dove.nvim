@@ -8,7 +8,7 @@ local M = {}
 function M.fill_target(minimum_target)
     common.validate("minimum_target", minimum_target, "table")
     return common.tbl_deep_extend("force", {
-        auto_run_single_command = true,
+        auto_run_single_command = false,
         default_executor = function(command)
             preset.executors.split(command, { nil, "wincmd J | resize -4" })
         end,

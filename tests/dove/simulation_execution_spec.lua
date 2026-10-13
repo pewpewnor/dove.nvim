@@ -15,6 +15,38 @@ describe("source file execution", function()
         context:cleanup()
     end)
 
+    it("opens the picker for one entry by default", function()
+        local path = common.path_join(context.temp_dir, "single-command.lua")
+        context:write_source_file(path, {
+            "return {",
+            '    { "echo single" },',
+            "}",
+        })
+        local selected
+        dove.setup({
+            targets = {
+                project = {
+                    source_path = function()
+                        return path
+                    end,
+                    default_executor = function(command)
+                        context:execute(command)
+                    end,
+                },
+            },
+            ui = {
+                picker = function(items)
+                    selected = items
+                end,
+            },
+        })
+
+        dove.run_target("project")
+
+        assert.equals("echo single", selected[1].command)
+        assert.same({}, context.executed_commands)
+    end)
+
     it("runs the default target from the API and command", function()
         local path = common.path_join(context.temp_dir, "default-target.lua")
         context:write_source_file(path, {

@@ -124,8 +124,8 @@ dove.setup({
                         .. ".lua"
                 end,
             },
-            -- spawn picker even when there is only 1 defined command possible
-            auto_run_single_command = false,
+            -- run the only command without opening the picker
+            auto_run_single_command = true,
             -- override default executor to execute in a new side buffer
             default_executor = preset.executors.split,
         },

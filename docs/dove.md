@@ -84,7 +84,7 @@ Run an entry:
 :Dove run project
 ```
 
-- One entry runs immediately by default.
+- One entry opens the picker by default.
 - Multiple entries open the picker.
 - Sources are reloaded on every run; restarting Neovim is unnecessary.
 - Use `:Dove edit filetype` and `:Dove run filetype` for the current filetype.
@@ -112,7 +112,7 @@ The default plugin configuration opts is equivalent to:
                     .. preset.hash_sha256(preset.cwd_path())
                     .. ".lua"
             end,
-            auto_run_single_command = true,
+            auto_run_single_command = false,
             default_executor = function(command)
                 preset.executors.split(
                     command,
@@ -127,7 +127,7 @@ The default plugin configuration opts is equivalent to:
                     .. preset.file_type()
                     .. ".lua"
             end,
-            auto_run_single_command = true,
+            auto_run_single_command = false,
             default_executor = function(command)
                 preset.executors.split(
                     command,
@@ -139,7 +139,7 @@ The default plugin configuration opts is equivalent to:
             source_path = function()
                 return preset.dove_data_path() .. "/global.lua"
             end,
-            auto_run_single_command = true,
+            auto_run_single_command = false,
             default_executor = function(command)
                 preset.executors.split(
                     command,
@@ -183,7 +183,7 @@ Each target supports:
 | Option                    | Type                          | Default                                      |
 | ------------------------- | ----------------------------- | -------------------------------------------- |
 | `source_path`             | function or list of functions | Required for a new target                    |
-| `auto_run_single_command` | boolean                       | `true`                                       |
+| `auto_run_single_command` | boolean                       | `false`                                      |
 | `default_executor`        | function                      | A short, full-width `preset.executors.split` |
 
 A source resolver takes no arguments and returns a path string or `nil`.
@@ -214,7 +214,7 @@ Built-in paths and settings:
 
 - `project`: `stdpath("data")/dove/projects/<sha256-of-cwd>.lua`.
 - `filetype`: `stdpath("data")/dove/filetypes/<filetype>.lua`.
-- Both auto-run one entry and use a short, full-width `preset.executors.split`.
+- Both show the picker for one entry and use a short, full-width `preset.executors.split`.
 
 ### `environment`
 
