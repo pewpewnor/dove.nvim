@@ -43,7 +43,7 @@ describe("source file management", function()
         local project_path = common.path_join(context.temp_dir, "project.lua")
         local custom_path = common.path_join(context.temp_dir, "custom.lua")
         dove.setup({
-            fill_each_target = {
+            parent_target = {
                 new_source_file_template_code = "return { { 'shared' } }",
             },
             targets = {

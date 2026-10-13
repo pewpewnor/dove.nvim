@@ -45,7 +45,7 @@ describe("setup", function()
         assert.is_nil(dove.edit_lua_file)
         assert.is_nil(dove.delete_lua_file)
         assert.is_function(create_opts)
-        assert.is_table(default_opts.fill_each_target)
+        assert.is_table(default_opts.parent_target)
         assert.is_function(module.config.targets.project.source_path)
         assert.is_function(module.config.targets.filetype.source_path)
         assert.is_function(module.config.targets.global.source_path)
@@ -107,7 +107,7 @@ describe("setup", function()
 
     it("rejects an invalid command list delimiter", function()
         local success = pcall(dove.setup, {
-            fill_each_target = { cmd_list_delimiter = "; " },
+            parent_target = { cmd_list_delimiter = "; " },
         })
 
         assert.is_false(success)
@@ -164,7 +164,7 @@ describe("setup", function()
         local inherited_executor = function() end
         local custom_executor = function() end
         dove.setup({
-            fill_each_target = {
+            parent_target = {
                 auto_run_single_command = true,
                 default_executor = inherited_executor,
                 environment = { marker = "shared" },

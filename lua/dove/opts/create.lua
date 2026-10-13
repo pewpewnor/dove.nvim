@@ -10,7 +10,7 @@ local function create_opts(options)
         options or {}
     )
     if
-        type(config.fill_each_target) == "table"
+        type(config.parent_target) == "table"
         and type(config.targets) == "table"
     then
         for name, target in pairs(config.targets) do
@@ -18,7 +18,7 @@ local function create_opts(options)
                 config.targets[name] = common.tbl_deep_extend(
                     "force",
                     {},
-                    config.fill_each_target,
+                    config.parent_target,
                     target
                 )
             end

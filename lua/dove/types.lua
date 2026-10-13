@@ -15,7 +15,7 @@
 ---@field cmd_list_delimiter fun(): string
 ---@field new_source_file_template_code string?
 
----@class dove.FillEachTarget
+---@class dove.ParentTarget
 ---@field auto_run_single_command boolean
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
@@ -40,7 +40,7 @@
 
 ---@class dove.Config
 ---@field targets dove.Targets
----@field fill_each_target dove.FillEachTarget
+---@field parent_target dove.ParentTarget
 ---@field default_run_target (fun(): string)?
 ---@field ui dove.Ui
 

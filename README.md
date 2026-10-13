@@ -131,7 +131,7 @@ dove.setup({
         },
     },
     -- options inherited by every target unless overridden there
-    fill_each_target = {
+    parent_target = {
         environment = {
             custom_var = "my custom variable value",
             denv = {

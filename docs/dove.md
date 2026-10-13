@@ -127,7 +127,7 @@ The default plugin configuration opts is equivalent to:
             end,
         },
     },
-    fill_each_target = {
+    parent_target = {
         auto_run_single_command = false,
         default_executor = function(command)
             preset.executors.split(command, { nil, "wincmd J | resize -4" })
@@ -162,7 +162,7 @@ The default plugin configuration opts is equivalent to:
 - Type: `table<string, Target>`.
 - Defaults: `project`, `filetype`, and `global`.
 - User targets merge by name with built-in targets.
-- Every target inherits `fill_each_target` before its own options are applied.
+- Every target inherits `parent_target` before its own options are applied.
 
 Each target supports:
 
@@ -205,9 +205,9 @@ Built-in paths and settings:
 - `filetype`: `stdpath("data")/dove/filetypes/<filetype>.lua`.
 - Both show the picker for one entry and use a short, full-width `preset.executors.split`.
 
-### `fill_each_target`
+### `parent_target`
 
-The options in `fill_each_target` are deeply merged into every built-in and custom
+The options in `parent_target` are deeply merged into every built-in and custom
 target. A target can override any inherited value. Its `environment` table
 merges with the built-in `denv` values and with the target's own environment.
 `source_path` is still required for each new target.

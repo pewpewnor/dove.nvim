@@ -27,7 +27,7 @@ return {
             end,
         },
     },
-    fill_each_target = {
+    parent_target = {
         auto_run_single_command = false,
         default_executor = function(command)
             preset.executors.split(command, { nil, "wincmd J | resize -4" })

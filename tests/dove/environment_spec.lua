@@ -42,7 +42,7 @@ describe("environment", function()
     it("deeply merges user values and overrides", function()
         local custom_executor = function() end
         dove.setup({
-            fill_each_target = {
+            parent_target = {
                 environment = {
                     my_var = "lol",
                     denv = {
@@ -83,7 +83,7 @@ describe("environment", function()
     end)
 
     it("creates a fresh environment for every setup", function()
-        dove.setup({ fill_each_target = { environment = { marker = "first" } } })
+        dove.setup({ parent_target = { environment = { marker = "first" } } })
         assert.equals("first", module.config.targets.project.environment.marker)
 
         dove.setup()

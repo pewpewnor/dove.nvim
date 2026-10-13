@@ -1,5 +1,5 @@
 local common = require("dove.common")
----@param target_config dove.Target|dove.FillEachTarget
+---@param target_config dove.Target|dove.ParentTarget
 ---@param prefix string
 ---@param source_required boolean
 local function validate_target(target_config, prefix, source_required)
@@ -76,7 +76,7 @@ local function validate_opts(options)
         options.default_run_target,
         { "function", "nil" }
     )
-    validate_target(options.fill_each_target, "options.fill_each_target", false)
+    validate_target(options.parent_target, "options.parent_target", false)
     common.validate("options.ui", options.ui, "table")
     common.validate("options.ui.picker", options.ui.picker, "function")
     common.validate(

@@ -300,7 +300,7 @@ describe("source file execution", function()
             'return { { cmd = { prefix .. "first", "second" } } }',
         })
         dove.setup({
-            fill_each_target = {
+            parent_target = {
                 auto_run_single_command = true,
                 environment = { prefix = "shared-" },
             },
