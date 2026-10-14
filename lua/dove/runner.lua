@@ -56,7 +56,7 @@ function M.select_and_run_entry(target)
         return
     end
 
-    if #entries == 1 and target.auto_run_single_command then
+    if #entries == 1 and target.auto_run_single_entry then
         return run_entry(entries[1], target.default_executor)
     end
 

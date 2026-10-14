@@ -33,7 +33,7 @@ describe("source file loading", function()
             end
             return context.original_expand(value)
         end)
-        context:setup(path, { auto_run_single_command = false })
+        context:setup(path, { auto_run_single_entry = false })
 
         local selected
         context.picker = function(items)

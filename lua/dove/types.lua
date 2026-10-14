@@ -9,14 +9,14 @@
 
 ---@class dove.Target
 ---@field source_path dove.PathResolver|dove.PathResolver[]
----@field auto_run_single_command boolean
+---@field auto_run_single_entry boolean
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
 ---@field new_source_file_placeholder_text fun(): string?
 
 ---@class dove.ParentTarget
----@field auto_run_single_command boolean
+---@field auto_run_single_entry boolean
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
@@ -41,7 +41,7 @@
 ---@class dove.Config
 ---@field targets dove.Targets
 ---@field parent_target dove.ParentTarget
----@field default_run_target (fun(): string)?
+---@field unspecified_target_name (fun(): string)?
 ---@field ui dove.Ui
 
 ---@class dove.RawEntry
@@ -58,7 +58,7 @@
 ---@class dove.ProcessedTarget
 ---@field name string
 ---@field source_path string
----@field auto_run_single_command boolean
+---@field auto_run_single_entry boolean
 ---@field default_executor dove.Executor
 
 ---@class dove.Task

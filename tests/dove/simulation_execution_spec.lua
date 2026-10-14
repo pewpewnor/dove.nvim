@@ -47,7 +47,7 @@ describe("source file execution", function()
         assert.same({}, context.executed_commands)
     end)
 
-    it("runs the default target from the API and command", function()
+    it("runs the unspecified target from the API and command", function()
         local path = common.path_join(context.temp_dir, "default-target.lua")
         context:write_source_file(path, {
             "return {",
@@ -55,7 +55,7 @@ describe("source file execution", function()
             "}",
         })
         context:setup(path, {
-            default_run_target = function()
+            unspecified_target_name = function()
                 return "project"
             end,
         })
@@ -79,7 +79,7 @@ describe("source file execution", function()
             '    { "echo second", name = "b" },',
             "}",
         })
-        context:setup(path, { auto_run_single_command = false })
+        context:setup(path, { auto_run_single_entry = false })
 
         dove.run_target("project")
 
@@ -119,7 +119,7 @@ describe("source file execution", function()
                 on_choice(items[selected_index], selected_index)
             end
             context:setup(path, {
-                auto_run_single_command = false,
+                auto_run_single_entry = false,
                 environment = {
                     record = function(value)
                         recorded[#recorded + 1] = value
@@ -185,7 +185,7 @@ describe("source file execution", function()
             '    "echo invalid",',
             "}",
         })
-        context:setup(path, { auto_run_single_command = false })
+        context:setup(path, { auto_run_single_entry = false })
 
         local success = pcall(dove.run_target, "project")
 
@@ -254,7 +254,7 @@ describe("source file execution", function()
             "}",
         })
         context:setup(path, {
-            auto_run_single_command = false,
+            auto_run_single_entry = false,
             cmd_list_delimiter = function()
                 return "; "
             end,
@@ -301,7 +301,7 @@ describe("source file execution", function()
         })
         dove.setup({
             parent_target = {
-                auto_run_single_command = true,
+                auto_run_single_entry = true,
                 environment = { prefix = "shared-" },
             },
             targets = {
@@ -407,7 +407,7 @@ describe("source file execution", function()
         local received_prompt
         local received_labels
         context:setup(path, {
-            auto_run_single_command = false,
+            auto_run_single_entry = false,
             ui = {
                 picker = function(items, opts, on_choice)
                     received_prompt = opts.prompt
@@ -437,7 +437,7 @@ describe("source file execution", function()
         })
         local received_labels
         context:setup(path, {
-            auto_run_single_command = false,
+            auto_run_single_entry = false,
             ui = {
                 format_selection_item = function(name, i)
                     return name .. " (" .. i .. ")"

@@ -28,7 +28,7 @@ return {
         },
     },
     parent_target = {
-        auto_run_single_command = false,
+        auto_run_single_entry = false,
         default_executor = function(command)
             preset.executors.split(command, { nil, "wincmd J | resize -4" })
         end,
@@ -53,7 +53,7 @@ return {
             }, "\n")
         end,
     },
-    default_run_target = nil,
+    unspecified_target_name = nil,
     ui = {
         picker = require("dove.picker"),
         format_selection_item = function(name, i)

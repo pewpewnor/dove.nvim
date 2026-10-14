@@ -10,8 +10,16 @@ local subcommands = {
         target_optional = true,
     },
     prev = { func = dove.run_prev_task, takes_target = false },
-    edit = { func = dove.edit_source_file, takes_target = true },
-    delete = { func = dove.delete_source_file, takes_target = true },
+    edit = {
+        func = dove.edit_source_file,
+        takes_target = true,
+        target_optional = true,
+    },
+    delete = {
+        func = dove.delete_source_file,
+        takes_target = true,
+        target_optional = true,
+    },
 }
 
 ---@type string[]

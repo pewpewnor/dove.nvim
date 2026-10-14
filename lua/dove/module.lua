@@ -31,46 +31,50 @@ local function ensure_setup()
     end
 end
 
----@param target_name string
----@return dove.Target
+---@param target_name string?
+---@return dove.Target, string
 local function find_target(target_name)
     ensure_setup()
 
-    common.validate("target_name", target_name, "string")
-    local target = M.config.targets[target_name]
+    local resolved_target_name = target_name
+    if resolved_target_name == nil then
+        if M.config.unspecified_target_name == nil then
+            error("dove.nvim: no unspecified target name is configured")
+        end
+        resolved_target_name = M.config.unspecified_target_name()
+    end
+    common.validate(
+        target_name == nil and "unspecified_target_name" or "target_name",
+        resolved_target_name,
+        "string"
+    )
+    local target = M.config.targets[resolved_target_name]
     if not target then
         error(
-            string.format("dove.nvim: target '%s' does not exist", target_name)
+            string.format(
+                "dove.nvim: target '%s' does not exist",
+                resolved_target_name
+            )
         )
     end
-    return target
+    return target, resolved_target_name
 end
 
 ---@param target_name string?
 ---@return any
 function M.run_target(target_name)
-    ensure_setup()
-
-    local resolved_target_name = target_name
-    if resolved_target_name == nil then
-        if M.config.default_run_target == nil then
-            error("dove.nvim: no default target is configured")
-        end
-        resolved_target_name = M.config.default_run_target()
-        common.validate("default_run_target", resolved_target_name, "string")
-    end
-    local target = find_target(resolved_target_name)
+    local target, resolved_target_name = find_target(target_name)
     return runner.select_and_run_entry({
         name = resolved_target_name,
         source_path = pathfinder(target.source_path),
-        auto_run_single_command = target.auto_run_single_command,
+        auto_run_single_entry = target.auto_run_single_entry,
         default_executor = target.default_executor,
     })
 end
 
 M.run_prev_task = runner.run_prev_task
 
----@param target_name string
+---@param target_name string?
 function M.edit_source_file(target_name)
     local target = find_target(target_name)
     local path = pathfinder(target.source_path)
@@ -89,7 +93,7 @@ function M.edit_source_file(target_name)
     common.cmd("tabedit " .. common.fnameescape(path))
 end
 
----@param target_name string
+---@param target_name string?
 function M.delete_source_file(target_name)
     local path = pathfinder(find_target(target_name).source_path)
     common.path_remove(path)

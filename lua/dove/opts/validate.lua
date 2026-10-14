@@ -35,8 +35,8 @@ local function validate_target(target_config, prefix, source_required)
         end
     end
     common.validate(
-        prefix .. ".auto_run_single_command",
-        target_config.auto_run_single_command,
+        prefix .. ".auto_run_single_entry",
+        target_config.auto_run_single_entry,
         "boolean"
     )
     common.validate(
@@ -72,8 +72,8 @@ end
 local function validate_opts(options)
     common.validate("options", options, "table")
     common.validate(
-        "options.default_run_target",
-        options.default_run_target,
+        "options.unspecified_target_name",
+        options.unspecified_target_name,
         { "function", "nil" }
     )
     validate_target(options.parent_target, "options.parent_target", false)

@@ -49,18 +49,18 @@ describe("setup", function()
         assert.is_function(module.config.targets.project.source_path)
         assert.is_function(module.config.targets.filetype.source_path)
         assert.is_function(module.config.targets.global.source_path)
-        assert.is_false(module.config.targets.project.auto_run_single_command)
-        assert.is_false(module.config.targets.filetype.auto_run_single_command)
-        assert.is_false(module.config.targets.global.auto_run_single_command)
+        assert.is_false(module.config.targets.project.auto_run_single_entry)
+        assert.is_false(module.config.targets.filetype.auto_run_single_entry)
+        assert.is_false(module.config.targets.global.auto_run_single_entry)
         assert.is_nil(module.config.targets.project.source)
         assert.is_nil(module.config.targets.filetype.source)
         assert.is_nil(module.config.targets.global.source)
         assert.is_function(module.config.targets.project.default_executor)
         assert.is_function(module.config.targets.filetype.default_executor)
         assert.is_function(module.config.targets.global.default_executor)
-        assert.is_nil(module.config.targets.project.default_run_target)
+        assert.is_nil(module.config.targets.project.unspecified_target_name)
         assert.is_nil(module.config.environment)
-        assert.is_nil(module.config.default_run_target)
+        assert.is_nil(module.config.unspecified_target_name)
         assert.is_nil(module.config.cmd_list_delimiter)
         assert.is_nil(module.config.new_source_file_placeholder_text)
         assert.equals(
@@ -121,21 +121,24 @@ describe("setup", function()
         assert.is_false(success)
     end)
 
-    it("rejects an invalid default run target", function()
+    it("rejects an invalid unspecified target name", function()
         local success = pcall(dove.setup, {
-            default_run_target = true,
+            unspecified_target_name = true,
         })
 
         assert.is_false(success)
     end)
 
-    it("rejects an omitted target when no default is configured", function()
-        dove.setup()
+    it(
+        "rejects omitted targets when no unspecified target is configured",
+        function()
+            dove.setup()
 
-        local success = pcall(dove.run_target)
-
-        assert.is_false(success)
-    end)
+            assert.is_false(pcall(dove.run_target))
+            assert.is_false(pcall(dove.edit_source_file))
+            assert.is_false(pcall(dove.delete_source_file))
+        end
+    )
 
     it("rejects invalid source path resolver list entries", function()
         local success = pcall(dove.setup, {
@@ -152,7 +155,7 @@ describe("setup", function()
             targets = {
                 custom_target = {
                     default_executor = preset.executors.new_tab,
-                    auto_run_single_command = false,
+                    auto_run_single_entry = false,
                 },
             },
         })
@@ -165,7 +168,7 @@ describe("setup", function()
         local custom_executor = function() end
         dove.setup({
             parent_target = {
-                auto_run_single_command = true,
+                auto_run_single_entry = true,
                 default_executor = inherited_executor,
                 environment = { marker = "shared" },
                 cmd_list_delimiter = function()
@@ -185,7 +188,7 @@ describe("setup", function()
 
         local project = module.config.targets.project
         local custom = module.config.targets.custom
-        assert.is_true(project.auto_run_single_command)
+        assert.is_true(project.auto_run_single_entry)
         assert.equals(inherited_executor, project.default_executor)
         assert.equals("shared", project.environment.marker)
         assert.equals(" && ", project.cmd_list_delimiter())

@@ -77,12 +77,15 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Commands
 
-| Command                 | Action                                             |
-| ----------------------- | -------------------------------------------------- |
-| `:Dove run {target}`    | Run a target, or `default_run_target` when omitted |
-| `:Dove prev`            | Repeat execution of the last executed entry        |
-| `:Dove edit {target}`   | Open a target's source file                        |
-| `:Dove delete {target}` | Delete a target's source file                      |
+| Command                 | Action                                      |
+| ----------------------- | ------------------------------------------- |
+| `:Dove run [target]`    | Run the target                              |
+| `:Dove prev`            | Repeat execution of the last executed entry |
+| `:Dove edit [target]`   | Open the target's source file               |
+| `:Dove delete [target]` | Delete the target's source file             |
+
+If target name is ommited, it will use the value of `unspecified_target_name` as
+the target name.
 
 ## Built-in Targets
 
@@ -125,7 +128,7 @@ dove.setup({
                 end,
             },
             -- run the only command without opening the picker
-            auto_run_single_command = true,
+            auto_run_single_entry = true,
             -- override default executor to execute in a new side buffer
             default_executor = preset.executors.split,
         },
@@ -156,10 +159,10 @@ dove.setup({
         -- change delimiter used when `cmd` on a source file's entry is a list
         cmd_list_delimiter = function() return " && " end,
         -- stop writing placeholder text when editing a new source file
-        new_source_file_template_code = function() return nil end,
+        new_source_file_placeholder_text = function() return nil end,
     },
     -- use `project` for `Dove run` without a target name
-    default_run_target = function() return "project" end,
+    unspecified_target_name = function() return "project" end,
     ui = {
         -- override picker to any vim.ui.select compatible picker
         picker = vim.ui.select,
@@ -315,13 +318,13 @@ compatible function.
 
 `require("dove")` returns:
 
-| Function                          | Meaning                              |
-| --------------------------------- | ------------------------------------ |
-| `setup(options?)`                 | Configure and initialize the plugin. |
-| `run_target(target_name?)`        | Run an entry from a target.          |
-| `run_prev_task()`                 | Repeat the last executed task.       |
-| `edit_source_file(target_name)`   | Open a target source file.           |
-| `delete_source_file(target_name)` | Delete a target source file.         |
+| Function                           | Meaning                              |
+| ---------------------------------- | ------------------------------------ |
+| `setup(options?)`                  | Configure and initialize the plugin. |
+| `run_target(target_name?)`         | Run an entry from a target.          |
+| `run_prev_task()`                  | Repeat the last executed task.       |
+| `edit_source_file(target_name?)`   | Open a target source file.           |
+| `delete_source_file(target_name?)` | Delete a target source file.         |
 
 Example of binding keys:
 

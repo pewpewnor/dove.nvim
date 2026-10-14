@@ -42,8 +42,8 @@ end
 
 function M:setup(path, options)
     options = options or {}
-    local auto_run_single_command = options.auto_run_single_command ~= false
-    options.auto_run_single_command = nil
+    local auto_run_single_entry = options.auto_run_single_entry ~= false
+    options.auto_run_single_entry = nil
     options.ui = options.ui or {}
     options.ui.picker = options.ui.picker
         or function(...)
@@ -54,7 +54,7 @@ function M:setup(path, options)
             source_path = function()
                 return path
             end,
-            auto_run_single_command = auto_run_single_command,
+            auto_run_single_entry = auto_run_single_entry,
             default_executor = function(command)
                 self:execute(command)
             end,

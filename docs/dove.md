@@ -128,7 +128,7 @@ The default plugin configuration opts is equivalent to:
         },
     },
     parent_target = {
-        auto_run_single_command = false,
+        auto_run_single_entry = false,
         default_executor = function(command)
             preset.executors.split(command, { nil, "wincmd J | resize -4" })
         end,
@@ -149,7 +149,7 @@ The default plugin configuration opts is equivalent to:
 ]]
         end,
     },
-    default_run_target = nil,
+    unspecified_target_name = nil,
     ui = {
         picker = require("dove.picker"),
         format_selection_item = function(name, i)
@@ -171,7 +171,7 @@ Each target supports:
 | Option                             | Type                          | Default                                      |
 | ---------------------------------- | ----------------------------- | -------------------------------------------- |
 | `source_path`                      | function or list of functions | Required for a new target                    |
-| `auto_run_single_command`          | boolean                       | `false`                                      |
+| `auto_run_single_entry`            | boolean                       | `false`                                      |
 | `default_executor`                 | function                      | A short, full-width `preset.executors.split` |
 | `environment`                      | table                         | Built-in `denv` values                       |
 | `cmd_list_delimiter`               | function                      | Shell-compatible list separator              |
@@ -241,14 +241,15 @@ targets = {
 The source can then use `test_prefix`, the replaced `denv.file_path()`, and
 `denv.executors.quick`.
 
-### `default_run_target`
+### `unspecified_target_name`
 
 - Type: `(fun(): string)|nil`.
 - Default: `nil`.
 
-Resolves the target name used by `:Dove run` and `run_target()` when no target
-is provided. The specified target name must match the name of a configured
-target. If `nil`, the bare command raises an error.
+Resolves the target name used by `:Dove run`, `:Dove edit`, `:Dove delete`,
+`run_target()`, `edit_source_file()`, and `delete_source_file()` when no target
+is provided. The returned name must match a configured target. If the option
+is `nil`, omitting a target raises an error.
 
 ### `targets.<name>.cmd_list_delimiter`
 
@@ -312,14 +313,14 @@ A custom picker receives `items`, `opts`, and `on_choice`:
 
 | Command                 | Action                                                            |
 | ----------------------- | ----------------------------------------------------------------- |
-| `:Dove run [target]`    | Run a target, or `default_run_target` when omitted                |
+| `:Dove run [target]`    | Run a target, or `unspecified_target_name` when omitted           |
 | `:Dove prev`            | Repeat execution of the last executed entry                       |
-| `:Dove edit {target}`   | Open a target's source file                                       |
-| `:Dove delete {target}` | Delete a target's source file                                     |
+| `:Dove edit [target]`   | Open a source file; infer the target when omitted                 |
+| `:Dove delete [target]` | Delete a source file; infer the target when omitted               |
 
 - Subcommands and target names support completion.
-- Missing, extra, and unknown arguments are rejected, except that `run` may
-  omit its target when `default_run_target` is configured.
+- Missing, extra, and unknown arguments are rejected, except that `run`, `edit`,
+  and `delete` may omit their target when `unspecified_target_name` is configured.
 - `run` stops with a message when no readable source exists or it has no
   entries.
 - Selecting an entry stores its final command or function and executor.
@@ -666,9 +667,9 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
 - **`run_target(target_name?)`**
 
     Accepts an optional target-name string and returns no value. When omitted,
-    it uses `default_run_target`; an error is raised if no default is configured. It
-    resolves the target's source path, evaluates and validates the source list,
-    and either executes its only entry when `auto_run_single_command` is enabled
+    it uses `unspecified_target_name`; an error is raised if none is configured.
+    It resolves the target's source path, evaluates and validates the source list,
+    and either executes its only entry when `auto_run_single_entry` is enabled
     or passes all entries to the configured picker. The chosen command or
     function and executor become the previous task only when an entry is
     executed. An unknown target, invalid resolver, or invalid source raises an
@@ -683,21 +684,24 @@ executors.split("make test", { nil, "wincmd J | resize -3" })
     configuration. If no entry has been executed, it prints
     `dove.nvim: no previously executed task` and does nothing else.
 
-- **`edit_source_file(target_name)`**
+- **`edit_source_file(target_name?)`**
 
-    Requires a target-name string and returns no value. It resolves the target's
-    source path, recursively creates missing parent directories, and opens the
-    escaped path with `:tabedit`. If the path is not a readable file and
-    the target's `new_source_file_placeholder_text` returns a string, it first writes
-    that string to the new source file. An unknown target, invalid resolver, or
-    invalid template return value raises an error.
+    Accepts an optional target-name string and returns no value. When omitted,
+    it uses `unspecified_target_name`; an error is raised if none is configured.
+    It resolves the target's source path, recursively creates missing parent
+    directories, and opens the escaped path with `:tabedit`. If the path is not
+    a readable file and the target's `new_source_file_placeholder_text` returns
+    a string, it first writes that string to the new source file. An unknown
+    target, invalid resolver, or invalid template return value raises an error.
 
-- **`delete_source_file(target_name)`**
+- **`delete_source_file(target_name?)`**
 
-    Requires a target-name string and returns no value. It resolves the target's
-    source path and calls `vim.fs.rm(path, { force = true })`. No confirmation is
-    requested, and a missing path is ignored. An unknown target or invalid
-    resolver raises an error.
+    Accepts an optional target-name string and returns no value. When omitted,
+    it uses `unspecified_target_name`; an error is raised if none is configured.
+    It resolves the target's source path and calls
+    `vim.fs.rm(path, { force = true })`. No confirmation is requested, and a
+    missing path is ignored. An unknown target or invalid resolver raises an
+    error.
 
 Example of binding keys:
 
