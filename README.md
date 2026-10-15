@@ -12,7 +12,7 @@ project, or global contexts without reloading Neovim.
 
 https://github.com/user-attachments/assets/12a4a5fd-18c2-4d5f-84a2-c15132cd8bae
 
-## How it works
+## How It Works
 
 dove.nvim organizes where to retrieve your custom commands into **targets**.
 A target tells dove.nvim where to look for Lua files defined by you.
@@ -22,7 +22,7 @@ current project, file type, or something else.
 
 See [commands](#commands) for all available user commands.
 
-### Step 1: Define targets (optional)
+### Step 1: Define Targets (Optional)
 
 Use `Dove edit {target}` to start defining commands you can later pick and
 execute.
@@ -30,7 +30,7 @@ execute.
 See [built-in targets](#built-in-targets) for targets you can use without any
 extra configuration. You may also add new or override any targets.
 
-### Step 2: Write Lua code to define your commands
+### Step 2: Write Lua Code to Define Your Commands
 
 You may edit the Lua file associated with the target (which we refer to as the
 **source file**). Edit the source file to define your own list of commands that
@@ -47,7 +47,7 @@ To help write commands efficiently:
 You may also define/override variables, functions, and executors that the source
 file can access. By default, all commands will be executed in a new pane.
 
-### Step 3: Run the target and select a command to run
+### Step 3: Run the Target and Select a Command to Run
 
 Use `Dove run {target}` to run the target.
 
@@ -178,7 +178,7 @@ dove.setup({
 > With the above example, source files can access `custom_var`,
 > `denv.executors.custom_notify`, and `denv.custom_func`.
 
-## Writing source files
+## Writing Source Files
 
 > [!TIP]
 > Run `:Dove edit {target}` to edit the target's source file.
@@ -232,7 +232,7 @@ Every entry must be a table and must have exactly one command field:
 When `[1]` or `cmd` is a function, dove.nvim calls it directly. Both the entry's
 executor and the target's default executor are ignored.
 
-### Source environment
+### Source Environment
 
 > [!NOTE]
 > Source files get built-in values through `denv`. By default, the functions
@@ -302,7 +302,7 @@ return {
 }
 ```
 
-## Built-in picker
+## Built-in Picker
 
 The built-in picker `require("dove.picker")` opens a centered floating window.
 
@@ -341,7 +341,7 @@ vim.keymap.set("n", "<Leader>df", "<CMD>Dove run filetype<CR>",
     { desc = "Dove: run target filetype" })
 ```
 
-## Other things
+## Other Things
 
 Run `:checkhealth dove` for diagnostics.
 

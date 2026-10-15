@@ -56,7 +56,7 @@ require("dove").setup()
   the plugin.
 - See [configuration](#configuration) for every option.
 
-## Quick start
+## Quick Start
 
 Open the current project's source file:
 
@@ -92,7 +92,7 @@ Run an entry:
 
 ## Configuration
 
-### Default configuration
+### Default Configuration
 
 Assuming we define:
 
@@ -260,7 +260,7 @@ is `nil`, omitting a target raises an error.
 
 See **Command lists** for execution behavior.
 
-### Source file templates
+### Source File Templates
 
 `targets.<name>.new_source_file_placeholder_text` controls `:Dove edit` for a
 missing file:
@@ -295,7 +295,7 @@ A custom picker receives `items`, `opts`, and `on_choice`:
 - `opts.format_item(entry)` returns the display label.
 - Call `on_choice(item, index)` to run an entry or `on_choice()` to cancel.
 
-#### Built-in picker
+#### Built-in Picker
 
 - Type to filter labels; leading and trailing query spaces are ignored.
 - Matching is case-insensitive. Substrings rank above fuzzy in-order matches.
@@ -329,7 +329,7 @@ A custom picker receives `items`, `opts`, and `on_choice`:
 - `edit` creates missing parent directories. See **Source file templates** for
   new files.
 
-## Source file
+## Source File
 
 A source file returns a list of entry tables:
 
@@ -391,7 +391,7 @@ ignored, and the processed entry's executor is `nil`. Its picker label defaults
 to `tostring()` of the function when `name` is omitted. The same function is
 called again by `:Dove prev`.
 
-### Command lists
+### Command Lists
 
 A named `cmd` may be a non-empty list of strings:
 
@@ -443,7 +443,7 @@ For source-file imports:
 
 Other names use Lua's normal `require()` and are not flattened.
 
-## Source environment
+## Source Environment
 
 Source files receive each configured environment key as a global. Built-in
 values are grouped under `denv`:
@@ -723,7 +723,7 @@ The behavior under [Commands](#commands) also applies to these functions.
 configuration; see [Source environment](#source-environment) and
 [Executors](#executors).
 
-## Health check
+## Health Check
 
 Run `:checkhealth dove`. It reports:
 

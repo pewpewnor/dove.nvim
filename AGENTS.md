@@ -1,4 +1,4 @@
-# Agent guidelines
+# Agent Guidelines
 
 ## Project
 
@@ -6,7 +6,7 @@ dove.nvim is a Neovim plugin that runs project and file commands from Lua
 source files. It supports custom targets, environment values, executors, and
 source imports.
 
-## Before editing
+## Before Editing
 
 - Read `README.md` before making changes. It states the required Neovim version.
 - Inspect similar code and tests first.
@@ -15,7 +15,7 @@ source imports.
 
 Use current Neovim APIs. Do not restore legacy compatibility unless requested.
 
-## Code rules
+## Code Rules
 
 - Do not add comments unless a linter requires them.
 - Add Lua type comments everytime we define a new function/method. If the
@@ -28,7 +28,7 @@ Use current Neovim APIs. Do not restore legacy compatibility unless requested.
 - Format errors and `print()` messages as
   `dove.nvim: <lowercase message without a trailing period>`.
 
-## Documentation rules
+## Documentation Rules
 
 Everything in `doc/` is generated with panvimdoc, do not edit it directly.
 Update the source documentation in `docs/` and ask the user to regenerate the
@@ -60,7 +60,7 @@ lua-language-server --check=. --checklevel=Warning --check_out_path=/tmp/dove-lu
 If you are unable to find these tools in path, search them on mason.nvim install
 directory. If it's still not there, give up and inform it instead.
 
-## When changing the required Neovim version
+## When Changing the Required Neovim Version
 
 When changing the minimum version, update all of these:
 

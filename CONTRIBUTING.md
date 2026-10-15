@@ -2,14 +2,14 @@
 
 Bug fixes, features, and documentation improvements are welcome.
 
-## Before opening a pull request
+## Before Opening a Pull Request
 
 - Keep the change focused.
 - Follow the conventions in `AGENTS.md`.
 - Update tests and documentation when behavior changes.
 - Run the checks below from the repository root.
 
-## Bug reports
+## Bug Reports
 
 Report bugs by creating a new issue.
 
@@ -17,12 +17,12 @@ Report bugs by creating a new issue.
   and Lua configuration.
 - Give step-by-step instructions to reproduce the problem.
 
-## Pull requests
+## Pull Requests
 
 Explain what changed and why, and link any related issue. Open an issue or
 discussion first when a change needs design agreement.
 
-### Commit messages
+### Commit Messages
 
 Use a clear commit prefix:
 
