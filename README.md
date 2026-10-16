@@ -4,7 +4,7 @@
 [![Platforms](https://img.shields.io/badge/Platforms-Linux_%7C_macOS_%7C_Windows-blue?style=for-the-badge)](#installation)
 [![Documentation](https://img.shields.io/badge/Documentation-guides-blue?style=for-the-badge)](docs/dove.md)
 [![License](https://img.shields.io/github/license/pewpewnor/dove.nvim?style=for-the-badge)](LICENSE)
-[![Tests](https://img.shields.io/github/actions/workflow/status/pewpewnor/dove.nvim/makefile.yml?branch=main&style=for-the-badge&label=tests)](https://github.com/pewpewnor/dove.nvim/actions/workflows/makefile.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/pewpewnor/dove.nvim/ci.yml?branch=main&style=for-the-badge&label=tests)](https://github.com/pewpewnor/dove.nvim/actions/workflows/ci.yml)
 ![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
 
 Use Lua to define and execute arbitrary shell commands or Lua code for file,

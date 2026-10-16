@@ -311,12 +311,12 @@ A custom picker receives `items`, `opts`, and `on_choice`:
 
 ## Commands
 
-| Command                 | Action                                                            |
-| ----------------------- | ----------------------------------------------------------------- |
-| `:Dove run [target]`    | Run a target, or `unspecified_target_name` when omitted           |
-| `:Dove prev`            | Repeat execution of the last executed entry                       |
-| `:Dove edit [target]`   | Open a source file; infer the target when omitted                 |
-| `:Dove delete [target]` | Delete a source file; infer the target when omitted               |
+| Command                 | Action                                      |
+| ----------------------- | ------------------------------------------- |
+| `:Dove run [target]`    | Run the target                              |
+| `:Dove prev`            | Repeat execution of the last executed entry |
+| `:Dove edit [target]`   | Open the target's source file               |
+| `:Dove delete [target]` | Delete the target's source file             |
 
 - Subcommands and target names support completion.
 - Missing, extra, and unknown arguments are rejected, except that `run`, `edit`,
@@ -739,4 +739,5 @@ is an error.
 ## Links
 
 - [Repository](https://github.com/pewpewnor/dove.nvim)
-- [Contributing](../CONTRIBUTING.md)
+- [Contribute](https://github.com/pewpewnor/dove.nvim/blob/main/CONTRIBUTING.md)
+- [License](https://github.com/pewpewnor/dove.nvim/blob/main/LICENSE)

@@ -1,5 +1,5 @@
 *dove.txt*      Use Lua to define and run shell commands or Lua code anywhere.
-                              For NVIM v0.12.0    Last change: 2026 October 14
+                              For NVIM v0.12.0    Last change: 2026 October 16
 
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
@@ -352,18 +352,17 @@ BUILT-IN PICKER
 
 COMMANDS                                                       *dove-commands*
 
-  ----------------------------------------------------------------------------
-  Command                 Action
-  ----------------------- ----------------------------------------------------
-  :Dove run [target]      Run a target, or unspecified_target_name when
-                          omitted
+  -----------------------------------------------------------------------
+  Command                  Action
+  ------------------------ ----------------------------------------------
+  :Dove run [target]       Run the target
 
-  :Dove prev              Repeat execution of the last executed entry
+  :Dove prev               Repeat execution of the last executed entry
 
-  :Dove edit [target]     Open a source file; infer the target when omitted
+  :Dove edit [target]      Open the target’s source file
 
-  :Dove delete [target]   Delete a source file; infer the target when omitted
-  ----------------------------------------------------------------------------
+  :Dove delete [target]    Delete the target’s source file
+  -----------------------------------------------------------------------
 - Subcommands and target names support completion.
 - Missing, extra, and unknown arguments are rejected, except that `run`, `edit`,
     and `delete` may omit their target when `unspecified_target_name` is configured.
@@ -742,7 +741,8 @@ is an error.
 LINKS                                                             *dove-links*
 
 - Repository <https://github.com/pewpewnor/dove.nvim>
-- Contributing <../CONTRIBUTING.md>
+- Contribute <https://github.com/pewpewnor/dove.nvim/blob/main/CONTRIBUTING.md>
+- License <https://github.com/pewpewnor/dove.nvim/blob/main/LICENSE>
 
 
 vim:tw=78:ts=8:noet:ft=help:norl:
