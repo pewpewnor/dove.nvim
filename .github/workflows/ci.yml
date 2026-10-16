@@ -7,9 +7,9 @@ on:
         branches: ["main"]
 
 jobs:
-    lint:
+    lua-diagnostics:
+        name: Lua Diagnostics
         runs-on: ubuntu-latest
-
         steps:
             - name: Checkout dove.nvim
               uses: actions/checkout@v4
@@ -19,12 +19,26 @@ jobs:
               with:
                   checklevel: Warning
 
+    lua-format:
+        name: Lua Format
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout dove.nvim
+              uses: actions/checkout@v4
+
             - name: Check Lua formatting
               uses: JohnnyMorganz/stylua-action@v5
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   version: 2.5.0
                   args: --check .
+
+    markdown:
+        name: Markdown
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout dove.nvim
+              uses: actions/checkout@v4
 
             - name: Set up Node.js
               uses: actions/setup-node@v4
@@ -35,8 +49,8 @@ jobs:
               run: npx --yes markdownlint-cli@0.49.1 '**/*.md'
 
     vimdoc:
+        name: Vimdoc
         runs-on: ubuntu-latest
-
         steps:
             - name: Checkout dove.nvim
               uses: actions/checkout@v4
@@ -67,13 +81,12 @@ jobs:
                   git diff --exit-code -I 'Last change:' -- doc/dove.txt doc/tags
 
     test:
+        name: Test
         strategy:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest, macos-latest, windows-latest]
-
         runs-on: ${{ matrix.os }}
-
         steps:
             - name: Checkout dove.nvim
               uses: actions/checkout@v4
