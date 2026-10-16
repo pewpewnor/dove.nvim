@@ -51,7 +51,7 @@ jobs:
               with:
                   repository: kdheepak/panvimdoc
                   ref: v4.0.1
-                  path: .test-dependencies/panvimdoc
+                  path: .ci-dependencies/panvimdoc
 
             - name: Set up Neovim
               uses: rhysd/action-setup-vim@v1
@@ -61,7 +61,7 @@ jobs:
 
             - name: Check vimdoc generation
               run: |
-                  export PATH="$GITHUB_WORKSPACE/.test-dependencies/panvimdoc:$PATH"
+                  export PATH="$GITHUB_WORKSPACE/.ci-dependencies/panvimdoc:$PATH"
                   export GITHUB_ACTIONS=false
                   bash -e scripts/generate-vimdoc.sh
                   git diff --exit-code -I 'Last change:' -- doc/dove.txt doc/tags
@@ -92,9 +92,9 @@ jobs:
               uses: actions/checkout@v4
               with:
                   repository: nvim-lua/plenary.nvim
-                  path: .test-dependencies/plenary.nvim
+                  path: .ci-dependencies/plenary.nvim
 
             - name: Run all tests
               run: make test
               env:
-                  PLENARY_DIR: ${{ github.workspace }}/.test-dependencies/plenary.nvim
+                  PLENARY_DIR: ${{ github.workspace }}/.ci-dependencies/plenary.nvim

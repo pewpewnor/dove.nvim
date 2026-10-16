@@ -2,6 +2,7 @@
 
 local common = require("dove.common")
 local dove = require("dove")
+local runner = require("dove.runner")
 local simulation = require("tests.dove.helpers.simulation")
 
 describe("source file execution", function()
@@ -528,6 +529,46 @@ describe("source file execution", function()
             { "echo previous", "echo previous" },
             context.executed_commands
         )
+    end)
+
+    it(
+        "does not create a previous task when the picker is cancelled",
+        function()
+            local path = common.path_join(context.temp_dir, "cancelled.lua")
+            context:write_source_file(path, {
+                'return { { "echo first" }, { "echo second" } }',
+            })
+            context.picker = function(_, _, on_choice)
+                on_choice(nil, nil)
+            end
+            context:setup(path)
+            local previous_task = runner.last_executed_task
+            runner.last_executed_task = nil
+
+            dove.run_target("project")
+            dove.run_prev_task()
+
+            assert.is_nil(runner.last_executed_task)
+            assert.same({}, context.executed_commands)
+            runner.last_executed_task = previous_task
+        end
+    )
+
+    it("keeps the last executed task when the picker is cancelled", function()
+        local path = common.path_join(context.temp_dir, "previous-choice.lua")
+        context:write_source_file(path, {
+            'return { { "echo first" }, { "echo second" } }',
+        })
+        context:setup(path)
+        dove.run_target("project")
+        context.picker = function(_, _, on_choice)
+            on_choice(nil, nil)
+        end
+
+        dove.run_target("project")
+        dove.run_prev_task()
+
+        assert.same({ "echo first", "echo first" }, context.executed_commands)
     end)
 
     it("rejects files that do not return a table", function()
