@@ -1,0 +1,99 @@
+name: dove.nvim CI
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    lint:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout dove.nvim
+              uses: actions/checkout@v4
+
+            - name: Check Lua diagnostics
+              uses: mrcjkb/lua-typecheck-action@v1
+              with:
+                  checklevel: Warning
+
+            - name: Check Lua formatting
+              uses: JohnnyMorganz/stylua-action@v5
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  version: 2.5.0
+                  args: --check .
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+
+            - name: Check Markdown style
+              run: npx --yes markdownlint-cli@0.49.1 '**/*.md'
+
+    vimdoc:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout dove.nvim
+              uses: actions/checkout@v4
+
+            - name: Set up Pandoc
+              uses: pandoc/actions/setup@v1
+              with:
+                  version: 3.1.3
+
+            - name: Checkout panvimdoc
+              uses: actions/checkout@v4
+              with:
+                  repository: kdheepak/panvimdoc
+                  ref: v4.0.1
+                  path: .test-dependencies/panvimdoc
+
+            - name: Set up Neovim
+              uses: rhysd/action-setup-vim@v1
+              with:
+                  neovim: true
+                  version: v0.12.5
+
+            - name: Check vimdoc generation
+              run: |
+                  export PATH="$GITHUB_WORKSPACE/.test-dependencies/panvimdoc:$PATH"
+                  bash -e scripts/generate-vimdoc.sh
+                  git diff --exit-code -I 'Last change:' -- doc/dove.txt doc/tags
+
+    test:
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - name: Checkout dove.nvim
+              uses: actions/checkout@v4
+
+            - name: Set up Neovim
+              uses: rhysd/action-setup-vim@v1
+              with:
+                  neovim: true
+                  version: v0.12.5
+
+            - name: Install Make on Windows
+              if: runner.os == 'Windows'
+              run: choco install make --no-progress --yes
+
+            - name: Checkout plenary.nvim
+              uses: actions/checkout@v4
+              with:
+                  repository: nvim-lua/plenary.nvim
+                  path: .test-dependencies/plenary.nvim
+
+            - name: Run all tests
+              run: make test
+              env:
+                  PLENARY_DIR: ${{ github.workspace }}/.test-dependencies/plenary.nvim
