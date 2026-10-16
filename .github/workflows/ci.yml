@@ -62,6 +62,7 @@ jobs:
             - name: Check vimdoc generation
               run: |
                   export PATH="$GITHUB_WORKSPACE/.test-dependencies/panvimdoc:$PATH"
+                  export GITHUB_ACTIONS=false
                   bash -e scripts/generate-vimdoc.sh
                   git diff --exit-code -I 'Last change:' -- doc/dove.txt doc/tags
 
