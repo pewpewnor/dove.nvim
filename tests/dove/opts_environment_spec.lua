@@ -1,9 +1,9 @@
 ---@diagnostic disable: undefined-field
 
 local common = require("dove.common")
-local preset = require("dove.preset")
+local default_environment = require("dove.opts.environment")
 
-describe("preset paths", function()
+describe("source environment paths", function()
     local original_expand
     local original_fnameescape
     local path_functions = {
@@ -34,27 +34,27 @@ describe("preset paths", function()
 
     for _, name in ipairs(path_functions) do
         it("optionally escapes " .. name, function()
-            local raw_path = preset[name]({ escape = false })
+            local raw_path = default_environment[name]({ escape = false })
 
-            assert.equals("escaped:" .. raw_path, preset[name]())
-            assert.equals("escaped:" .. raw_path, preset[name]({}))
+            assert.equals("escaped:" .. raw_path, default_environment[name]())
+            assert.equals("escaped:" .. raw_path, default_environment[name]({}))
             assert.equals(
                 "escaped:" .. raw_path,
-                preset[name]({ escape = true })
+                default_environment[name]({ escape = true })
             )
         end)
     end
 
     it("rejects invalid options", function()
-        local success = pcall(preset.file_path, "no")
+        local success = pcall(default_environment.file_path, "no")
 
         assert.is_false(success)
 
-        success = pcall(preset.file_path, { escape = "no" })
+        success = pcall(default_environment.file_path, { escape = "no" })
 
         assert.is_false(success)
 
-        success = pcall(preset.file_path, { relative = "no" })
+        success = pcall(default_environment.file_path, { relative = "no" })
 
         assert.is_false(success)
     end)
@@ -64,19 +64,31 @@ describe("preset paths", function()
             return value
         end)
 
-        assert.equals("escaped:%:p", preset.file_path())
-        assert.equals("escaped:%:p", preset.file_path({ relative = false }))
-        assert.equals("escaped:%", preset.file_path({ relative = true }))
-        assert.equals("escaped:%:p:h", preset.dir_path())
-        assert.equals("escaped:%:p:h", preset.dir_path({ relative = false }))
-        assert.equals("escaped:%:h", preset.dir_path({ relative = true }))
+        assert.equals("escaped:%:p", default_environment.file_path())
+        assert.equals(
+            "escaped:%:p",
+            default_environment.file_path({ relative = false })
+        )
+        assert.equals(
+            "escaped:%",
+            default_environment.file_path({ relative = true })
+        )
+        assert.equals("escaped:%:p:h", default_environment.dir_path())
+        assert.equals(
+            "escaped:%:p:h",
+            default_environment.dir_path({ relative = false })
+        )
+        assert.equals(
+            "escaped:%:h",
+            default_environment.dir_path({ relative = true })
+        )
         assert.equals(
             "%",
-            preset.file_path({ escape = false, relative = true })
+            default_environment.file_path({ escape = false, relative = true })
         )
         assert.equals(
             "%:h",
-            preset.dir_path({ escape = false, relative = true })
+            default_environment.dir_path({ escape = false, relative = true })
         )
     end)
 
@@ -85,13 +97,20 @@ describe("preset paths", function()
             return value
         end)
 
-        assert.equals("escaped:%:t", preset.file_name())
-        assert.equals("escaped:%:t", preset.file_name({ extension = true }))
-        assert.equals("escaped:%:t:r", preset.file_name({ extension = false }))
+        assert.equals("escaped:%:t", default_environment.file_name())
+        assert.equals(
+            "escaped:%:t",
+            default_environment.file_name({ extension = true })
+        )
+        assert.equals(
+            "escaped:%:t:r",
+            default_environment.file_name({ extension = false })
+        )
     end)
 
     it("rejects an invalid file name extension option", function()
-        local success = pcall(preset.file_name, { extension = "no" })
+        local success =
+            pcall(default_environment.file_name, { extension = "no" })
 
         assert.is_false(success)
     end)
@@ -103,12 +122,12 @@ describe("preset paths", function()
             return "expanded"
         end)
 
-        assert.equals("expanded", preset.expand("anything"))
+        assert.equals("expanded", default_environment.expand("anything"))
         assert.equals("anything", received)
     end)
 
     it("rejects an invalid expand value", function()
-        local success = pcall(preset.expand, true)
+        local success = pcall(default_environment.expand, true)
 
         assert.is_false(success)
     end)

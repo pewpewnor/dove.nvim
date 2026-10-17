@@ -13,11 +13,13 @@ function M.setup(options)
     module.init(config)
 end
 
-M.run_target = module.run_target
+M.run = module.run
 
-M.run_prev_task = module.run_prev_task
+M.prev_task = module.prev_task
 
-M.edit_source_file = module.edit_source_file
+M.prev_entry = module.prev_entry
+
+M.edit = module.edit
 
 M.delete_source_file = module.delete_source_file
 

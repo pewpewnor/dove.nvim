@@ -1,5 +1,5 @@
 *dove.txt*      Use Lua to define and run shell commands or Lua code anywhere.
-                              For NVIM v0.12.0    Last change: 2026 October 16
+                              For NVIM v0.12.0    Last change: 2026 October 17
 
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
@@ -48,7 +48,7 @@ Otherwise, add dove.nvim to `runtimepath`, then configure it as described in
 
 CONCEPTS                                                       *dove-concepts*
 
-- A **target** names a command collection and resolves its source file.
+- A **target** names a command collection and resolves its source.
 - A **source file** returns the entries available for a target.
 - An **entry** defines a shell command or Lua function, picker label, and
     optional executor.
@@ -121,7 +121,7 @@ DEFAULT CONFIGURATION ~
 Assuming we define:
 
 >lua
-    local preset = require("dove.preset")
+    local default_environment = require("dove.opts.environment")
 <
 
 The default plugin configuration opts is equivalent to:
@@ -130,34 +130,33 @@ The default plugin configuration opts is equivalent to:
     {
         targets = {
             project = {
-                source_path = function()
-                    return preset.dove_data_path()
+                source = function()
+                    return default_environment.dove_data_path()
                         .. "/projects/"
-                        .. preset.hash_sha256(preset.cwd_path())
+                        .. default_environment.hash_sha256(default_environment.cwd_path())
                         .. ".lua"
                 end,
             },
             filetype = {
-                source_path = function()
-                    return preset.dove_data_path()
+                source = function()
+                    return default_environment.dove_data_path()
                         .. "/filetypes/"
-                        .. preset.file_type()
+                        .. default_environment.file_type()
                         .. ".lua"
                 end,
             },
             global = {
-                source_path = function()
-                    return preset.dove_data_path() .. "/global.lua"
+                source = function()
+                    return default_environment.dove_data_path() .. "/global.lua"
                 end,
             },
         },
         parent_target = {
+            ignore = false,
             auto_run_single_entry = false,
-            default_executor = function(command)
-                preset.executors.split(command, { nil, "wincmd J | resize -4" })
-            end,
+            default_executor = default_environment.executors.default,
             environment = {
-                denv = preset,
+                denv = default_environment,
             },
             cmd_list_delimiter = function()
                 local shell = vim.fs.basename(vim.o.shell:gsub("\\", "/")):lower()
@@ -190,56 +189,45 @@ TARGETS ~
 - Defaults: `project`, `filetype`, and `global`.
 - User targets merge by name with built-in targets.
 - Every target inherits `parent_target` before its own options are applied.
+- A target with `ignore = true` is removed from the configuration. It cannot be
+    run, edited, deleted, or completed by name. This also works for built-in
+    targets and does not require a `source`.
 
 Each target supports:
 
-  ------------------------------------------------------------------------------------
-  Option                             Type                Default
-  ---------------------------------- ------------------- -----------------------------
-  source_path                        function or list of Required for a new target
-                                     functions
+  ----------------------------------------------------------------------------------------
+  Option                             Type          Default
+  ---------------------------------- ------------- ---------------------------------------
+  source                             function      Required for a new target
 
-  auto_run_single_entry              boolean             false
+  ignore                             boolean       false
 
-  default_executor                   function            A short, full-width
-                                                         preset.executors.split
+  auto_run_single_entry              boolean       false
 
-  environment                        table               Built-in denv values
+  default_executor                   function      default_environment.executors.default
 
-  cmd_list_delimiter                 function            Shell-compatible list
-                                                         separator
+  environment                        table         Built-in denv values
 
-  new_source_file_placeholder_text   function            Starter source code
-  ------------------------------------------------------------------------------------
-A source resolver takes no arguments and returns a path string or `nil`.
-Returned paths are normalized and `~` is expanded.
+  cmd_list_delimiter                 function      Shell-compatible list separator
 
-Use a non-empty resolver list for fallbacks:
+  new_source_file_placeholder_text   function      Starter source code
+  ----------------------------------------------------------------------------------------
+A source function takes no arguments and returns a source file path string.
+Paths are normalized and `~` is expanded. For example:
 
 >lua
-    source_path = {
-        function()
-            return preset.cwd_path() .. "/.dove.lua"
-        end,
-        function()
-            return preset.config_path() .. "/dove/project.lua"
-        end,
-    }
+    source = function()
+        return default_environment.cwd_path() .. "/.dove.lua"
+    end
 <
 
-Resolution rules:
-
-- The first readable file wins.
-- Resolvers returning `nil` are skipped.
-- If none is readable, the first non-`nil` path wins so `:Dove edit` can create
-    it.
-- Resolution fails if every resolver returns `nil`.
+`:Dove edit` creates the source file when it does not exist.
 
 Built-in paths and settings:
 
 - `project`: `stdpath("data")/dove/projects/<sha256-of-cwd>.lua`.
 - `filetype`: `stdpath("data")/dove/filetypes/<filetype>.lua`.
-- Both show the picker for one entry and use a short, full-width `preset.executors.split`.
+- Both show the picker for one entry and use `default_environment.executors.default`.
 
 
 PARENT_TARGET ~
@@ -247,7 +235,8 @@ PARENT_TARGET ~
 The options in `parent_target` are deeply merged into every built-in and custom
 target. A target can override any inherited value. Its `environment` table
 merges with the built-in `denv` values and with the target’s own environment.
-`source_path` is still required for each new target.
+When `targets` is omitted, all built-in targets share the same environment
+table as `parent_target`. `source` is still required for each new target.
 
 
 TARGETS.<NAME>.ENVIRONMENT ~
@@ -266,7 +255,7 @@ replace built-ins:
                     file_path = function()
                         return "fixed-input.lua"
                     end,
-                    executors = { quick = preset.executors.bg_status },
+                    executors = { quick = default_environment.executors.bg_status },
                 },
                 test_prefix = "env TEST=1 ",
             },
@@ -283,10 +272,9 @@ UNSPECIFIED_TARGET_NAME ~
 - Type: `(fun(): string)|nil`.
 - Default: `nil`.
 
-Resolves the target name used by `:Dove run`, `:Dove edit`, `:Dove delete`,
-`run_target()`, `edit_source_file()`, and `delete_source_file()` when no target
-is provided. The returned name must match a configured target. If the option is
-`nil`, omitting a target raises an error.
+Resolves the target name used by `:Dove run`, `:Dove edit`, `run()`, and
+`edit()` when no target is provided. The returned name must match a configured
+target. If the option is `nil`, omitting a target raises an error.
 
 
 TARGETS.<NAME>.CMD_LIST_DELIMITER ~
@@ -352,25 +340,26 @@ BUILT-IN PICKER
 
 COMMANDS                                                       *dove-commands*
 
-  -----------------------------------------------------------------------
-  Command                  Action
-  ------------------------ ----------------------------------------------
-  :Dove run [target]       Run the target
-
-  :Dove prev               Repeat execution of the last executed entry
-
-  :Dove edit [target]      Open the target’s source file
-
-  :Dove delete [target]    Delete the target’s source file
-  -----------------------------------------------------------------------
+  Command                 Action
+  ----------------------- ----------------------------------
+  :Dove run [target]      Run the target
+  :Dove edit [target]     Open the target’s source file
+  :Dove delete {target}   Delete the target’s source file
+  :Dove prev_task         Repeat the last executed task
+  :Dove prev_entry        Recompute and run the last entry
 - Subcommands and target names support completion.
-- Missing, extra, and unknown arguments are rejected, except that `run`, `edit`,
-    and `delete` may omit their target when `unspecified_target_name` is configured.
+- Missing, extra, and unknown arguments are rejected, except that `run` and
+    `edit` may omit their target when `unspecified_target_name` is configured.
 - `run` stops with a message when no readable source exists or it has no
     entries.
 - Selecting an entry stores its final command or function and executor.
     Cancelling the picker does not replace the previous task.
-- `prev` uses that stored task without reloading the source.
+- `:Dove prev_task` uses that stored task without reloading the source.
+- `:Dove prev_entry` resolves the original target again, reloads its source, and runs
+    the entry at the previously selected position without opening the picker.
+- Without a previous task or entry, those subcommands print a message and do nothing.
+- If the previous entry no longer exists, `prev_entry` prints a message and
+    does nothing.
 - `edit` creates missing parent directories. See **Source file templates** for
     new files.
 
@@ -443,7 +432,8 @@ When `[1]` or `cmd` is a function, dove.nvim calls it directly without
 arguments. Both the entry’s executor and the target’s `default_executor`
 are ignored, and the processed entry’s executor is `nil`. Its picker label
 defaults to `tostring()` of the function when `name` is omitted. The same
-function is called again by `:Dove prev`.
+function is called again by `:Dove prev_task`. `:Dove prev_entry` reloads the
+source and calls the newly defined function at the same entry position.
 
 
 COMMAND LISTS ~
@@ -520,7 +510,20 @@ values are grouped under `denv`:
 - `denv` contains the built-in values and any configured overrides.
 - Custom values are covered under the **environment** configuration option.
 
-Use the same values in Neovim configuration through `require("dove.preset")`.
+Use the same values in Neovim configuration through
+`require("dove.opts.environment")`. The replay functions are also available
+through `denv`:
+
+- **denv.last_task()** returns a copy of the last executed command, executor,
+    and argument list, or `nil` if no task has run.
+- **denv.run_task(task)** runs that saved task without changing replay history.
+    Passing `nil` prints `dove.nvim: no previously executed task`.
+- **denv.last_entry()** returns a copy of the last executed entry’s target name
+    and list index, or `nil` if no entry has run.
+- **denv.run_entry(entry)** resolves the saved target again, reloads its source,
+    and runs the entry at the saved index. It updates replay history. Passing
+    `nil` prints `dove.nvim: no previously executed entry`.
+
 Every path function accepts either no argument or an `options` table. The
 `escape` field must be a boolean when present. Its default is `true`, which
 passes the return value through `fnameescape()`; `escape = false` returns the
@@ -607,10 +610,13 @@ another function. Built-in executors do not shell-escape `command` or validate
 the items in `args`.
 
 In source files, use `denv.executors`. In Neovim configuration, use
-`require("dove.preset").executors`. Every executor accepts the command string
-as its first argument. Terminal executors use Neovim’s shell through
-`:terminal`.
+`require("dove.opts.environment").executors`. Every executor accepts the
+command string as its first argument. Terminal executors use Neovim’s shell
+through `:terminal`.
 
+- **executors.default(command)**
+    Opens `command` in a short, full-width terminal split. It runs `rightbelow
+    split | wincmd J | resize -4` before opening the terminal.
 - **executors.new_tab(command, args?)**
     Opens `command` in a terminal in a new tab. The optional `args` list accepts an
     Ex count at `args[1]`, placed immediately before `tabnew`. The count has the
@@ -655,11 +661,11 @@ as its first argument. Terminal executors use Neovim’s shell through
 Direct calls can set split size:
 
 >lua
-    local executors = require("dove.preset").executors
+    local default_environment = require("dove.opts.environment")
 
-    executors.split("make test", { "12" })
-    executors.vsplit("make test", { "80" })
-    executors.split("make test", { nil, "wincmd J | resize -3" })
+    default_environment.executors.split("make test", { "12" })
+    default_environment.executors.vsplit("make test", { "80" })
+    default_environment.executors.split("make test", { nil, "wincmd J | resize -3" })
 <
 
 
@@ -674,22 +680,24 @@ LUA API                                                         *dove-lua-api*
     initializes the parser and runner with it. Invalid values raise an error.
     Calling `setup()` again discards the previous user options and repeats this
     process with fresh defaults.
-- **run_target(target_name?)**
+- **run(target_name?)**
     Accepts an optional target-name string and returns no value. When omitted, it
     uses `unspecified_target_name`; an error is raised if none is configured. It
-    resolves the target’s source path, evaluates and validates the source list,
-    and either executes its only entry when `auto_run_single_entry` is enabled or
+    resolves the target’s source, evaluates and validates the source list, and
+    either executes its only entry when `auto_run_single_entry` is enabled or
     passes all entries to the configured picker. The chosen command or function and
     executor become the previous task only when an entry is executed. An unknown
-    target, invalid resolver, or invalid source raises an error. A missing source
-    or empty source list prints a message and does not replace the previous task.
-- **run_prev_task()**
-    Takes no arguments and returns no value. It repeats the stored command or Lua
-    function. Shell commands use the stored executor and argument list. It does not
-    resolve a target, reload a source file, rerun the picker, or re-read
-    configuration. If no entry has been executed, it prints `dove.nvim: no
-    previously executed task` and does nothing else.
-- **edit_source_file(target_name?)**
+    target, invalid resolver, or invalid source raises an error. A source function
+    returning a non-string value raises an error. A missing source file or empty
+    source list prints a message. None of these cases replace the previous task.
+- **prev_task()**
+    Runs the last executed command or function again without reloading its source
+    or changing replay history. If no task has run, it prints a message.
+- **prev_entry()**
+    Resolves the last selected entry’s target again, reloads its source, and runs
+    the entry at the same position. It updates replay history. If no entry has run
+    or the entry is no longer available, it prints a message.
+- **edit(target_name?)**
     Accepts an optional target-name string and returns no value. When omitted, it
     uses `unspecified_target_name`; an error is raised if none is configured. It
     resolves the target’s source path, recursively creates missing parent
@@ -697,12 +705,11 @@ LUA API                                                         *dove-lua-api*
     readable file and the target’s `new_source_file_placeholder_text` returns a
     string, it first writes that string to the new source file. An unknown target,
     invalid resolver, or invalid template return value raises an error.
-- **delete_source_file(target_name?)**
-    Accepts an optional target-name string and returns no value. When omitted, it
-    uses `unspecified_target_name`; an error is raised if none is configured. It
-    resolves the target’s source path and calls `vim.fs.rm(path, { force = true
-    })`. No confirmation is requested, and a missing path is ignored. An unknown
-    target or invalid resolver raises an error.
+- **delete_source_file(target_name)**
+    Requires a literal target-name string and returns no value. It resolves the
+    target’s source path and calls `vim.fs.rm(path, { force = true })`. No
+    confirmation is requested, and a missing path is ignored. An unknown target or
+    invalid resolver raises an error.
 
 Example of binding keys:
 
@@ -711,7 +718,7 @@ Example of binding keys:
 
     -- map `<leader>dp` to run target 'project':
     vim.keymap.set("n", "<Leader>dp", function()
-        dove.run_target("project")
+        dove.run("project")
     end, { desc = "Dove: run target project" })
 
     -- map `<leader>df` to run target 'filetype':
@@ -720,8 +727,8 @@ Example of binding keys:
 <
 
 The behavior under |dove-commands| also applies to these functions.
-`require("dove.preset")` returns the built-in source environment for use in
-configuration; see |dove-source-environment| and |dove-executors|.
+`require("dove.opts.environment")` returns the built-in source environment for
+use in configuration; see |dove-source-environment| and |dove-executors|.
 
 
 HEALTH CHECK                                               *dove-health-check*
@@ -731,11 +738,6 @@ Run `:checkhealth dove`. It reports:
 - Whether Neovim v0.12.0 or newer is running.
 - Whether `setup()` was called.
 - Whether the configured `shell` is executable.
-- Whether each target resolves a source path.
-- Whether each resolved source’s parent directory is writable.
-
-A missing or non-writable source directory is a warning. An unresolvable target
-is an error.
 
 
 LINKS                                                             *dove-links*

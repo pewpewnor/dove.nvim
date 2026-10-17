@@ -1,5 +1,5 @@
 local pathfinder = require("dove.pathfinder")
-local runner = require("dove.runner")
+local runner = require("dove.source.runner")
 local common = require("dove.common")
 
 local M = {}
@@ -8,7 +8,7 @@ local M = {}
 function M.init(config)
     ---@type dove.Config
     M.config = config
-    require("dove.parser").init(config)
+    require("dove.source.parser").init(config)
     runner.init(config)
 end
 
@@ -62,22 +62,31 @@ end
 
 ---@param target_name string?
 ---@return any
-function M.run_target(target_name)
+function M.run(target_name)
     local target, resolved_target_name = find_target(target_name)
+    local source = pathfinder(target.source)
     return runner.select_and_run_entry({
         name = resolved_target_name,
-        source_path = pathfinder(target.source_path),
+        source = source,
         auto_run_single_entry = target.auto_run_single_entry,
         default_executor = target.default_executor,
     })
 end
 
-M.run_prev_task = runner.run_prev_task
+function M.prev_task()
+    ensure_setup()
+    runner.run_task(runner.last_task())
+end
+
+function M.prev_entry()
+    ensure_setup()
+    runner.run_entry(runner.last_entry())
+end
 
 ---@param target_name string?
-function M.edit_source_file(target_name)
+function M.edit(target_name)
     local target = find_target(target_name)
-    local path = pathfinder(target.source_path)
+    local path = pathfinder(target.source)
     common.mkdir_with_parents(common.dirname(path))
     if not common.is_file_and_readable(path) then
         local template = target.new_source_file_placeholder_text()
@@ -93,9 +102,10 @@ function M.edit_source_file(target_name)
     common.cmd("tabedit " .. common.fnameescape(path))
 end
 
----@param target_name string?
+---@param target_name string
 function M.delete_source_file(target_name)
-    local path = pathfinder(find_target(target_name).source_path)
+    common.validate("target_name", target_name, "string")
+    local path = pathfinder(find_target(target_name).source)
     common.path_remove(path)
 end
 

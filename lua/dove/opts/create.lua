@@ -15,12 +15,20 @@ local function create_opts(options)
     then
         for name, target in pairs(config.targets) do
             if type(target) == "table" then
-                config.targets[name] = common.tbl_deep_extend(
+                local merged = common.tbl_deep_extend(
                     "force",
                     {},
                     config.parent_target,
                     target
                 )
+                if merged.ignore == true then
+                    config.targets[name] = nil
+                else
+                    config.targets[name] = merged
+                    if not options or options.targets == nil then
+                        merged.environment = config.parent_target.environment
+                    end
+                end
             end
         end
     end

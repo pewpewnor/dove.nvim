@@ -29,6 +29,7 @@ Use a clear commit prefix:
 - `fix:` for bug fixes.
 - `feat:` for features.
 - `test:` for test-only changes.
+- `ci:` for ci-related changes.
 - `docs:` for documentation only changes.
 - `chore:` for codebase maintenance.
 

@@ -1,7 +1,7 @@
 ---@diagnostic disable: undefined-field
 
 local common = require("dove.common")
-local executors = require("dove.executors")
+local executors = require("dove.opts.executors")
 
 describe("executors", function()
     local original_print
@@ -25,6 +25,22 @@ describe("executors", function()
         set_common("cmd", original_cmd)
         set_common("open_terminal", original_open_terminal)
         set_common("run_shell_async", original_run_shell_async)
+    end)
+
+    it("opens the default short full-width terminal", function()
+        local ex_command
+        local terminal_command
+        set_common("cmd", function(value)
+            ex_command = value
+        end)
+        set_common("open_terminal", function(value)
+            terminal_command = value
+        end)
+
+        executors.default("make test")
+
+        assert.equals("rightbelow split | wincmd J | resize -4", ex_command)
+        assert.equals("make test", terminal_command)
     end)
 
     it("sets the height of a split terminal", function()

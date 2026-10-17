@@ -4,35 +4,12 @@ local common = require("dove.common")
 ---@param source_required boolean
 local function validate_target(target_config, prefix, source_required)
     common.validate(prefix, target_config, "table")
-    if source_required and target_config.source_path == nil then
-        error("dove.nvim: " .. prefix .. ".source_path is required")
+    common.validate(prefix .. ".ignore", target_config.ignore, "boolean")
+    if source_required and target_config.source == nil then
+        error("dove.nvim: " .. prefix .. ".source is required")
     end
-    if target_config.source_path ~= nil then
-        common.validate(
-            prefix .. ".source_path",
-            target_config.source_path,
-            { "function", "table" }
-        )
-        if type(target_config.source_path) == "table" then
-            if
-                not common.is_list(target_config.source_path)
-                or #target_config.source_path == 0
-            then
-                error(
-                    "dove.nvim: "
-                        .. prefix
-                        .. ".source_path must be a non-empty list of functions"
-                )
-            end
-            ---@diagnostic disable-next-line: param-type-mismatch
-            for index, resolver in ipairs(target_config.source_path) do
-                common.validate(
-                    prefix .. ".source_path." .. index,
-                    resolver,
-                    "function"
-                )
-            end
-        end
+    if target_config.source ~= nil then
+        common.validate(prefix .. ".source", target_config.source, "function")
     end
     common.validate(
         prefix .. ".auto_run_single_entry",

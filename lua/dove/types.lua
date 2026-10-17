@@ -1,4 +1,4 @@
----@alias dove.PathResolver fun(): string?
+---@alias dove.SourceResolver fun(): string
 
 ---@alias dove.Executor fun(command: string, args: string[]?)
 
@@ -8,7 +8,8 @@
 ---@field [string] dove.Executor
 
 ---@class dove.Target
----@field source_path dove.PathResolver|dove.PathResolver[]
+---@field source dove.SourceResolver
+---@field ignore boolean
 ---@field auto_run_single_entry boolean
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
@@ -16,6 +17,7 @@
 ---@field new_source_file_placeholder_text fun(): string?
 
 ---@class dove.ParentTarget
+---@field ignore boolean
 ---@field auto_run_single_entry boolean
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
@@ -27,6 +29,10 @@
 
 ---@class dove.SourceEnvironment
 ---@field executors dove.Executors
+---@field last_task fun(): dove.Task?
+---@field run_task fun(task: dove.Task?)
+---@field last_entry fun(): dove.ExecutedEntry?
+---@field run_entry fun(entry: dove.ExecutedEntry?)
 
 ---@class dove.Environment
 ---@field denv dove.SourceEnvironment
@@ -57,7 +63,7 @@
 
 ---@class dove.ProcessedTarget
 ---@field name string
----@field source_path string
+---@field source string
 ---@field auto_run_single_entry boolean
 ---@field default_executor dove.Executor
 
@@ -65,6 +71,10 @@
 ---@field command dove.EntryCommand
 ---@field executor dove.Executor?
 ---@field args string[]
+
+---@class dove.ExecutedEntry
+---@field target_name string
+---@field index integer
 
 ---@class dove.Subcommand
 ---@field func fun(target_name: string?)

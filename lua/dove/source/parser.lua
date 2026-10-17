@@ -217,6 +217,7 @@ end
 ---@param target_name string
 ---@return dove.ProcessedEntry[]?
 function M.parse_source_file(path, target_name)
+    local target = M.config.targets[target_name]
     if not common.is_file_and_readable(path) then
         print(
             string.format(
@@ -228,7 +229,6 @@ function M.parse_source_file(path, target_name)
     end
     ---@type table<string, boolean>
     local loading = {}
-    local target = M.config.targets[target_name]
     local source = load_source_file(path, loading, target)
     return parse_list(source, path, target)
 end

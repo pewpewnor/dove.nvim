@@ -15,7 +15,7 @@ https://github.com/user-attachments/assets/12a4a5fd-18c2-4d5f-84a2-c15132cd8bae
 ## How It Works
 
 dove.nvim organizes where to retrieve your custom commands into **targets**.
-A target tells dove.nvim where to look for Lua files defined by you.
+A target tells dove.nvim where its commands come from.
 
 Think of targets as contexts: whether to define/run commands associated with the
 current project, file type, or something else.
@@ -51,9 +51,8 @@ file can access. By default, all commands will be executed in a new pane.
 
 Use `Dove run {target}` to run the target.
 
-This loads the source file associated with the target (based on configured
-target's source path) and retrieves the list of commands returned by the source
-file.
+This calls the target's `source` function for a path, then loads entries from
+that source file.
 
 Then choose the command you would like to execute.
 
@@ -80,20 +79,27 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 | Command                 | Action                                      |
 | ----------------------- | ------------------------------------------- |
 | `:Dove run [target]`    | Run the target                              |
-| `:Dove prev`            | Repeat execution of the last executed entry |
 | `:Dove edit [target]`   | Open the target's source file               |
-| `:Dove delete [target]` | Delete the target's source file             |
+| `:Dove delete {target}` | Delete the target's source file             |
+| `:Dove prev_task`       | Repeat the last executed task unchanged     |
+| `:Dove prev_entry`      | Recompute and run the last selected entry   |
 
-If target name is ommited, it will use the value of `unspecified_target_name` as
-the target name.
+For `run` and `edit`, an omitted target uses `unspecified_target_name`.
+`delete` requires a literal target name.
 
 ## Built-in Targets
 
-| Target     | Default behaviour                                                                                                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------- |
-| `filetype` | Execute commands based on the current buffer's filetype, e.g. a command to compile the file and execute the binary. |
-| `project`  | Execute commands for the current working directory, e.g. commands to build the project or run all tests.            |
-| `global`   | Execute commands shared across all files and projects.                                                              |
+| Target       | Default behaviour                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `filetype`   | Execute commands based on the current buffer's filetype, e.g. a command to compile the file and execute the binary. |
+| `project`    | Execute commands for the current working directory, e.g. commands to build the project or run all tests.            |
+| `global`     | Execute commands shared across all files and projects.                                                              |
+
+Set `ignore = true` on any target to remove it, including a built-in target:
+
+```lua
+require("dove").setup({ targets = { global = { ignore = true } } })
+```
 
 ## Customization Example
 
@@ -102,35 +108,27 @@ the target name.
 
 ```lua
 local dove = require("dove")
-local preset = require("dove.preset")
+local default_environment = require("dove.opts.environment")
 
 dove.setup({
     targets = {
         -- adding our own custom target
         custom_target = {
-            source_path = function()
+            source = function()
                 return "~/custom_target_source.lua"
             end,
-            default_executor = preset.executors.new_tab,
+            default_executor = default_environment.executors.new_tab,
         },
         -- override built-in target `project` settings
         project = {
-            -- change to search these paths to find target's source file
-            source_path = {
-                function()
-                    return preset.cwd_path() .. "/.dove.lua"
-                end,
-                function()
-                    return preset.dove_data_path()
-                        .. "/projects/"
-                        .. preset.hash_sha256(preset.cwd_path())
-                        .. ".lua"
-                end,
-            },
+            -- use a source file in the current working directory
+            source = function()
+                return default_environment.cwd_path() .. "/.dove.lua"
+            end,
             -- run the only command without opening the picker
             auto_run_single_entry = true,
             -- override default executor to execute in a new side buffer
-            default_executor = preset.executors.split,
+            default_executor = default_environment.executors.split,
         },
     },
     -- options inherited by every target unless overridden there
@@ -177,6 +175,8 @@ dove.setup({
 > [!TIP]
 > With the above example, source files can access `custom_var`,
 > `denv.executors.custom_notify`, and `denv.custom_func`.
+
+Every target's `source` must be a function that returns a source file path.
 
 ## Writing Source Files
 
@@ -238,7 +238,7 @@ executor and the target's default executor are ignored.
 > Source files get built-in values through `denv`. By default, the functions
 > return paths escaped for shell commands.
 >
-> You can use the same functions from `require("dove.preset")` in your Neovim
+> You can use the same functions from `require("dove.opts.environment")` in your Neovim
 > configuration. See the
 > [source environment reference](docs/dove.md#source-environment) for each
 > function's arguments and behavior.
@@ -261,6 +261,10 @@ executor and the target's default executor are ignored.
 | `denv.cWORD()`                  | WORD under the cursor                               |
 | `denv.expand(value)`            | Expanded string value                               |
 | `denv.hash_sha256(value)`       | SHA-256 digest of a string                          |
+| `denv.last_task()`              | Copy of the last executed task, or `nil`            |
+| `denv.run_task(task)`           | Run a task without changing replay history          |
+| `denv.last_entry()`             | Copy of the last selected entry, or `nil`           |
+| `denv.run_entry(entry)`         | Recompute and run an entry at its saved position    |
 
 > [!TIP]
 > Pass `{ escape = false }`, such as `denv.file_path({ escape = false })`, to
@@ -274,12 +278,13 @@ executor and the target's default executor are ignored.
 > In source files, select a built-in or configured executor through
 > `denv.executors`.
 >
-> You can use the same executors from `require("dove.preset").executors` in your
+> You can use the same executors from `require("dove.opts.environment").executors` in your
 > Neovim configuration. See the [executor reference](docs/dove.md#executors)
 > for each executor's arguments and behavior.
 
 | Executor                   | Behavior                                       |
 | -------------------------- | ---------------------------------------------- |
+| `executors.default`        | Opens a short, full-width terminal split       |
 | `executors.new_tab`        | Opens a terminal in a new tab                  |
 | `executors.current_buffer` | Opens a terminal in the current buffer         |
 | `executors.split`          | Opens a terminal in a horizontal split         |
@@ -318,13 +323,14 @@ compatible function.
 
 `require("dove")` returns:
 
-| Function                           | Meaning                              |
-| ---------------------------------- | ------------------------------------ |
-| `setup(options?)`                  | Configure and initialize the plugin. |
-| `run_target(target_name?)`         | Run an entry from a target.          |
-| `run_prev_task()`                  | Repeat the last executed task.       |
-| `edit_source_file(target_name?)`   | Open a target source file.           |
-| `delete_source_file(target_name?)` | Delete a target source file.         |
+| Function                          | Meaning                                    |
+| --------------------------------- | ------------------------------------------ |
+| `setup(options?)`                 | Configure and initialize the plugin.       |
+| `run(target_name?)`               | Run an entry from a target.                |
+| `edit(target_name?)`              | Open a target source file.                 |
+| `delete_source_file(target_name)` | Delete a target source file.               |
+| `prev_task()`                     | Repeat the last executed task unchanged.   |
+| `prev_entry()`                    | Recompute and run the last selected entry. |
 
 Example of binding keys:
 
@@ -333,7 +339,7 @@ local dove = require("dove")
 
 -- map `<leader>dp` to run target 'project':
 vim.keymap.set("n", "<Leader>dp", function()
-    dove.run_target("project")
+    dove.run("project")
 end, { desc = "Dove: run target project" })
 
 -- map `<leader>df` to run target 'filetype':

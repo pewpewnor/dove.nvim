@@ -5,20 +5,27 @@ local dove = require("dove")
 ---@type table<string, dove.Subcommand>
 local subcommands = {
     run = {
-        func = dove.run_target,
+        func = dove.run,
         takes_target = true,
         target_optional = true,
     },
-    prev = { func = dove.run_prev_task, takes_target = false },
     edit = {
-        func = dove.edit_source_file,
+        func = dove.edit,
         takes_target = true,
         target_optional = true,
     },
     delete = {
         func = dove.delete_source_file,
         takes_target = true,
-        target_optional = true,
+        target_optional = false,
+    },
+    prev_task = {
+        func = dove.prev_task,
+        takes_target = false,
+    },
+    prev_entry = {
+        func = dove.prev_entry,
+        takes_target = false,
     },
 }
 
@@ -110,5 +117,5 @@ common.create_user_command("Dove", function(opts)
 end, {
     nargs = "+",
     complete = complete,
-    desc = "Dove: run, prev, edit, or delete",
+    desc = "Dove: run, edit, delete, or repeat",
 })

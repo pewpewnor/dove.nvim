@@ -15,11 +15,29 @@ describe("source file management", function()
         context:cleanup()
     end)
 
+    it(
+        "rejects file operations when a source function returns a table",
+        function()
+            dove.setup({
+                targets = {
+                    project = {
+                        source = function()
+                            return { { "echo inline" } }
+                        end,
+                    },
+                },
+            })
+
+            assert.is_false(pcall(dove.edit, "project"))
+            assert.is_false(pcall(dove.delete_source_file, "project"))
+        end
+    )
+
     it("writes the default template code to a missing source file", function()
         local path = common.path_join(context.temp_dir, "nested", "new.lua")
         context:setup(path)
 
-        dove.edit_source_file("project")
+        dove.edit("project")
 
         local source = assert(loadfile(path))()
         assert.equals("placeholder greeting", source[1].name)
@@ -36,7 +54,7 @@ describe("source file management", function()
             end,
         })
 
-        dove.edit_source_file("project")
+        dove.edit("project")
 
         local file = assert(io.open(path, "rb"))
         local content = file:read("*a")
@@ -55,7 +73,7 @@ describe("source file management", function()
                 end,
             })
 
-            dove.edit_source_file("project")
+            dove.edit("project")
 
             assert.is_false(common.is_file_and_readable(path))
         end
@@ -75,14 +93,14 @@ describe("source file management", function()
                 targets = {
                     project = {
                         ---@return string
-                        source_path = function()
+                        source = function()
                             return path
                         end,
                     },
                 },
             })
 
-            dove.edit_source_file("project")
+            dove.edit("project")
 
             assert.is_false(common.is_file_and_readable(path))
         end
@@ -100,12 +118,12 @@ describe("source file management", function()
             },
             targets = {
                 project = {
-                    source_path = function()
+                    source = function()
                         return project_path
                     end,
                 },
                 custom = {
-                    source_path = function()
+                    source = function()
                         return custom_path
                     end,
                     ---@return string
@@ -116,8 +134,8 @@ describe("source file management", function()
             },
         })
 
-        dove.edit_source_file("project")
-        dove.edit_source_file("custom")
+        dove.edit("project")
+        dove.edit("custom")
 
         assert.equals("shared", assert(loadfile(project_path))()[1][1])
         assert.equals("custom", assert(loadfile(custom_path))()[1][1])
@@ -133,7 +151,7 @@ describe("source file management", function()
             end,
         })
 
-        dove.edit_source_file("project")
+        dove.edit("project")
 
         local source = assert(loadfile(path))()
         assert.same({}, source)
@@ -158,7 +176,7 @@ describe("source file management", function()
             end,
         })
 
-        dove.edit_source_file()
+        dove.edit()
         assert.is_true(common.is_file_and_readable(path))
 
         common.path_remove(path)
@@ -167,23 +185,29 @@ describe("source file management", function()
         assert.is_true(common.is_file_and_readable(path))
     end)
 
-    it("deletes the unspecified target from the API and command", function()
-        local path =
-            common.path_join(context.temp_dir, "unspecified-delete.lua")
-        context:write_source_file(path, { "return {}" })
-        context:setup(path, {
-            ---@return string
-            unspecified_target_name = function()
-                return "project"
-            end,
-        })
+    it(
+        "requires a literal target to delete from the API and command",
+        function()
+            local path =
+                common.path_join(context.temp_dir, "unspecified-delete.lua")
+            context:write_source_file(path, { "return {}" })
+            context:setup(path, {
+                ---@return string
+                unspecified_target_name = function()
+                    return "project"
+                end,
+            })
 
-        dove.delete_source_file()
-        assert.is_false(common.is_file_and_readable(path))
+            assert.is_false(pcall(dove.delete_source_file))
+            assert.is_true(common.is_file_and_readable(path))
+            context.original_cmd(
+                "source " .. common.fnameescape("plugin/dove.lua")
+            )
+            assert.is_false(pcall(context.original_cmd, "Dove delete"))
+            assert.is_true(common.is_file_and_readable(path))
 
-        context:write_source_file(path, { "return {}" })
-        context.original_cmd("source " .. common.fnameescape("plugin/dove.lua"))
-        context.original_cmd("Dove delete")
-        assert.is_false(common.is_file_and_readable(path))
-    end)
+            context.original_cmd("Dove delete project")
+            assert.is_false(common.is_file_and_readable(path))
+        end
+    )
 end)

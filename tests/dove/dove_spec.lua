@@ -4,7 +4,7 @@ local dove = require("dove")
 local create_opts = require("dove.opts.create")
 local default_opts = require("dove.opts.default")
 local module = require("dove.module")
-local preset = require("dove.preset")
+local default_environment = require("dove.opts.environment")
 
 describe("setup", function()
     it("works without options", function()
@@ -15,7 +15,7 @@ describe("setup", function()
         local config = module.config
         module.config = nil
 
-        local success = pcall(dove.run_target, "project")
+        local success = pcall(dove.run, "project")
 
         module.config = config
         assert.is_false(success)
@@ -28,38 +28,36 @@ describe("setup", function()
             { "filetype", "global", "project" },
             module.get_target_names()
         )
-        assert.is_function(preset.executors.new_tab)
-        assert.is_function(preset.executors.split)
-        assert.is_function(preset.executors.vsplit)
-        assert.is_function(preset.file_path)
-        assert.is_function(preset.dove_data_path)
-        assert.is_function(preset.cwd_path)
-        assert.is_nil(dove.preset)
-        assert.is_nil(dove.preset_executors)
-        assert.is_nil(dove.executors)
-        assert.is_nil(dove.cwd_path)
-        assert.is_function(dove.run_prev_task)
-        assert.is_function(dove.edit_source_file)
+        assert.is_function(default_environment.executors.new_tab)
+        assert.is_function(default_environment.executors.default)
+        assert.is_function(default_environment.executors.split)
+        assert.is_function(default_environment.executors.vsplit)
+        assert.is_function(default_environment.file_path)
+        assert.is_function(default_environment.dove_data_path)
+        assert.is_function(default_environment.cwd_path)
+        assert.is_function(dove.run)
+        assert.is_function(dove.prev_task)
+        assert.is_function(dove.prev_entry)
+        assert.is_function(dove.edit)
         assert.is_function(dove.delete_source_file)
-        assert.is_nil(dove.run_previous_task)
-        assert.is_nil(dove.edit_lua_file)
-        assert.is_nil(dove.delete_lua_file)
         assert.is_function(create_opts)
         assert.is_table(default_opts.parent_target)
-        assert.is_function(module.config.targets.project.source_path)
-        assert.is_function(module.config.targets.filetype.source_path)
-        assert.is_function(module.config.targets.global.source_path)
+        assert.is_function(module.config.targets.project.source)
+        assert.is_function(module.config.targets.filetype.source)
+        assert.is_function(module.config.targets.global.source)
+        for _, target in pairs(module.config.targets) do
+            assert.is_false(target.ignore)
+        end
         assert.is_false(module.config.targets.project.auto_run_single_entry)
         assert.is_false(module.config.targets.filetype.auto_run_single_entry)
         assert.is_false(module.config.targets.global.auto_run_single_entry)
-        assert.is_nil(module.config.targets.project.source)
-        assert.is_nil(module.config.targets.filetype.source)
-        assert.is_nil(module.config.targets.global.source)
         assert.is_function(module.config.targets.project.default_executor)
+        assert.equals(
+            default_environment.executors.default,
+            module.config.parent_target.default_executor
+        )
         assert.is_function(module.config.targets.filetype.default_executor)
         assert.is_function(module.config.targets.global.default_executor)
-        assert.is_nil(module.config.targets.project.unspecified_target_name)
-        assert.is_nil(module.config.environment)
         assert.is_nil(module.config.unspecified_target_name)
         assert.is_nil(module.config.cmd_list_delimiter)
         assert.is_nil(module.config.new_source_file_placeholder_text)
@@ -82,6 +80,33 @@ describe("setup", function()
         )
         assert.is_nil(module.config.display)
     end)
+
+    it("does not expose replay as targets", function()
+        dove.setup()
+
+        for _, name in ipairs({ "last_task", "last_entry" }) do
+            assert.is_false(pcall(dove.run, name))
+            assert.is_false(pcall(dove.edit, name))
+            assert.is_false(pcall(dove.delete_source_file, name))
+        end
+    end)
+
+    it(
+        "shares the parent environment when targets are not configured",
+        function()
+            dove.setup({
+                parent_target = { environment = { marker = "shared" } },
+            })
+
+            local config = module.config
+            for _, target in pairs(config.targets) do
+                assert.is_true(
+                    target.environment == config.parent_target.environment
+                )
+                assert.equals("shared", target.environment.marker)
+            end
+        end
+    )
 
     it("rejects an invalid ui picker", function()
         local success = pcall(dove.setup, {
@@ -134,33 +159,58 @@ describe("setup", function()
         function()
             dove.setup()
 
-            assert.is_false(pcall(dove.run_target))
-            assert.is_false(pcall(dove.edit_source_file))
+            assert.is_false(pcall(dove.run))
+            assert.is_false(pcall(dove.edit))
             assert.is_false(pcall(dove.delete_source_file))
         end
     )
 
-    it("rejects invalid source path resolver list entries", function()
-        local success = pcall(dove.setup, {
-            targets = {
-                invalid = { source_path = { true } },
-            },
-        })
-
-        assert.is_false(success)
+    it("requires source options to be functions", function()
+        for _, source in ipairs({
+            "project.lua",
+            { default_opts.targets.project.source },
+            { { "make test" } },
+        }) do
+            assert.is_false(pcall(dove.setup, {
+                targets = { project = { source = source } },
+            }))
+        end
     end)
 
-    it("rejects a new target without a source path", function()
+    it("rejects a new target without a source", function()
         local success = pcall(dove.setup, {
             targets = {
                 custom_target = {
-                    default_executor = preset.executors.new_tab,
+                    default_executor = default_environment.executors.new_tab,
                     auto_run_single_entry = false,
                 },
             },
         })
 
         assert.is_false(success)
+    end)
+
+    it("removes ignored built-in and custom targets", function()
+        dove.setup({
+            targets = {
+                project = { ignore = true },
+                custom = { ignore = true },
+            },
+        })
+
+        assert.same({ "filetype", "global" }, module.get_target_names())
+        assert.is_nil(module.config.targets.project)
+        assert.is_nil(module.config.targets.custom)
+        assert.is_false(pcall(dove.run, "project"))
+        assert.is_false(pcall(dove.edit, "project"))
+        assert.is_false(pcall(dove.delete_source_file, "project"))
+        assert.is_false(pcall(dove.run, "custom"))
+    end)
+
+    it("rejects a non-boolean ignore option", function()
+        assert.is_false(pcall(dove.setup, {
+            targets = { project = { ignore = "yes" } },
+        }))
     end)
 
     it("inherits default target options and keeps target overrides", function()
@@ -177,7 +227,7 @@ describe("setup", function()
             },
             targets = {
                 custom = {
-                    source_path = function()
+                    source = function()
                         return "custom.lua"
                     end,
                     default_executor = custom_executor,

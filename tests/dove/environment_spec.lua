@@ -4,7 +4,7 @@ local dove = require("dove")
 local common = require("dove.common")
 local module = require("dove.module")
 local pathfinder = require("dove.pathfinder")
-local preset = require("dove.preset")
+local default_environment = require("dove.opts.environment")
 
 describe("environment", function()
     it("contains all default values", function()
@@ -30,11 +30,11 @@ describe("environment", function()
         }
         for _, name in ipairs(expected_functions) do
             assert.is_function(environment.denv[name])
-            assert.equals(preset[name], environment.denv[name])
+            assert.equals(default_environment[name], environment.denv[name])
         end
         assert.is_function(environment.denv.executors.vsplit)
         assert.equals(
-            preset.executors.vsplit,
+            default_environment.executors.vsplit,
             environment.denv.executors.vsplit
         )
     end)
@@ -62,22 +62,21 @@ describe("environment", function()
         assert.is_function(environment.denv.executors.vsplit)
     end)
 
-    it("calls target source path resolvers without arguments", function()
+    it("calls target source resolvers without arguments", function()
         local argument_count
-        local source_path =
-            common.path_join(common.get_tempname(), "project.lua")
+        local source = common.path_join(common.get_tempname(), "project.lua")
         dove.setup({
             targets = {
                 project = {
-                    source_path = function(...)
+                    source = function(...)
                         argument_count = select("#", ...)
-                        return source_path
+                        return source
                     end,
                 },
             },
         })
 
-        pathfinder(module.config.targets.project.source_path)
+        pathfinder(module.config.targets.project.source)
 
         assert.equals(0, argument_count)
     end)

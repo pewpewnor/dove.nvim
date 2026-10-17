@@ -3,6 +3,11 @@ local common = require("dove.common")
 local M = {}
 
 ---@type dove.Executor
+function M.default(command)
+    M.split(command, { nil, "wincmd J | resize -4" })
+end
+
+---@type dove.Executor
 ---@param args? string[] Optional arguments:
 --- - `args[1]`: Ex count placed before `tabnew`.
 function M.new_tab(command, args)

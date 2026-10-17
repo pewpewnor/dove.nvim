@@ -2,7 +2,8 @@
 
 local common = require("dove.common")
 local dove = require("dove")
-local runner = require("dove.runner")
+local runner = require("dove.source.runner")
+local default_environment = require("dove.opts.environment")
 local simulation = require("tests.dove.helpers.simulation")
 
 describe("source file execution", function()
@@ -16,6 +17,22 @@ describe("source file execution", function()
         context:cleanup()
     end)
 
+    it("rejects source functions that return a table", function()
+        dove.setup({
+            targets = {
+                project = {
+                    ---@return table
+                    source = function()
+                        return { { "echo inline" } }
+                    end,
+                },
+            },
+        })
+
+        assert.is_false(pcall(dove.run, "project"))
+        assert.same({}, context.executed_commands)
+    end)
+
     it("opens the picker for one entry by default", function()
         local path = common.path_join(context.temp_dir, "single-command.lua")
         context:write_source_file(path, {
@@ -27,7 +44,7 @@ describe("source file execution", function()
         dove.setup({
             targets = {
                 project = {
-                    source_path = function()
+                    source = function()
                         return path
                     end,
                     default_executor = function(command)
@@ -42,7 +59,7 @@ describe("source file execution", function()
             },
         })
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.equals("echo single", selected[1].command)
         assert.same({}, context.executed_commands)
@@ -61,7 +78,7 @@ describe("source file execution", function()
             end,
         })
 
-        dove.run_target()
+        dove.run()
         context.original_cmd("source " .. common.fnameescape("plugin/dove.lua"))
         context.original_cmd("Dove run")
 
@@ -82,7 +99,7 @@ describe("source file execution", function()
         })
         context:setup(path, { auto_run_single_entry = false })
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.equals("touch hello", context.executed_commands[1])
 
@@ -90,7 +107,7 @@ describe("source file execution", function()
         context.picker = function(items)
             selected = items
         end
-        dove.run_target("project")
+        dove.run("project")
         assert.equals("echo first", selected[2].command)
         assert.equals("a", selected[2].name:match("a$"))
         assert.equals("echo second", selected[3].command)
@@ -128,7 +145,7 @@ describe("source file execution", function()
                 },
             })
 
-            dove.run_target("project")
+            dove.run("project")
             assert.equals(tostring(selected[1].command), selected[1].name)
             assert.equals(tostring(selected[2].command), selected[2].name)
             assert.is_nil(selected[1].executor)
@@ -136,10 +153,10 @@ describe("source file execution", function()
             assert.is_nil(selected[3].executor)
 
             selected_index = 2
-            dove.run_target("project")
+            dove.run("project")
             selected_index = 3
-            dove.run_target("project")
-            dove.run_prev_task()
+            dove.run("project")
+            dove.prev_task()
 
             assert.same({ "first", "positional", "second", "second" }, recorded)
             assert.same({}, context.executed_commands)
@@ -156,7 +173,7 @@ describe("source file execution", function()
         })
         context:setup(path)
 
-        local success = pcall(dove.run_target, "project")
+        local success = pcall(dove.run, "project")
 
         assert.is_false(success)
         assert.same({}, context.executed_commands)
@@ -172,7 +189,7 @@ describe("source file execution", function()
         })
         context:setup(path)
 
-        local success = pcall(dove.run_target, "project")
+        local success = pcall(dove.run, "project")
 
         assert.is_false(success)
         assert.same({}, context.executed_commands)
@@ -188,7 +205,7 @@ describe("source file execution", function()
         })
         context:setup(path, { auto_run_single_entry = false })
 
-        local success = pcall(dove.run_target, "project")
+        local success = pcall(dove.run, "project")
 
         assert.is_false(success)
         assert.same({}, context.executed_commands)
@@ -203,7 +220,7 @@ describe("source file execution", function()
         })
         context:setup(path)
 
-        local success, message = pcall(dove.run_target, "project")
+        local success, message = pcall(dove.run, "project")
 
         assert.is_false(success)
         assert.matches(
@@ -225,7 +242,7 @@ describe("source file execution", function()
         })
         context:setup(path)
 
-        local success, message = pcall(dove.run_target, "project")
+        local success, message = pcall(dove.run, "project")
 
         assert.is_false(success)
         assert.matches(
@@ -261,7 +278,7 @@ describe("source file execution", function()
             end,
         })
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.equals(1, #context.executed_commands)
         assert.equals("first; second", context.executed_commands[1])
@@ -270,7 +287,7 @@ describe("source file execution", function()
         context.picker = function(items)
             selected = items
         end
-        dove.run_target("project")
+        dove.run("project")
 
         assert.equals(2, #selected)
         assert.equals("third", selected[2].command)
@@ -290,7 +307,7 @@ describe("source file execution", function()
             end,
         })
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.same({ "first && second" }, context.executed_commands)
     end)
@@ -307,7 +324,7 @@ describe("source file execution", function()
             },
             targets = {
                 project = {
-                    source_path = function()
+                    source = function()
                         return path
                     end,
                     default_executor = function(command)
@@ -318,7 +335,7 @@ describe("source file execution", function()
                     end,
                 },
                 custom = {
-                    source_path = function()
+                    source = function()
                         return path
                     end,
                     default_executor = function(command)
@@ -332,8 +349,8 @@ describe("source file execution", function()
             },
         })
 
-        dove.run_target("project")
-        dove.run_target("custom")
+        dove.run("project")
+        dove.run("custom")
 
         assert.same(
             { "shared-first && second", "custom-first | second" },
@@ -357,7 +374,7 @@ describe("source file execution", function()
             end,
         })
 
-        local success = pcall(dove.run_target, "project")
+        local success = pcall(dove.run, "project")
 
         assert.is_false(success)
         assert.same({}, context.executed_commands)
@@ -391,7 +408,7 @@ describe("source file execution", function()
             end)
             context:setup(path)
 
-            dove.run_target("project")
+            dove.run("project")
 
             assert.same({ case.command }, context.executed_commands)
         end
@@ -421,7 +438,7 @@ describe("source file execution", function()
             },
         })
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.equals("Dove: run target = 'project'", received_prompt)
         assert.same({ "1. echo first", "2. echo second" }, received_labels)
@@ -453,7 +470,7 @@ describe("source file execution", function()
             },
         })
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.same({ "echo first (1)", "echo second (2)" }, received_labels)
         assert.same({ "echo first" }, context.executed_commands)
@@ -466,7 +483,7 @@ describe("source file execution", function()
         })
         context:setup(path)
 
-        local success = pcall(dove.run_target, "project")
+        local success = pcall(dove.run, "project")
 
         assert.is_false(success)
         assert.same({}, context.executed_commands)
@@ -477,7 +494,7 @@ describe("source file execution", function()
         context:write_source_file(path, { "return {}" })
         context:setup(path)
 
-        assert.is_true(pcall(dove.run_target, "project"))
+        assert.is_true(pcall(dove.run, "project"))
         assert.same({}, context.executed_commands)
     end)
 
@@ -509,7 +526,7 @@ describe("source file execution", function()
             },
         })
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.same({ "wc custom.lua" }, context.executed_commands)
         assert.is_nil(
@@ -517,18 +534,169 @@ describe("source file execution", function()
         )
     end)
 
+    it("exposes task and entry replay through denv", function()
+        local project_path = common.path_join(context.temp_dir, "project.lua")
+        context:write_source_file(project_path, { 'return { { "echo old" } }' })
+        local choice = 1
+        dove.setup({
+            targets = {
+                project = {
+                    source = function()
+                        return project_path
+                    end,
+                    auto_run_single_entry = true,
+                    default_executor = function(command)
+                        context:execute(command)
+                    end,
+                },
+                replay = {
+                    source = function()
+                        if choice == 1 then
+                            default_environment.run_task(
+                                default_environment.last_task()
+                            )
+                        else
+                            default_environment.run_entry(
+                                default_environment.last_entry()
+                            )
+                        end
+                    end,
+                },
+            },
+            ui = {
+                picker = function(items, _, on_choice)
+                    on_choice(items[choice], choice)
+                end,
+            },
+        })
+
+        dove.run("project")
+        local task = assert(default_environment.last_task())
+        local entry = assert(default_environment.last_entry())
+        task.command = "echo changed snapshot"
+        entry.index = 99
+        dove.run("replay")
+        context:write_source_file(project_path, { 'return { { "echo new" } }' })
+        choice = 2
+        dove.run("replay")
+        dove.prev_task()
+
+        assert.same(
+            { "echo old", "echo old", "echo new", "echo new" },
+            context.executed_commands
+        )
+    end)
+
+    it("rejects source functions that return nil", function()
+        local picker_called = false
+        dove.setup({
+            targets = {
+                project = {
+                    source = function() end,
+                },
+            },
+            ui = {
+                picker = function()
+                    picker_called = true
+                end,
+            },
+        })
+        local previous_task = runner.last_executed_task
+        local previous_entry = runner.last_executed_entry
+
+        assert.is_false(pcall(dove.run, "project"))
+
+        assert.is_false(picker_called)
+        assert.equals(previous_task, runner.last_executed_task)
+        assert.equals(previous_entry, runner.last_executed_entry)
+    end)
+
     it("runs the previous task again", function()
         local path = common.path_join(context.temp_dir, "previous.lua")
         context:write_source_file(path, { 'return { { "echo previous" } }' })
         context:setup(path)
-        dove.run_target("project")
+        dove.run("project")
 
-        dove.run_prev_task()
+        dove.prev_task()
+        dove.prev_task()
 
         assert.same(
-            { "echo previous", "echo previous" },
+            { "echo previous", "echo previous", "echo previous" },
             context.executed_commands
         )
+    end)
+
+    it("does nothing when no previous entry exists", function()
+        context:setup(common.path_join(context.temp_dir, "unused.lua"))
+        local previous = runner.last_executed_entry
+        runner.last_executed_entry = nil
+
+        dove.prev_entry()
+
+        assert.is_nil(runner.last_executed_entry)
+        assert.same({}, context.executed_commands)
+        runner.last_executed_entry = previous
+    end)
+
+    it(
+        "recomputes the previous shell entry while preserving the previous task",
+        function()
+            local path =
+                common.path_join(context.temp_dir, "previous-entry.lua")
+            context:write_source_file(path, {
+                'return { { "echo first" }, { "echo old" } }',
+            })
+            context.picker = function(items, _, on_choice)
+                on_choice(items[2], 2)
+            end
+            context:setup(path, { auto_run_single_entry = false })
+            dove.run("project")
+            context:write_source_file(path, {
+                'return { { "echo first" }, { "echo new" } }',
+            })
+
+            dove.prev_task()
+            context.original_cmd(
+                "source " .. common.fnameescape("plugin/dove.lua")
+            )
+            context.original_cmd("Dove prev_entry")
+            context.original_cmd("Dove prev_task")
+            assert.is_false(pcall(context.original_cmd, "Dove last_entry"))
+            assert.is_false(pcall(context.original_cmd, "Dove last_task"))
+            assert.is_false(
+                pcall(context.original_cmd, "Dove prev_entry extra")
+            )
+            assert.is_false(pcall(context.original_cmd, "Dove prev_task extra"))
+
+            assert.same(
+                { "echo old", "echo old", "echo new", "echo new" },
+                context.executed_commands
+            )
+        end
+    )
+
+    it("recomputes the previous Lua function entry", function()
+        local path = common.path_join(context.temp_dir, "previous-function.lua")
+        local recorded = {}
+        context:write_source_file(path, {
+            "return { { function() record('old') end } }",
+        })
+        context:setup(path, {
+            environment = {
+                record = function(value)
+                    recorded[#recorded + 1] = value
+                end,
+            },
+        })
+        dove.run("project")
+        context:write_source_file(path, {
+            "return { { function() record('new') end } }",
+        })
+
+        dove.prev_task()
+        dove.prev_entry()
+
+        assert.same({ "old", "old", "new" }, recorded)
     end)
 
     it(
@@ -545,8 +713,8 @@ describe("source file execution", function()
             local previous_task = runner.last_executed_task
             runner.last_executed_task = nil
 
-            dove.run_target("project")
-            dove.run_prev_task()
+            dove.run("project")
+            dove.prev_task()
 
             assert.is_nil(runner.last_executed_task)
             assert.same({}, context.executed_commands)
@@ -560,13 +728,13 @@ describe("source file execution", function()
             'return { { "echo first" }, { "echo second" } }',
         })
         context:setup(path)
-        dove.run_target("project")
+        dove.run("project")
         context.picker = function(_, _, on_choice)
             on_choice(nil, nil)
         end
 
-        dove.run_target("project")
-        dove.run_prev_task()
+        dove.run("project")
+        dove.prev_task()
 
         assert.same({ "echo first", "echo first" }, context.executed_commands)
     end)
@@ -576,7 +744,7 @@ describe("source file execution", function()
         context:write_source_file(path, { 'return "invalid"' })
         context:setup(path)
 
-        local success = pcall(dove.run_target, "project")
+        local success = pcall(dove.run, "project")
 
         assert.is_false(success)
     end)

@@ -1,40 +1,44 @@
 local common = require("dove.common")
-local preset = require("dove.preset")
+local default_environment = require("dove.opts.environment")
 
 return {
     targets = {
         project = {
-            source_path = function()
+            source = function()
                 return common.path_join(
-                    preset.dove_data_path(),
+                    default_environment.dove_data_path(),
                     "projects",
-                    preset.hash_sha256(preset.cwd_path()) .. ".lua"
+                    default_environment.hash_sha256(
+                        default_environment.cwd_path()
+                    ) .. ".lua"
                 )
             end,
         },
         filetype = {
-            source_path = function()
+            source = function()
                 return common.path_join(
-                    preset.dove_data_path(),
+                    default_environment.dove_data_path(),
                     "filetypes",
-                    preset.file_type() .. ".lua"
+                    default_environment.file_type() .. ".lua"
                 )
             end,
         },
         global = {
-            source_path = function()
-                return common.path_join(preset.dove_data_path(), "global.lua")
+            source = function()
+                return common.path_join(
+                    default_environment.dove_data_path(),
+                    "global.lua"
+                )
             end,
         },
     },
     parent_target = {
+        ignore = false,
         auto_run_single_entry = false,
-        default_executor = function(command)
-            preset.executors.split(command, { nil, "wincmd J | resize -4" })
-        end,
         environment = {
-            denv = common.tbl_deep_extend("force", {}, preset),
+            denv = common.tbl_deep_extend("force", {}, default_environment),
         },
+        default_executor = default_environment.executors.default,
         cmd_list_delimiter = function()
             local shell =
                 common.basename(common.get_shell():gsub("\\", "/")):lower()

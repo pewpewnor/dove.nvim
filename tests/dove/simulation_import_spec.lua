@@ -39,7 +39,7 @@ describe("source file loading", function()
         context.picker = function(items)
             selected = items
         end
-        dove.run_target("project")
+        dove.run("project")
 
         assert.equals(2, #selected)
         assert.equals("echo local", selected[1].name)
@@ -57,7 +57,7 @@ describe("source file loading", function()
         })
         context:setup(path)
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.same({ "echo relative" }, context.executed_commands)
     end)
@@ -73,7 +73,7 @@ describe("source file loading", function()
         })
         context:setup(path)
 
-        local success = pcall(dove.run_target, "project")
+        local success = pcall(dove.run, "project")
 
         assert.is_false(success)
     end)
@@ -82,10 +82,10 @@ describe("source file loading", function()
         local path = common.path_join(context.temp_dir, "reload.lua")
         context:write_source_file(path, { 'return { { "echo first" } }' })
         context:setup(path)
-        dove.run_target("project")
+        dove.run("project")
         context:write_source_file(path, { 'return { { "echo second" } }' })
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.same({ "echo first", "echo second" }, context.executed_commands)
     end)
@@ -97,7 +97,7 @@ describe("source file loading", function()
         common.enable_loader()
         context.loader_enabled = true
 
-        dove.run_target("project")
+        dove.run("project")
 
         assert.same({ "echo loaded" }, context.executed_commands)
     end)

@@ -51,7 +51,7 @@ function M:setup(path, options)
         end
     options.targets = {
         project = {
-            source_path = function()
+            source = function()
                 return path
             end,
             auto_run_single_entry = auto_run_single_entry,
