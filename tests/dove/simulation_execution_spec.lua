@@ -536,7 +536,16 @@ describe("source file execution", function()
 
     it("exposes task and entry replay through denv", function()
         local project_path = common.path_join(context.temp_dir, "project.lua")
+        local replay_path = common.path_join(context.temp_dir, "replay.lua")
         context:write_source_file(project_path, { 'return { { "echo old" } }' })
+        context:write_source_file(replay_path, {
+            "if replay_choice() == 1 then",
+            "    denv.run_task(denv.last_task())",
+            "else",
+            "    denv.run_entry(denv.last_entry())",
+            "end",
+            "return {}",
+        })
         local choice = 1
         dove.setup({
             targets = {
@@ -551,16 +560,14 @@ describe("source file execution", function()
                 },
                 replay = {
                     source = function()
-                        if choice == 1 then
-                            default_environment.run_task(
-                                default_environment.last_task()
-                            )
-                        else
-                            default_environment.run_entry(
-                                default_environment.last_entry()
-                            )
-                        end
+                        return replay_path
                     end,
+                    environment = {
+                        ---@return integer
+                        replay_choice = function()
+                            return choice
+                        end,
+                    },
                 },
             },
             ui = {
