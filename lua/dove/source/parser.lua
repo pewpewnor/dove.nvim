@@ -2,7 +2,7 @@ local common = require("dove.common")
 
 local M = {}
 
----@param config dove.Config
+---@param config dove.ResolvedOptions
 function M.init(config)
     M.config = config
 end

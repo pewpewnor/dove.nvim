@@ -1,4 +1,4 @@
----@diagnostic disable: undefined-field
+---@diagnostic disable: undefined-field, return-type-mismatch
 
 local common = require("dove.common")
 local dove = require("dove")
@@ -48,10 +48,7 @@ describe("source file management", function()
         local path = common.path_join(context.temp_dir, "nested", "new.lua")
         local template = "return {\n    { 'make test' },\n}\n"
         context:setup(path, {
-            ---@return string
-            new_source_file_placeholder_text = function()
-                return template
-            end,
+            new_source_file_placeholder = template,
         })
 
         dove.edit("project")
@@ -62,34 +59,34 @@ describe("source file management", function()
         assert.equals(template, content)
     end)
 
+    it("preserves CRLF in configured template code", function()
+        local path = common.path_join(context.temp_dir, "new.lua")
+        local template = "return {\r\n    { 'make test' },\r\n}\r\n"
+        context:setup(path, { new_source_file_placeholder = template })
+
+        dove.edit("project")
+
+        local file = assert(io.open(path, "rb"))
+        local content = file:read("*a")
+        file:close()
+        assert.equals(template, content)
+    end)
+
+    it("does not write a template when the target option is false", function()
+        local path = common.path_join(context.temp_dir, "nested", "new.lua")
+        context:setup(path, { new_source_file_placeholder = false })
+
+        dove.edit("project")
+
+        assert.is_false(common.is_file_and_readable(path))
+    end)
+
     it(
-        "does not write a template when the target function returns nil",
-        function()
-            local path = common.path_join(context.temp_dir, "nested", "new.lua")
-            context:setup(path, {
-                ---@return string?
-                new_source_file_placeholder_text = function()
-                    return nil
-                end,
-            })
-
-            dove.edit("project")
-
-            assert.is_false(common.is_file_and_readable(path))
-        end
-    )
-
-    it(
-        "does not write a template when the inherited function returns nil",
+        "does not write a template when the inherited option is false",
         function()
             local path = common.path_join(context.temp_dir, "nested", "new.lua")
             dove.setup({
-                parent_target = {
-                    ---@return string?
-                    new_source_file_placeholder_text = function()
-                        return nil
-                    end,
-                },
+                parent_target = { new_source_file_placeholder = false },
                 targets = {
                     project = {
                         ---@return string
@@ -106,15 +103,24 @@ describe("source file management", function()
         end
     )
 
+    it("rejects a template function", function()
+        local path = common.path_join(context.temp_dir, "nested", "new.lua")
+        assert.is_false(pcall(context.setup, context, path, {
+            ---@return string
+            new_source_file_placeholder = function()
+                return "return {}"
+            end,
+        }))
+
+        assert.is_false(common.is_file_and_readable(path))
+    end)
+
     it("uses the selected target's template code", function()
         local project_path = common.path_join(context.temp_dir, "project.lua")
         local custom_path = common.path_join(context.temp_dir, "custom.lua")
         dove.setup({
             parent_target = {
-                ---@return string
-                new_source_file_placeholder_text = function()
-                    return "return { { 'shared' } }"
-                end,
+                new_source_file_placeholder = "return { { 'shared' } }",
             },
             targets = {
                 project = {
@@ -126,10 +132,7 @@ describe("source file management", function()
                     source = function()
                         return custom_path
                     end,
-                    ---@return string
-                    new_source_file_placeholder_text = function()
-                        return "return { { 'custom' } }"
-                    end,
+                    new_source_file_placeholder = "return { { 'custom' } }",
                 },
             },
         })
@@ -145,10 +148,7 @@ describe("source file management", function()
         local path = common.path_join(context.temp_dir, "existing.lua")
         context:write_source_file(path, { "return {}" })
         context:setup(path, {
-            ---@return string
-            new_source_file_placeholder_text = function()
-                return "return { { 'make test' } }"
-            end,
+            new_source_file_placeholder = "return { { 'make test' } }",
         })
 
         dove.edit("project")

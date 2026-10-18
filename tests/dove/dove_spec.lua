@@ -1,4 +1,4 @@
----@diagnostic disable: undefined-field
+---@diagnostic disable: undefined-field, assign-type-mismatch
 
 local dove = require("dove")
 local create_opts = require("dove.opts.create")
@@ -45,9 +45,6 @@ describe("setup", function()
         assert.is_function(module.config.targets.project.source)
         assert.is_function(module.config.targets.filetype.source)
         assert.is_function(module.config.targets.global.source)
-        for _, target in pairs(module.config.targets) do
-            assert.is_false(target.ignore)
-        end
         assert.is_false(module.config.targets.project.auto_run_single_entry)
         assert.is_false(module.config.targets.filetype.auto_run_single_entry)
         assert.is_false(module.config.targets.global.auto_run_single_entry)
@@ -60,7 +57,7 @@ describe("setup", function()
         assert.is_function(module.config.targets.global.default_executor)
         assert.is_nil(module.config.unspecified_target_name)
         assert.is_nil(module.config.cmd_list_delimiter)
-        assert.is_nil(module.config.new_source_file_placeholder_text)
+        assert.is_nil(module.config.new_source_file_placeholder)
         assert.equals(
             table.concat({
                 "return {",
@@ -71,7 +68,7 @@ describe("setup", function()
                 "}",
                 "",
             }, "\n"),
-            module.config.targets.project.new_source_file_placeholder_text()
+            module.config.targets.project.new_source_file_placeholder
         )
         assert.is_function(module.config.ui.picker)
         assert.equals(
@@ -108,6 +105,61 @@ describe("setup", function()
         end
     )
 
+    it("requires target settings when the parent target is false", function()
+        assert.is_false(pcall(dove.setup, { parent_target = false }))
+        assert.is_false(pcall(dove.setup, {
+            parent_target = false,
+            targets = {
+                project = false,
+                filetype = false,
+                global = false,
+                custom = {
+                    ---@return string
+                    source = function()
+                        return "custom.lua"
+                    end,
+                },
+            },
+        }))
+    end)
+
+    it("merges targets with an empty parent when it is false", function()
+        local options = {
+            parent_target = false,
+            targets = {
+                project = false,
+                filetype = false,
+                global = false,
+                custom = {
+                    ---@return string
+                    source = function()
+                        return "custom.lua"
+                    end,
+                    auto_run_single_entry = false,
+                    default_executor = default_environment.executors.default,
+                    environment = { marker = "custom" },
+                    cmd_list_delimiter = default_opts.parent_target.cmd_list_delimiter,
+                    new_source_file_placeholder = false,
+                },
+            },
+        }
+
+        dove.setup(options)
+
+        assert.is_false(options.parent_target)
+        assert.same({}, module.config.parent_target)
+        assert.same({ "custom" }, module.get_target_names())
+        assert.equals(
+            default_environment.executors.default,
+            module.config.targets.custom.default_executor
+        )
+        assert.equals("custom", module.config.targets.custom.environment.marker)
+        assert.is_function(module.config.targets.custom.cmd_list_delimiter)
+        assert.is_false(
+            module.config.targets.custom.new_source_file_placeholder
+        )
+    end)
+
     it("rejects an invalid ui picker", function()
         local success = pcall(dove.setup, {
             ui = { picker = true },
@@ -140,7 +192,7 @@ describe("setup", function()
 
     it("rejects invalid new source file template code", function()
         local success = pcall(dove.setup, {
-            targets = { project = { new_source_file_placeholder_text = true } },
+            targets = { project = { new_source_file_placeholder = true } },
         })
 
         assert.is_false(success)
@@ -190,11 +242,11 @@ describe("setup", function()
         assert.is_false(success)
     end)
 
-    it("removes ignored built-in and custom targets", function()
+    it("removes false built-in and custom targets", function()
         dove.setup({
             targets = {
-                project = { ignore = true },
-                custom = { ignore = true },
+                project = false,
+                custom = false,
             },
         })
 
@@ -207,9 +259,12 @@ describe("setup", function()
         assert.is_false(pcall(dove.run, "custom"))
     end)
 
-    it("rejects a non-boolean ignore option", function()
+    it("rejects target values other than tables or false", function()
         assert.is_false(pcall(dove.setup, {
-            targets = { project = { ignore = "yes" } },
+            targets = { project = true },
+        }))
+        assert.is_false(pcall(dove.setup, {
+            targets = { project = "disabled" },
         }))
     end)
 

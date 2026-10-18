@@ -128,7 +128,6 @@ The default plugin configuration opts is equivalent to:
         },
     },
     parent_target = {
-        ignore = false,
         auto_run_single_entry = false,
         default_executor = default_environment.executors.default,
         environment = {
@@ -138,15 +137,13 @@ The default plugin configuration opts is equivalent to:
             local shell = vim.fs.basename(vim.o.shell:gsub("\\", "/")):lower()
             return (shell == "cmd" or shell == "cmd.exe") and " & " or "; "
         end,
-        new_source_file_placeholder_text = function()
-            return [[return {
+        new_source_file_placeholder = [[return {
     {
         name = "placeholder greeting",
         cmd = "echo 'Hello from dove.nvim!'",
     },
 }
-]]
-        end,
+]],
     },
     unspecified_target_name = nil,
     ui = {
@@ -160,11 +157,11 @@ The default plugin configuration opts is equivalent to:
 
 ### `targets`
 
-- Type: `table<string, Target>`.
+- Type: `table<string, Target|false>`.
 - Defaults: `project`, `filetype`, and `global`.
 - User targets merge by name with built-in targets.
 - Every target inherits `parent_target` before its own options are applied.
-- A target with `ignore = true` is removed from the configuration. It cannot be
+- A target set to `false` is removed from the configuration. It cannot be
   run, edited, deleted, or completed by name. This also works for built-in
   targets and does not require a `source`.
 
@@ -173,12 +170,11 @@ Each target supports:
 | Option                             | Type              | Default                                 |
 | ---------------------------------- | ----------------- | --------------------------------------- |
 | `source`                           | function          | Required for a new target               |
-| `ignore`                           | boolean           | `false`                                 |
 | `auto_run_single_entry`            | boolean           | `false`                                 |
 | `default_executor`                 | function          | `default_environment.executors.default` |
 | `environment`                      | table             | Built-in `denv` values                  |
 | `cmd_list_delimiter`               | function          | Shell-compatible list separator         |
-| `new_source_file_placeholder_text` | function          | Starter source code                     |
+| `new_source_file_placeholder`      | string or false   | Starter source code                     |
 
 A source function takes no arguments and returns a source file path string.
 Paths are normalized and `~` is expanded. For example:
@@ -198,6 +194,10 @@ Built-in paths and settings:
 - Both show the picker for one entry and use `default_environment.executors.default`.
 
 ### `parent_target`
+
+- Type: `table` or `false`.
+- Setting `false` removes inherited parent options. Every remaining target must
+  define its required options, including the built-in targets.
 
 The options in `parent_target` are deeply merged into every built-in and custom
 target. A target can override any inherited value. Its `environment` table
@@ -253,14 +253,14 @@ See **Command lists** for execution behavior.
 
 ### Source File Templates
 
-`targets.<name>.new_source_file_placeholder_text` controls `:Dove edit` for a
+`targets.<name>.new_source_file_placeholder` controls `:Dove edit` for a
 missing file:
 
-- Type: `fun(): string?`.
+- Type: `string` or `false`.
 - Default: the starter source code shown in the default configuration.
 - Omitting the option or assigning `nil` uses the default.
-- Return `nil` to open a new source file without writing a template.
-- A returned string is written to the new source file before it is opened.
+- Set `false` to open a new source file without writing a template.
+- A string is written to the new source file before it is opened.
 - Existing files are never replaced.
 
 ### `ui`
@@ -709,9 +709,10 @@ default_environment.executors.split("make test", { nil, "wincmd J | resize -3" }
     it uses `unspecified_target_name`; an error is raised if none is configured.
     It resolves the target's source path, recursively creates missing parent
     directories, and opens the escaped path with `:tabedit`. If the path is not
-    a readable file and the target's `new_source_file_placeholder_text` returns
-    a string, it first writes that string to the new source file. An unknown
-    target, invalid resolver, or invalid template return value raises an error.
+    a readable file and the target's `new_source_file_placeholder` is a
+    string, it first writes that string to the new source file. With
+    `false`, it opens the file without writing a template. An unknown
+    target or invalid resolver raises an error.
 
 - **`delete_source_file(target_name)`**
 

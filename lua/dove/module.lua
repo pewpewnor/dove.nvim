@@ -4,9 +4,9 @@ local common = require("dove.common")
 
 local M = {}
 
----@param config dove.Config
+---@param config dove.ResolvedOptions
 function M.init(config)
-    ---@type dove.Config
+    ---@type dove.ResolvedOptions
     M.config = config
     require("dove.source.parser").init(config)
     runner.init(config)
@@ -89,14 +89,8 @@ function M.edit(target_name)
     local path = pathfinder(target.source)
     common.mkdir_with_parents(common.dirname(path))
     if not common.is_file_and_readable(path) then
-        local template = target.new_source_file_placeholder_text()
-        common.validate(
-            "new_source_file_placeholder_text return value",
-            template,
-            { "string", "nil" }
-        )
-        if template ~= nil then
-            common.write_text_file(path, template)
+        if target.new_source_file_placeholder ~= false then
+            common.write_text_file(path, target.new_source_file_placeholder)
         end
     end
     common.cmd("tabedit " .. common.fnameescape(path))

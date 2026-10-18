@@ -1,4 +1,4 @@
----@diagnostic disable: undefined-field
+---@diagnostic disable: undefined-field, redundant-parameter
 
 local dove = require("dove")
 local common = require("dove.common")

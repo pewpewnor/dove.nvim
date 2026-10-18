@@ -1,7 +1,8 @@
 local common = require("dove.common")
 local default_environment = require("dove.opts.environment")
 
-return {
+---@type dove.Options
+local default_opts = {
     targets = {
         project = {
             source = function()
@@ -33,7 +34,6 @@ return {
         },
     },
     parent_target = {
-        ignore = false,
         auto_run_single_entry = false,
         environment = {
             denv = common.tbl_deep_extend("force", {}, default_environment),
@@ -44,18 +44,13 @@ return {
                 common.basename(common.get_shell():gsub("\\", "/")):lower()
             return (shell == "cmd" or shell == "cmd.exe") and " & " or "; "
         end,
-        ---@return string
-        new_source_file_placeholder_text = function()
-            return table.concat({
-                "return {",
-                "    {",
-                '        name = "placeholder greeting",',
-                "        cmd = \"echo 'Hello from dove.nvim!'\",",
-                "    },",
-                "}",
-                "",
-            }, "\n")
-        end,
+        new_source_file_placeholder = [[return {
+    {
+        name = "placeholder greeting",
+        cmd = "echo 'Hello from dove.nvim!'",
+    },
+}
+]],
     },
     unspecified_target_name = nil,
     ui = {
@@ -65,3 +60,5 @@ return {
         end,
     },
 }
+
+return default_opts

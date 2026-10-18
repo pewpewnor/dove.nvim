@@ -76,30 +76,26 @@ With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ## Commands
 
-| Command                 | Action                                      |
-| ----------------------- | ------------------------------------------- |
-| `:Dove run [target]`    | Run the target                              |
-| `:Dove edit [target]`   | Open the target's source file               |
-| `:Dove delete {target}` | Delete the target's source file             |
-| `:Dove prev_task`       | Repeat the last executed task unchanged     |
-| `:Dove prev_entry`      | Recompute and run the last selected entry   |
+| Command                 | Action                                    |
+| ----------------------- | ----------------------------------------- |
+| `:Dove run [target]`    | Run the target                            |
+| `:Dove edit [target]`   | Open the target's source file             |
+| `:Dove delete {target}` | Delete the target's source file           |
+| `:Dove prev_task`       | Repeat the last executed task unchanged   |
+| `:Dove prev_entry`      | Recompute and run the last selected entry |
 
 For `run` and `edit`, an omitted target uses `unspecified_target_name`.
 `delete` requires a literal target name.
 
 ## Built-in Targets
 
-| Target       | Default behaviour                                                                                                   |
-| ------------ | ------------------------------------------------------------------------------------------------------------------- |
-| `filetype`   | Execute commands based on the current buffer's filetype, e.g. a command to compile the file and execute the binary. |
-| `project`    | Execute commands for the current working directory, e.g. commands to build the project or run all tests.            |
-| `global`     | Execute commands shared across all files and projects.                                                              |
+| Target     | Default behaviour                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- |
+| `filetype` | Execute commands based on the current buffer's filetype, e.g. a command to compile the file and execute the binary. |
+| `project`  | Execute commands for the current working directory, e.g. commands to build the project or run all tests.            |
+| `global`   | Execute commands shared across all files and projects.                                                              |
 
-Set `ignore = true` on any target to remove it, including a built-in target:
-
-```lua
-require("dove").setup({ targets = { global = { ignore = true } } })
-```
+Set any target to `false` to remove/ignore it.
 
 ## Customization Example
 
@@ -157,7 +153,7 @@ dove.setup({
         -- change delimiter used when `cmd` on a source file's entry is a list
         cmd_list_delimiter = function() return " && " end,
         -- stop writing placeholder text when editing a new source file
-        new_source_file_placeholder_text = function() return nil end,
+        new_source_file_placeholder = false,
     },
     -- use `project` for `Dove run` without a target name
     unspecified_target_name = function() return "project" end,

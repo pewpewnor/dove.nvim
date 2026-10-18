@@ -1,11 +1,11 @@
 local common = require("dove.common")
----@param target_config dove.Target|dove.ParentTarget
+
+---@param target_config dove.Target|dove.ParentTarget|dove.TargetOption
 ---@param prefix string
----@param source_required boolean
-local function validate_target(target_config, prefix, source_required)
+---@param not_parent_target boolean
+local function validate_target(target_config, prefix, not_parent_target)
     common.validate(prefix, target_config, "table")
-    common.validate(prefix .. ".ignore", target_config.ignore, "boolean")
-    if source_required and target_config.source == nil then
+    if not_parent_target and target_config.source == nil then
         error("dove.nvim: " .. prefix .. ".source is required")
     end
     if target_config.source ~= nil then
@@ -31,11 +31,13 @@ local function validate_target(target_config, prefix, source_required)
         target_config.cmd_list_delimiter,
         "function"
     )
-    common.validate(
-        prefix .. ".new_source_file_placeholder_text",
-        target_config.new_source_file_placeholder_text,
-        "function"
-    )
+    if target_config.new_source_file_placeholder ~= false then
+        common.validate(
+            prefix .. ".new_source_file_placeholder",
+            target_config.new_source_file_placeholder,
+            "string"
+        )
+    end
 end
 
 ---@param targets dove.Targets
@@ -45,7 +47,7 @@ local function validate_targets(targets)
     end
 end
 
----@param options dove.Config
+---@param options dove.ResolvedOptions
 local function validate_opts(options)
     common.validate("options", options, "table")
     common.validate(
@@ -53,7 +55,10 @@ local function validate_opts(options)
         options.unspecified_target_name,
         { "function", "nil" }
     )
-    validate_target(options.parent_target, "options.parent_target", false)
+    common.validate("options.parent_target", options.parent_target, "table")
+    if next(options.parent_target) ~= nil then
+        validate_target(options.parent_target, "options.parent_target", false)
+    end
     common.validate("options.ui", options.ui, "table")
     common.validate("options.ui.picker", options.ui.picker, "function")
     common.validate(

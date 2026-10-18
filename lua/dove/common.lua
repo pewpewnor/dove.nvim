@@ -378,11 +378,7 @@ end
 ---@param content string
 ---@return boolean
 function M.write_text_file(path, content)
-    return vim.fn.writefile(
-        vim.split(content, "\n", { plain = true }),
-        path,
-        "b"
-    ) == 0
+    return vim.fn.writefile(content, path, "b") == 0
 end
 
 return M

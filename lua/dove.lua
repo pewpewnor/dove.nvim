@@ -5,7 +5,7 @@ local validate_opts = require("dove.opts.validate")
 
 local M = {}
 
----@param options table?
+---@param options dove.Options?
 function M.setup(options)
     common.validate("options", options, { "table", "nil" })
     local config = create_opts(options)

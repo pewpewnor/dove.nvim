@@ -9,23 +9,32 @@
 
 ---@class dove.Target
 ---@field source dove.SourceResolver
----@field ignore boolean
 ---@field auto_run_single_entry boolean
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
----@field new_source_file_placeholder_text fun(): string?
+---@field new_source_file_placeholder false|string
 
 ---@class dove.ParentTarget
----@field ignore boolean
 ---@field auto_run_single_entry boolean
 ---@field default_executor dove.Executor
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
----@field new_source_file_placeholder_text fun(): string?
+---@field new_source_file_placeholder false|string
 
 ---@class dove.Targets
 ---@field [string] dove.Target
+
+---@class dove.TargetOption
+---@field source? dove.SourceResolver
+---@field auto_run_single_entry? boolean
+---@field default_executor? dove.Executor
+---@field environment? table
+---@field cmd_list_delimiter? fun(): string
+---@field new_source_file_placeholder? false|string
+
+---@class dove.TargetOptions
+---@field [string] dove.TargetOption|false
 
 ---@class dove.SourceEnvironment
 ---@field executors dove.Executors
@@ -44,9 +53,19 @@
 ---@field picker dove.Picker
 ---@field format_selection_item fun(name: string, i: integer): string
 
----@class dove.Config
+---@class dove.UiOption
+---@field picker? dove.Picker
+---@field format_selection_item? fun(name: string, i: integer): string
+
+---@class dove.Options
+---@field targets? dove.TargetOptions
+---@field parent_target? dove.TargetOption|false
+---@field unspecified_target_name? fun(): string
+---@field ui? dove.UiOption
+
+---@class dove.ResolvedOptions
 ---@field targets dove.Targets
----@field parent_target dove.ParentTarget
+---@field parent_target dove.ParentTarget|dove.TargetOption
 ---@field unspecified_target_name (fun(): string)?
 ---@field ui dove.Ui
 
