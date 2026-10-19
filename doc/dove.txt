@@ -1,5 +1,5 @@
 *dove.txt*      Use Lua to define and run shell commands or Lua code anywhere.
-                              For NVIM v0.12.0    Last change: 2026 October 18
+                              For NVIM v0.12.0    Last change: 2026 October 19
 
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
@@ -269,12 +269,12 @@ The source can then use `test_prefix`, the replaced `denv.file_path()`, and
 
 UNSPECIFIED_TARGET_NAME ~
 
-- Type: `(fun(): string)|nil`.
+- Type: `string|fun(): string|nil`.
 - Default: `nil`.
 
 Resolves the target name used by `:Dove run`, `:Dove edit`, `run()`, and
-`edit()` when no target is provided. The returned name must match a configured
-target. If the option is `nil`, omitting a target raises an error.
+`edit()` when no target is provided. The string or returned name must match a
+configured target. If the option is `nil`, omitting a target raises an error.
 
 
 TARGETS.<NAME>.CMD_LIST_DELIMITER ~

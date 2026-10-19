@@ -156,7 +156,7 @@ dove.setup({
         new_source_file_placeholder = false,
     },
     -- use `project` for `Dove run` without a target name
-    unspecified_target_name = function() return "project" end,
+    unspecified_target_name = "project",
     ui = {
         -- override picker to any vim.ui.select compatible picker
         picker = vim.ui.select,

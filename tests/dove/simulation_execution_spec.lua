@@ -88,6 +88,25 @@ describe("source file execution", function()
         )
     end)
 
+    it("runs a string unspecified target from the API and command", function()
+        local path = common.path_join(context.temp_dir, "string-target.lua")
+        context:write_source_file(path, {
+            "return {",
+            '    { "echo string target" },',
+            "}",
+        })
+        context:setup(path, { unspecified_target_name = "project" })
+
+        dove.run()
+        context.original_cmd("source " .. common.fnameescape("plugin/dove.lua"))
+        context.original_cmd("Dove run")
+
+        assert.same(
+            { "echo string target", "echo string target" },
+            context.executed_commands
+        )
+    end)
+
     it("runs named and positional command tables", function()
         local path = common.path_join(context.temp_dir, "project.lua")
         context:write_source_file(path, {

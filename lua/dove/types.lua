@@ -60,13 +60,13 @@
 ---@class dove.Options
 ---@field targets? dove.TargetOptions
 ---@field parent_target? dove.TargetOption|false
----@field unspecified_target_name? fun(): string
+---@field unspecified_target_name? string|fun(): string
 ---@field ui? dove.UiOption
 
 ---@class dove.ResolvedOptions
 ---@field targets dove.Targets
 ---@field parent_target dove.ParentTarget|dove.TargetOption
----@field unspecified_target_name (fun(): string)?
+---@field unspecified_target_name (string|fun(): string)?
 ---@field ui dove.Ui
 
 ---@class dove.RawEntry

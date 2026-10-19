@@ -38,10 +38,15 @@ local function find_target(target_name)
 
     local resolved_target_name = target_name
     if resolved_target_name == nil then
-        if M.config.unspecified_target_name == nil then
+        local unspecified_target_name = M.config.unspecified_target_name
+        if unspecified_target_name == nil then
             error("dove.nvim: no unspecified target name is configured")
         end
-        resolved_target_name = M.config.unspecified_target_name()
+        if type(unspecified_target_name) == "function" then
+            resolved_target_name = unspecified_target_name()
+        else
+            resolved_target_name = unspecified_target_name
+        end
     end
     common.validate(
         target_name == nil and "unspecified_target_name" or "target_name",

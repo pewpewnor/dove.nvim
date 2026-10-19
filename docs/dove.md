@@ -235,11 +235,11 @@ The source can then use `test_prefix`, the replaced `denv.file_path()`, and
 
 ### `unspecified_target_name`
 
-- Type: `(fun(): string)|nil`.
+- Type: `string|fun(): string|nil`.
 - Default: `nil`.
 
 Resolves the target name used by `:Dove run`, `:Dove edit`, `run()`, and
-`edit()` when no target is provided. The returned name must match
+`edit()` when no target is provided. The string or returned name must match
 a configured target. If the option is `nil`, omitting a target raises an error.
 
 ### `targets.<name>.cmd_list_delimiter`

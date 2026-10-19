@@ -53,7 +53,7 @@ local function validate_opts(options)
     common.validate(
         "options.unspecified_target_name",
         options.unspecified_target_name,
-        { "function", "nil" }
+        { "function", "string", "nil" }
     )
     common.validate("options.parent_target", options.parent_target, "table")
     if next(options.parent_target) ~= nil then

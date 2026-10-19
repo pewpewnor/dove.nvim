@@ -185,6 +185,19 @@ describe("source file management", function()
         assert.is_true(common.is_file_and_readable(path))
     end)
 
+    it("edits a string unspecified target from the API and command", function()
+        local path = common.path_join(context.temp_dir, "string-edit.lua")
+        context:setup(path, { unspecified_target_name = "project" })
+
+        dove.edit()
+        assert.is_true(common.is_file_and_readable(path))
+
+        common.path_remove(path)
+        context.original_cmd("source " .. common.fnameescape("plugin/dove.lua"))
+        context.original_cmd("Dove edit")
+        assert.is_true(common.is_file_and_readable(path))
+    end)
+
     it(
         "requires a literal target to delete from the API and command",
         function()
