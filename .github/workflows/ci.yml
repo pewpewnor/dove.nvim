@@ -35,7 +35,6 @@ jobs:
 
     test:
         name: Test
-        needs: [lua-diagnostics, lua-format]
         strategy:
             fail-fast: false
             matrix:
