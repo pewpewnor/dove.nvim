@@ -129,7 +129,7 @@ The default plugin configuration opts is equivalent to:
     },
     parent_target = {
         auto_run_single_entry = false,
-        default_executor = default_environment.executors.default,
+        executor = default_environment.executors.default,
         environment = {
             denv = default_environment,
         },
@@ -171,7 +171,7 @@ Each target supports:
 | ---------------------------------- | ----------------- | --------------------------------------- |
 | `source`                           | function          | Required for a new target               |
 | `auto_run_single_entry`            | boolean           | `false`                                 |
-| `default_executor`                 | function          | `default_environment.executors.default` |
+| `executor`                         | function          | `default_environment.executors.default` |
 | `environment`                      | table             | Built-in `denv` values                  |
 | `cmd_list_delimiter`               | function          | Shell-compatible list separator         |
 | `new_source_file_placeholder`      | string or false   | Starter source code                     |
@@ -380,10 +380,10 @@ Every entry supports:
 - A string item is not an entry; wrap it in a table.
 - String commands run through Neovim's configured `shell`.
 - For string commands, an entry executor takes priority over its target's
-  `default_executor`.
+  `executor`.
 
 When `[1]` or `cmd` is a function, dove.nvim calls it directly without
-arguments. Both the entry's executor and the target's `default_executor` are
+arguments. Both the entry's executor and the target's `executor` are
 ignored, and the processed entry's executor is `nil`. Its picker label defaults
 to `tostring()` of the function when `name` is omitted. The same function is
 called again by `:Dove prev_task`. `:Dove prev_entry` reloads the source and calls

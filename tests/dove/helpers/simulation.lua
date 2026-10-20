@@ -55,7 +55,7 @@ function M:setup(path, options)
                 return path
             end,
             auto_run_single_entry = auto_run_single_entry,
-            default_executor = function(command)
+            executor = function(command)
                 self:execute(command)
             end,
             environment = options.environment,

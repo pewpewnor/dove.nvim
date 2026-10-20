@@ -10,14 +10,14 @@
 ---@class dove.Target
 ---@field source dove.SourceResolver
 ---@field auto_run_single_entry boolean
----@field default_executor dove.Executor
+---@field executor dove.Executor
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
 ---@field new_source_file_placeholder false|string
 
 ---@class dove.ParentTarget
 ---@field auto_run_single_entry boolean
----@field default_executor dove.Executor
+---@field executor dove.Executor
 ---@field environment dove.Environment
 ---@field cmd_list_delimiter fun(): string
 ---@field new_source_file_placeholder false|string
@@ -28,7 +28,7 @@
 ---@class dove.TargetOption
 ---@field source? dove.SourceResolver
 ---@field auto_run_single_entry? boolean
----@field default_executor? dove.Executor
+---@field executor? dove.Executor
 ---@field environment? table
 ---@field cmd_list_delimiter? fun(): string
 ---@field new_source_file_placeholder? false|string
@@ -84,7 +84,7 @@
 ---@field name string
 ---@field source string
 ---@field auto_run_single_entry boolean
----@field default_executor dove.Executor
+---@field executor dove.Executor
 
 ---@class dove.Task
 ---@field command dove.EntryCommand

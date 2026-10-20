@@ -38,7 +38,7 @@ local default_opts = {
         environment = {
             denv = common.tbl_deep_extend("force", {}, default_environment),
         },
-        default_executor = default_environment.executors.default,
+        executor = default_environment.executors.default,
         cmd_list_delimiter = function()
             local shell =
                 common.basename(common.get_shell():gsub("\\", "/")):lower()

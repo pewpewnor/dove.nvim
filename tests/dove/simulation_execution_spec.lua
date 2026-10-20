@@ -47,7 +47,7 @@ describe("source file execution", function()
                     source = function()
                         return path
                     end,
-                    default_executor = function(command)
+                    executor = function(command)
                         context:execute(command)
                     end,
                 },
@@ -346,7 +346,7 @@ describe("source file execution", function()
                     source = function()
                         return path
                     end,
-                    default_executor = function(command)
+                    executor = function(command)
                         context:execute(command)
                     end,
                     cmd_list_delimiter = function()
@@ -357,7 +357,7 @@ describe("source file execution", function()
                     source = function()
                         return path
                     end,
-                    default_executor = function(command)
+                    executor = function(command)
                         context:execute(command)
                     end,
                     environment = { prefix = "custom-" },
@@ -573,7 +573,7 @@ describe("source file execution", function()
                         return project_path
                     end,
                     auto_run_single_entry = true,
-                    default_executor = function(command)
+                    executor = function(command)
                         context:execute(command)
                     end,
                 },

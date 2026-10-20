@@ -48,13 +48,13 @@ describe("setup", function()
         assert.is_false(module.config.targets.project.auto_run_single_entry)
         assert.is_false(module.config.targets.filetype.auto_run_single_entry)
         assert.is_false(module.config.targets.global.auto_run_single_entry)
-        assert.is_function(module.config.targets.project.default_executor)
+        assert.is_function(module.config.targets.project.executor)
         assert.equals(
             default_environment.executors.default,
-            module.config.parent_target.default_executor
+            module.config.parent_target.executor
         )
-        assert.is_function(module.config.targets.filetype.default_executor)
-        assert.is_function(module.config.targets.global.default_executor)
+        assert.is_function(module.config.targets.filetype.executor)
+        assert.is_function(module.config.targets.global.executor)
         assert.is_nil(module.config.unspecified_target_name)
         assert.is_nil(module.config.cmd_list_delimiter)
         assert.is_nil(module.config.new_source_file_placeholder)
@@ -136,7 +136,7 @@ describe("setup", function()
                         return "custom.lua"
                     end,
                     auto_run_single_entry = false,
-                    default_executor = default_environment.executors.default,
+                    executor = default_environment.executors.default,
                     environment = { marker = "custom" },
                     cmd_list_delimiter = default_opts.parent_target.cmd_list_delimiter,
                     new_source_file_placeholder = false,
@@ -151,7 +151,7 @@ describe("setup", function()
         assert.same({ "custom" }, module.get_target_names())
         assert.equals(
             default_environment.executors.default,
-            module.config.targets.custom.default_executor
+            module.config.targets.custom.executor
         )
         assert.equals("custom", module.config.targets.custom.environment.marker)
         assert.is_function(module.config.targets.custom.cmd_list_delimiter)
@@ -188,6 +188,15 @@ describe("setup", function()
         })
 
         assert.is_false(success)
+    end)
+
+    it("rejects an invalid target executor", function()
+        local success, err = pcall(dove.setup, {
+            targets = { project = { executor = "new_tab" } },
+        })
+
+        assert.is_false(success)
+        assert.matches("targets.project.executor", err, 1, true)
     end)
 
     it("rejects invalid new source file template code", function()
@@ -233,7 +242,7 @@ describe("setup", function()
         local success = pcall(dove.setup, {
             targets = {
                 custom_target = {
-                    default_executor = default_environment.executors.new_tab,
+                    executor = default_environment.executors.new_tab,
                     auto_run_single_entry = false,
                 },
             },
@@ -274,7 +283,7 @@ describe("setup", function()
         dove.setup({
             parent_target = {
                 auto_run_single_entry = true,
-                default_executor = inherited_executor,
+                executor = inherited_executor,
                 environment = { marker = "shared" },
                 cmd_list_delimiter = function()
                     return " && "
@@ -285,7 +294,7 @@ describe("setup", function()
                     source = function()
                         return "custom.lua"
                     end,
-                    default_executor = custom_executor,
+                    executor = custom_executor,
                     environment = { custom = true },
                 },
             },
@@ -294,10 +303,10 @@ describe("setup", function()
         local project = module.config.targets.project
         local custom = module.config.targets.custom
         assert.is_true(project.auto_run_single_entry)
-        assert.equals(inherited_executor, project.default_executor)
+        assert.equals(inherited_executor, project.executor)
         assert.equals("shared", project.environment.marker)
         assert.equals(" && ", project.cmd_list_delimiter())
-        assert.equals(custom_executor, custom.default_executor)
+        assert.equals(custom_executor, custom.executor)
         assert.equals("shared", custom.environment.marker)
         assert.is_true(custom.environment.custom)
         assert.is_function(custom.environment.denv.file_path)

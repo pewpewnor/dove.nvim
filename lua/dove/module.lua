@@ -74,7 +74,7 @@ function M.run(target_name)
         name = resolved_target_name,
         source = source,
         auto_run_single_entry = target.auto_run_single_entry,
-        default_executor = target.default_executor,
+        executor = target.executor,
     })
 end
 

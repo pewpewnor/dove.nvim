@@ -113,7 +113,7 @@ dove.setup({
             source = function()
                 return "~/custom_target_source.lua"
             end,
-            default_executor = default_environment.executors.new_tab,
+            executor = default_environment.executors.new_tab,
         },
         -- override built-in target `project` settings
         project = {
@@ -124,7 +124,7 @@ dove.setup({
             -- run the only command without opening the picker
             auto_run_single_entry = true,
             -- override default executor to execute in a new side buffer
-            default_executor = default_environment.executors.split,
+            executor = default_environment.executors.split,
         },
     },
     -- options inherited by every target unless overridden there

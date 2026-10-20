@@ -33,7 +33,7 @@ end
 local function execute_entry(entry, target, index)
     local executor = entry.executor
     if type(entry.command) == "string" then
-        executor = executor or target.default_executor
+        executor = executor or target.executor
     end
 
     ---@type dove.Task
@@ -144,7 +144,7 @@ function M.run_entry(previous)
         name = previous.target_name,
         source = source,
         auto_run_single_entry = target_config.auto_run_single_entry,
-        default_executor = target_config.default_executor,
+        executor = target_config.executor,
     }
     local entries = parser.parse_source_file(target.source, target.name)
     if not entries then

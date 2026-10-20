@@ -16,11 +16,7 @@ local function validate_target(target_config, prefix, not_parent_target)
         target_config.auto_run_single_entry,
         "boolean"
     )
-    common.validate(
-        prefix .. ".default_executor",
-        target_config.default_executor,
-        "function"
-    )
+    common.validate(prefix .. ".executor", target_config.executor, "function")
     common.validate(
         prefix .. ".environment",
         target_config.environment,
