@@ -9,6 +9,21 @@ Bug fixes, features, and documentation improvements are welcome.
 - Update tests and documentation when behavior changes.
 - Run the checks below from the repository root.
 
+## Development Setup
+
+- Install Make, Pandoc, and Neovim.
+- Install local checks: StyLua, lua-language-server, and markdownlint.
+- `make test` downloads Plenary.nvim automatically if it is not already
+  available.
+
+Run the setup target from the repository root:
+
+```bash
+make setup
+```
+
+It enables the repository's `.githooks/pre-commit` hook.
+
 ## Bug Reports
 
 Report bugs by creating a new issue.
@@ -37,6 +52,12 @@ Write only the header for commit message except for when attributing co-authors.
 
 ### Checks
 
-All CI checks must pass before the pull request can be merged. You may also run
-these checks locally first, e.g. `make test`, `lua-language-server`, and
-`stylua`.
+All CI checks must pass before the pull request can be merged. Run the local
+checks from the repository root:
+
+```bash
+make test
+stylua --check .
+lua-language-server --check=. --checklevel=Warning --check_out_path=/tmp/dove-luals-check.json
+markdownlint '**/*.md'
+```

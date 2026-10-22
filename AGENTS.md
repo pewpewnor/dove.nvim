@@ -30,18 +30,17 @@ Use current Neovim APIs. Do not restore legacy compatibility unless requested.
 
 ## Documentation Rules
 
-Everything in `doc/` is generated with panvimdoc, do not edit it directly.
-Update the source documentation in `docs/` and ask the user to regenerate the
-generated files.
+Everything in `doc/` is generated with panvimdoc, do not edit `doc/` directly.
+Instead, update documentation in `docs/` then run `make vimdoc` to generate it.
 
-After editing Markdown files, lint and format them with:
+After editing any Markdown files, lint and format them with:
 
 ```bash
 markdownlint --fix '**/*.md'
 ```
 
 If you are unable to find the tool in path, search them on mason.nvim install
-directory. If it's still not there, give up and inform it instead.
+directory. If it's still not there, give up and inform it cannot be found.
 
 ## Tests
 
@@ -58,7 +57,7 @@ lua-language-server --check=. --checklevel=Warning --check_out_path=/tmp/dove-lu
 ```
 
 If you are unable to find these tools in path, search them on mason.nvim install
-directory. If it's still not there, give up and inform it instead.
+directory. If it's still not there, give up and inform it cannot be found.
 
 ## When Changing the Required Neovim Version
 

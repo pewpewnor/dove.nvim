@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+if git diff --cached --quiet -- docs/; then
+    exit 0
+fi
+
+make vimdoc
+if ! git diff --quiet -- doc/dove.txt; then
+    printf 'dove.nvim: generated vimdoc changed; review and stage doc/dove.txt\n' >&2
+    exit 1
+fi
