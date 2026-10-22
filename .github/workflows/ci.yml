@@ -46,6 +46,8 @@ jobs:
 
             - name: Set up Neovim
               uses: rhysd/action-setup-vim@v1
+              env:
+                  TMPDIR: ${{ runner.os == 'Linux' && '/home/runner' || runner.temp }}
               with:
                   neovim: true
                   version: v0.12.5
@@ -101,6 +103,8 @@ jobs:
 
             - name: Set up Neovim
               uses: rhysd/action-setup-vim@v1
+              env:
+                  TMPDIR: /home/runner
               with:
                   neovim: true
                   version: v0.12.5
