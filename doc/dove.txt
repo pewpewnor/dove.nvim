@@ -1,5 +1,5 @@
 *dove.txt*      Use Lua to define and run shell commands or Lua code anywhere.
-                              For NVIM v0.12.0    Last change: 2026 October 20
+                              For NVIM v0.12.x    Last change: 2026 October 22
 
 ==============================================================================
 Table of Contents                                     *dove-table-of-contents*
