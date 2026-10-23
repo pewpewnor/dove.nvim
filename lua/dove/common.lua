@@ -378,7 +378,18 @@ end
 ---@param content string
 ---@return boolean
 function M.write_text_file(path, content)
-    return vim.fn.writefile(content, path, "b") == 0
+    local lines = {}
+    local start = 1
+    while true do
+        local newline = content:find("\n", start, true)
+        if not newline then
+            lines[#lines + 1] = content:sub(start)
+            break
+        end
+        lines[#lines + 1] = content:sub(start, newline - 1)
+        start = newline + 1
+    end
+    return vim.fn.writefile(lines, path, "b") == 0
 end
 
 return M
